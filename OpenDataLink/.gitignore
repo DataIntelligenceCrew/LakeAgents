@@ -1,0 +1,16 @@
+/datasets/
+/crawl-300d-2M.vec
+
+opendatalink.sqlite
+fasttext.sqlite
+
+/build_fasttext
+/process_metadata
+/server
+/sketch_columns
+.vscode/*
+**/*.dot
+**/*.pdf
+**/*.prof 
+graph.dot
+profile

@@ -1,0 +1,50 @@
+{{define "content"}}
+  <h2>{{.Name}}</h2>
+  <p>Updated: {{.UpdatedAt}}</p>
+
+  <ul>
+    <li><a href="/similar-datasets?id={{.DatasetID}}">Find similar datasets</a></li>
+    <li><a href="/unionable-tables?id={{.DatasetID}}">Find unionable tables</a></li>
+  </ul>
+
+  <h3>Description</h3>
+  {{range lines .Description}}
+    <p>{{.}}</p>
+  {{end}}
+
+  <h3>Publisher</h3>
+  <p>{{.Attribution}} (<a href="mailto:{{.ContactEmail}}">contact</a>)</p>
+
+  <h3>Categories</h3>
+  <ul>
+    {{range .Categories}}<li>{{.}}</li>{{end}}
+  </ul>
+
+  <h3>Tags</h3>
+  <ul>
+    {{range .Tags}}<li>{{.}}</li>{{end}}
+  </ul>
+
+  <h3>Source</h3>
+  <p><a href="{{.Permalink}}">{{.Permalink}}</a></p>
+
+  <h3>Data Preview</h3>
+  <p>Click a column to find tables joinable on that column.</p>
+
+  {{with .Columns}}
+    <table>
+      <tr>
+        {{range .}}
+          <th><a href="/joinable-columns?id={{.ColumnID}}">{{.ColumnName}}</a></th>
+        {{end}}
+      </tr>
+      {{range $row, $_ := (index . 0).Sample}}
+        <tr>
+          {{range $.Columns}}
+            <td>{{index .Sample $row}}</td>
+          {{end}}
+        </tr>
+      {{end}}
+    </table>
+  {{end}}
+{{end}}

@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Data files - exclude large datasets
+OpenDataLink/datasets/
+OpenDataLink/subtables/
+OpenDataLink/joined_tables/
+
+# Output and result files
+OpenDataLink/analysis_results.json
+OpenDataLink/debug_*.json
+OpenDataLink/debug_*.py
+OpenDataLink/verified_tables.json
+*.log
+
+# Large model files
+OpenDataLink/crawl-300d-2M.vec.zip
+OpenDataLink/*.vec
+OpenDataLink/*.bin
+
+# Compiled binaries
+OpenDataLink/main.exe
+*.exe
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+
