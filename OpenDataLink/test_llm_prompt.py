@@ -209,7 +209,7 @@ Your task is to:
    - If categorical → classification  
    - If continuous numeric → regression  
 
-2. Select join columns and decompose the table into two or three subtables that can be losslessly rejoined via the join column(s).  
+2. Select join columns and decompose the table into two subtables that can be losslessly rejoined via the join column(s).  
 
 3. Always return a valid JSON following one of the formats below — no additional text.
 
@@ -274,6 +274,8 @@ Find **one or more columns** that can serve as the join key(s) for table decompo
 3. **Special consideration for date/time columns**:
 - **If using date/time columns as join columns, check if they need to be combined with other columns**
 - **For temporal data (like pickup_start_date, report_date), consider composite keys like (date, id) or (start_date, end_date, location)**
+- **For time range data with start and end dates (e.g., pickup_date and dropoff_date), consider BOTH dates as a composite key to preserve temporal integrity**
+- **If the dataset contains date range pairs (e.g., pickup_date and dropoff_date), consider using both dates as a composite key to preserve temporal integrity**
 - **Date columns often have low uniqueness in aggregated datasets and require composite keys**
 - **IMPORTANT RULE: When a dataset contains date/time columns, strongly consider including them in composite join keys, even if other columns seem unique**
 - **VERY IMPORTANT RULE: Read {date_columns_info}, If a dataset contains date-related columns (Date, Time, Published Date, Issue Date, etc.), ALWAYS include at least one date column in the join key unless there is a compelling reason not to **
@@ -287,14 +289,14 @@ Return `"status": "no_suitable_join_column"` with a brief explanation.
 ## Step 3 — Table Decomposition
 
 ### Requirements
-- Split the table into two or three subtables
+- Split the table into two subtables
 - All subtables must include **ALL** chosen join column(s)
 - **All** columns in the original table must be included in the subtables
 - Even if some columns are empty, they should be included in the subtables
 - After decomposition, count the number of distinct columns in the subtables and the original table, and the number of distinct columns in the subtables must be same as the number of distinct columns in the original table
 - Each subtable should contain a balanced, meaningful subset of columns
 - The original table must be reconstructable by joining the subtables on the join column(s)
-- Choose the number of subtables (2 or 3) based on each table's specific structure — do NOT always use 2 or always use 3
+
 
 ---
 
@@ -418,7 +420,7 @@ def analyze_dataset(dataset_path, client):
     print(f"\n=== Analyzing {dataset_id} ===")
     
     # Load data
-    table_info, sample_rows = load_dataset(dataset_path, num_rows=10)
+    table_info, sample_rows = load_dataset(dataset_path, num_rows=20)
     print("Table: {}".format(table_info['table_name']))
     print("Columns: {}, Rows: {}".format(len(table_info['columns']), len(sample_rows)))
     
