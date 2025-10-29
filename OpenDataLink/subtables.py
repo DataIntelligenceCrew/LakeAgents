@@ -13,28 +13,44 @@ def main():
     
     # Load analysis results
     with open("analysis_results_optimized.json", "r") as f:
-        analysis_results = json.load(f)
+        all_results = json.load(f)
     
-    print(f"Found {len(analysis_results)} datasets to process")
+    print(f"Found {len(all_results)} datasets in analysis_results_optimized.json")
+    
+    # Filter to only include successful datasets
+    analysis_results = []
+    skipped_count = 0
+    for result in all_results:
+        # Skip if top-level status is failed
+        if result.get('status') != 'success':
+            skipped_count += 1
+            continue
+        
+        # Skip if result.status is failed
+        if 'result' not in result or result['result'].get('status') != 'success':
+            skipped_count += 1
+            continue
+        
+        analysis_results.append(result)
+    
+    if skipped_count > 0:
+        print(f"Filtered out {skipped_count} failed datasets")
+    
+    print(f"Processing {len(analysis_results)} successful datasets")
     
     # Process each dataset
     for dataset_info in analysis_results:
         dataset_id = dataset_info['dataset']
+        result = dataset_info['result']
        
         print(f"Processing dataset: {dataset_id}")
 
-        if 'result' not in dataset_info:
-            print(f"  Skipping {dataset_id}: {dataset_info.get('error', 'No result available')}")
+        # Additional safety check: verify target_column exists
+        if 'target_column' not in result:
+            print(f"  Skipping {dataset_id}: No target_column found (not suitable for ML)")
             continue
 
-        result = dataset_info['result']   
-             
-        # Skip if analysis failed
-        if 'status' not in result or result.get('status') != 'success':
-            print(f"Skipping {dataset_id}: {result.get('status')}")
-            continue
-        
-        print(f"Processing dataset: {dataset_id}")
+        print(f"  ✓ Valid ML dataset - Target: {result['target_column']['name']} ({result['target_column']['task_type']})")
         
         # Try to find the CSV file
         csv_path = f"datasets/{dataset_id}/rows.csv"
@@ -84,11 +100,9 @@ def main():
                 # Create subtable
                 subtable_df = df[existing_columns].copy()
                 
-                # Remove duplicates based on join columns
-                join_columns = result.get('join_columns', [])
-                existing_join_cols = [col for col in join_columns if col in subtable_df.columns]
-                if existing_join_cols:
-                    subtable_df = subtable_df.drop_duplicates(subset=existing_join_cols)
+                # Note: Do NOT remove duplicates based on join columns
+                # Some datasets naturally have duplicate join_column values (e.g., one-to-many relationships)
+                # Removing duplicates would lose data and make it impossible to reconstruct the original table
                 
                 # Save subtable
                 output_file = f"{output_dir}/{subtable_name}.csv"

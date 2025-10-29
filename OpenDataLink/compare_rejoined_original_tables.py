@@ -102,8 +102,17 @@ def main():
         # Load original table
         original_file = f"datasets/{dataset_id}/rows.csv"
         try:
-            original_df = pd.read_csv(original_file, nrows=len(joined_df))
-            print(f"  Original table: {len(original_df)} rows, {len(original_df.columns)} columns")
+            # Determine nrows based on file size (same logic as subtables.py)
+            file_size = os.path.getsize(original_file) / (1024*1024)  # Size in MB
+            if file_size < 50:
+                nrows = None  # Read all rows
+            elif file_size < 100:
+                nrows = 10000  # Read first 10,000 rows
+            else:
+                nrows = 5000   # Read first 5,000 rows
+            
+            original_df = pd.read_csv(original_file, nrows=nrows)
+            print(f"  Original table: {len(original_df)} rows, {len(original_df.columns)} columns (file size: {file_size:.1f}MB, nrows={nrows})")
         except Exception as e:
             print(f"  Error loading original table: {e}")
             failed_joins += 1
@@ -141,12 +150,25 @@ def main():
         if len(joined_df) > 0 and len(original_df) > 0:
             print(f"  Comparing entire tables...")
                 
-            # Sort both dataframes by all columns for consistent comparison
-            sort_columns = sorted(set(joined_df.columns) & set(original_df.columns))
-            joined_sorted = joined_df.sort_values(sort_columns, ascending=True).reset_index(drop=True)
-            original_sorted = original_df.sort_values(sort_columns, ascending=True).reset_index(drop=True)
+            # Find primary key column (a column with unique values)
+            primary_key = None
+            for col in joined_df.columns:
+                if joined_df[col].nunique() == len(joined_df):
+                    primary_key = col
+                    print(f"  Using '{primary_key}' as primary key for sorting")
+                    break
+            
+            # Sort both dataframes using primary key or all columns
+            if primary_key:
+                joined_sorted = joined_df.sort_values(primary_key).reset_index(drop=True)
+                original_sorted = original_df.sort_values(primary_key).reset_index(drop=True)
+            else:
+                print(f"  No unique primary key found, sorting by all columns")
+                sort_columns = sorted(set(joined_df.columns) & set(original_df.columns))
+                joined_sorted = joined_df.sort_values(sort_columns, ascending=True).reset_index(drop=True)
+                original_sorted = original_df.sort_values(sort_columns, ascending=True).reset_index(drop=True)
 
-
+            # Reorder columns alphabetically for consistent comparison
             joined_sorted = joined_sorted.reindex(sorted(joined_sorted.columns), axis=1)
             original_sorted = original_sorted.reindex(sorted(original_sorted.columns), axis=1)
                    

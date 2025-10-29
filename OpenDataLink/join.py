@@ -13,35 +13,51 @@ def main():
     
     # Load analysis results
     with open("analysis_results_optimized.json", "r") as f:
-        analysis_results = json.load(f)
+        all_results = json.load(f)
     
-    print(f"Found {len(analysis_results)} datasets to process")
+    print(f"Found {len(all_results)} datasets in analysis_results_optimized.json")
+    
+    # Filter to only include successful datasets
+    analysis_results = []
+    skipped_count = 0
+    for result in all_results:
+        # Skip if top-level status is failed
+        if result.get('status') != 'success':
+            skipped_count += 1
+            continue
+        
+        # Skip if result.status is failed
+        if 'result' not in result or result['result'].get('status') != 'success':
+            skipped_count += 1
+            continue
+        
+        analysis_results.append(result)
+    
+    if skipped_count > 0:
+        print(f"Filtered out {skipped_count} failed datasets")
+    
+    print(f"Processing {len(analysis_results)} successful datasets\n")
+    
+    # Track results
+    total_entered = len(analysis_results)
+    successful_count = 0
+    failed_details = []
     
     # Process each dataset
     for dataset_info in analysis_results:
         dataset_id = dataset_info['dataset']
-        if 'result' not in dataset_info:
-            print(f"Skipping {dataset_id}: {dataset_info.get('error', 'No result available')}")
-            continue
         result = dataset_info['result']
-        
-        # Skip if analysis failed
-        if 'status' not in result or result.get('status') != 'success':
-            print(f"Skipping {dataset_id}: {result.get('status')}")
-            continue
-        
-        print(f"Processing dataset: {dataset_id}")
         
         # Get join columns
         join_columns = result.get('join_columns', [])
-        print(f"  Join columns: {join_columns}")
         
         # Load subtables
         subtables = {}
         subtable_dir = f"subtables/{dataset_id}"
         
         if not os.path.exists(subtable_dir):
-            print(f"  No subtables directory found for {dataset_id}")
+            print(f"{dataset_id}: FAILURE - No subtables directory")
+            failed_details.append({'dataset': dataset_id, 'reason': 'No subtables directory found'})
             continue
         
         # Load each subtable
@@ -58,31 +74,48 @@ def main():
                     # Check if join columns exist
                     missing_join_cols = [col for col in join_columns if col not in df.columns]
                     if missing_join_cols:
-                        print(f"  Warning: {subtable_name} missing join columns: {missing_join_cols}")
-                        print(f"  Skipping {subtable_name}")
-                        continue
+                        print(f"{dataset_id}: FAILURE - {subtable_name} missing join columns: {missing_join_cols}")
+                        failed_details.append({'dataset': dataset_id, 'reason': f'{subtable_name} missing join columns: {missing_join_cols}'})
+                        break
                     
                     subtables[subtable_name] = df
-                    print(f"  Loaded {subtable_name}: {len(df)} rows, {len(df.columns)} columns")
-                else:
-                    print(f"  Warning: {csv_file} not found")
+                    
+        # Check if we have enough subtables
+        if len(subtables) < 2:
+            print(f"{dataset_id}: FAILURE - Not enough subtables (found {len(subtables)})")
+            failed_details.append({'dataset': dataset_id, 'reason': f'Not enough subtables (found {len(subtables)})'})
+            continue
                     
         # Join subtables
         if len(subtables) >= 2:
-            # Start with the first subtable
             subtable_names = list(subtables.keys())
             joined_df = subtables[subtable_names[0]]
             
             # Join with remaining subtables
+            initial_rows = len(subtables[subtable_names[0]])
             for subtable_name in subtable_names[1:]:
                 joined_df = joined_df.merge(
                     subtables[subtable_name], 
                     on=join_columns, 
                     how='inner'
                 )
-                print(f"  Joined with {subtable_name}: {len(joined_df)} rows")
+            
+            # Check for join explosion
+            explosion_threshold = 10
+            if len(joined_df) > initial_rows * explosion_threshold:
+                print(f"{dataset_id}: FAILURE - Join explosion ({initial_rows} → {len(joined_df)} rows, {len(joined_df)/initial_rows:.1f}x)")
+                failed_details.append({'dataset': dataset_id, 'reason': f'Join explosion ({initial_rows} → {len(joined_df)} rows)'})
+                continue
+            
+            # Check absolute size limit
+            max_allowed_rows = 10000000
+            if len(joined_df) > max_allowed_rows:
+                print(f"{dataset_id}: FAILURE - Result too large ({len(joined_df)} rows)")
+                failed_details.append({'dataset': dataset_id, 'reason': f'Result too large ({len(joined_df)} rows)'})
+                continue
             
             original_df = pd.read_csv(f"datasets/{dataset_id}/rows.csv", nrows=len(joined_df))
+
             for col in joined_df.columns:
                 if col in original_df.columns:
                     original_dtype = original_df[col].dtype
@@ -92,8 +125,6 @@ def main():
                         else:
                             joined_df[col] = joined_df[col].astype(original_dtype)
                     except (ValueError, TypeError) as e:
-                        print(f"  Warning: Could not convert column '{col}' to {original_dtype}: {e}")
-                        # Keep original data type, do not convert
                         continue                        
             
             # Save joined result
@@ -101,11 +132,25 @@ def main():
             os.makedirs(output_dir, exist_ok=True)
             output_file = f"{output_dir}/{dataset_id}_joined.csv"
             joined_df.to_csv(output_file, index=False)
-            print(f"  Saved joined table: {output_file}")
-        else:
-            print(f"  Not enough subtables to join (found {len(subtables)})")
+            print(f"{dataset_id}: SUCCESS")
+            successful_count += 1
     
-    print("Processing completed!")
+    # Print summary
+    print(f"\n{'='*80}")
+    print(f"JOIN SUMMARY")
+    print(f"{'='*80}")
+    print(f"Total datasets entered: {total_entered}")
+    print(f"Successfully joined: {successful_count}")
+    print(f"Failed: {len(failed_details)}")
+    
+    if failed_details:
+        print(f"\n{'='*80}")
+        print(f"FAILED JOINS DETAILS")
+        print(f"{'='*80}")
+        for item in failed_details:
+            print(f"  {item['dataset']}: {item['reason']}")
+    
+    print(f"{'='*80}\n")
 
 
 if __name__ == "__main__":

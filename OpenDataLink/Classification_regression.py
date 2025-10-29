@@ -9,6 +9,7 @@ import os
 import pandas as pd
 import json
 import numpy as np
+import random
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.linear_model import LinearRegression
@@ -17,11 +18,39 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import xgboost as xgb
 from Data_preparation import load_verified_tables_from_file, get_verified_tables
 
+# Set random seed for reproducibility
+RANDOM_SEED = 42
+random.seed(RANDOM_SEED)
+np.random.seed(RANDOM_SEED)
+os.environ['PYTHONHASHSEED'] = str(RANDOM_SEED)
+
 
 def load_analysis_results():
-    """Load analysis results from JSON file"""
+    """Load analysis results from JSON file and filter out failed datasets"""
     with open('analysis_results_optimized.json', 'r') as f:
-        return json.load(f)
+        all_results = json.load(f)
+    
+    # Filter to only include successful datasets
+    filtered_results = []
+    skipped_count = 0
+    
+    for result in all_results:
+        # Skip if top-level status is failed
+        if result.get('status') != 'success':
+            skipped_count += 1
+            continue
+        
+        # Skip if result.status is failed
+        if 'result' not in result or result['result'].get('status') != 'success':
+            skipped_count += 1
+            continue
+        
+        filtered_results.append(result)
+    
+    if skipped_count > 0:
+        print(f"  Filtered out {skipped_count} failed datasets")
+    
+    return filtered_results
 
 def get_dataset_info(dataset_id, analysis_results):
     """Get complete dataset information including subtables and join columns"""
@@ -71,7 +100,12 @@ def preprocess_data(df, target_column,task_type):
     
     X = df.drop(columns=[target_column])
     y = df[target_column]
-    
+
+    all_nan_cols = X.columns[X.isna().all()].tolist()
+    if all_nan_cols:
+        print(f"    Removing {len(all_nan_cols)} all-NaN columns: {all_nan_cols}")
+        X = X.drop(columns=all_nan_cols)
+
     # Handle missing values in features
     for col in X.columns:
         if X[col].dtype in [np.float64, np.int64]:
@@ -82,10 +116,19 @@ def preprocess_data(df, target_column,task_type):
     # Handle missing values in target
     y = y.fillna(y.mode()[0] if len(y.mode()) > 0 else 'Unknown')
 
+    nan_threshold = 0.5 
+    nan_ratio = X.isnull().sum(axis=1) / len(X.columns)
+    valid_mask = nan_ratio <= nan_threshold
+    removed_count = (~valid_mask).sum()
+    if removed_count > 0:
+        print(f"    Removing {removed_count} rows with >{nan_threshold*100}% NaN values")
+    X = X[valid_mask].reset_index(drop=True)
+    y = y[valid_mask].reset_index(drop=True)
+
     # Remove rows where features still have NaN (in case mean was NaN)
     valid_mask = ~X.isnull().any(axis=1)
-    X = X[valid_mask]
-    y = y[valid_mask]
+    X = X[valid_mask].reset_index(drop=True)
+    y = y[valid_mask].reset_index(drop=True)
     
     if len(X) == 0:
         print(f"    Error: No valid samples after removing NaN")
@@ -116,6 +159,27 @@ def preprocess_data(df, target_column,task_type):
             print(f"    WARNING: Classes are not consecutive! Re-encoding...")
             class_map = {old: new for new, old in enumerate(unique_classes)}
             y_encoded = np.array([class_map[val] for val in y_encoded])
+        
+        # Filter out classes with too few samples (< 5)
+        min_samples_per_class = 5
+        class_counts = pd.Series(y_encoded).value_counts()
+        valid_classes = class_counts[class_counts >= min_samples_per_class].index
+        
+        if len(valid_classes) < len(class_counts):
+            removed_classes = len(class_counts) - len(valid_classes)
+            removed_samples = sum(class_counts[class_counts < min_samples_per_class])
+            print(f"    Filtering {removed_classes} classes with <{min_samples_per_class} samples ({removed_samples} total samples)")
+            
+            mask = np.isin(y_encoded, valid_classes)
+            y_encoded = y_encoded[mask]
+            X = X[mask].reset_index(drop=True)
+            
+            # Remap class labels to consecutive 0, 1, 2, ...
+            unique_classes = np.unique(y_encoded)
+            class_map = {old: new for new, old in enumerate(unique_classes)}
+            y_encoded = np.array([class_map[val] for val in y_encoded])
+            
+            print(f"    After filtering: {len(unique_classes)} classes, {len(X)} samples")
     else:  # regression
         target_encoder = None
         # For regression, try to convert to float, handle non-numeric values
@@ -124,7 +188,7 @@ def preprocess_data(df, target_column,task_type):
         # Remove rows where target is NaN
         valid_mask = ~pd.isna(y_encoded)
         y_encoded = y_encoded[valid_mask]
-        X = X[valid_mask]
+        X = X[valid_mask].reset_index(drop=True)
         
         if len(X) == 0:
             print(f"    Error: No valid samples after removing invalid target values")
@@ -154,6 +218,7 @@ def run_classification_task(X, y, target_encoder):
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42
         )
+
     
     # XGBoost parameters
     xgb_params = {
@@ -262,6 +327,11 @@ def run_incremental_ml_tasks(verified_tables):
 
     analysis_results = load_analysis_results()
     all_results = {}
+    failed_tables = {}  # Track failed tables and reasons
+
+    # Add counters for task types
+    classification_count = 0
+    regression_count = 0
 
     for table_name in verified_tables:
         print(f"\n{'='*60}")
@@ -271,12 +341,28 @@ def run_incremental_ml_tasks(verified_tables):
         # Get dataset info
         dataset_info = get_dataset_info(table_name, analysis_results)
         if not dataset_info:
-            print(f"  No dataset info found for {table_name}")
+            reason = "No dataset info found in analysis_results"
+            print(f"  ❌ {reason}")
+            failed_tables[table_name] = reason
             continue
 
-        target_column = dataset_info['target_column']['name']
-        task_type = dataset_info['target_column']['task_type']
-        join_columns = dataset_info.get('join_columns', [])
+        # check dataset_info status
+        if dataset_info.get('status') == 'failed':
+            reason = f"Dataset analysis failed: {dataset_info.get('error', 'No error message')[:200]}"
+            print(f"  ❌ {reason}")
+            failed_tables[table_name] = reason
+            continue
+
+        # try to get required fields
+        try:
+            target_column = dataset_info['target_column']['name']
+            task_type = dataset_info['target_column']['task_type']
+            join_columns = dataset_info.get('join_columns', [])
+        except KeyError as e:
+            reason = f"Missing required field: {e}"
+            print(f"  ❌ {reason}")
+            failed_tables[table_name] = reason
+            continue
         
         print(f"  Target column: {target_column}")
         print(f"  Task type: {task_type}")
@@ -286,7 +372,9 @@ def run_incremental_ml_tasks(verified_tables):
         print(f"\n  Loading subtables...")
         subtables = load_subtables(table_name, dataset_info)
         if not subtables:
-            print(f"  Failed to load subtables")
+            reason = "Failed to load subtables (directory or files not found)"
+            print(f"  ❌ {reason}")
+            failed_tables[table_name] = reason
             continue
 
         # Get ordered subtable names from dataset_info
@@ -304,133 +392,361 @@ def run_incremental_ml_tasks(verified_tables):
                     break
         
         if not target_subtable_key:
-            print(f"  Error: Target column '{target_column}' not found in any subtable")
+            reason = f"Target column '{target_column}' not found in any subtable"
+            print(f"  ❌ {reason}")
+            failed_tables[table_name] = reason
             continue
         
         print(f"\n  Found {len(subtable_keys)} subtables: {subtable_keys}")
+
+        if len(subtable_keys) != 2:
+            reason = f"Expected 2 subtables, but found {len(subtable_keys)}"
+            print(f"  ❌ {reason}")
+            failed_tables[table_name] = reason
+            continue
+
+        target_subtable_name = dataset_info[target_subtable_key]['name']
+        target_subtable_df = subtables[target_subtable_name]
+
+        non_target_subtable_key = [k for k in subtable_keys if k != target_subtable_key][0]
+        non_target_subtable_name = dataset_info[non_target_subtable_key]['name']
+        non_target_subtable_df = subtables[non_target_subtable_name]
+
+        available_columns = [col for col in non_target_subtable_df.columns if col not in join_columns]
 
         # Incremental prediction
         table_results = {
             'target_column': target_column,
             'task_type': task_type,
-            'incremental_results': []
+            'incremental_results': [],
+            'positive_pairs': [],  # increase >= 0.01
+            'negative_pairs': [],  # decrease >= 0.01
+            'undefined_pairs': []  # (0.01, -0.01)
         }
 
-        cumulative_df = None
-        
-        # Start with the subtable that contains target column
-        target_subtable_info = dataset_info[target_subtable_key]
-        target_subtable_name = target_subtable_info['name']
-        cumulative_df = subtables[target_subtable_name].copy()
-        print(f"\n  Starting with target subtable '{target_subtable_name}': {len(cumulative_df)} rows, {len(cumulative_df.columns)} columns")
-        
-        # First prediction with just the target subtable
-        print(f"\n  --- Step 1: Using only '{target_subtable_name}' (contains target) ---")
-        X, y, target_encoder, scaler = preprocess_data(cumulative_df, target_column, task_type)
-        
+        # Step 0: Baseline - using only target subtable
+        print(f"\n  --- Step 0 (Baseline): Using only '{target_subtable_name}' ---")
+        baseline_df = target_subtable_df.copy()
+        print(f"    Data shape: {len(baseline_df)} rows, {len(baseline_df.columns)} columns")
+
+        X, y, target_encoder, scaler = preprocess_data(baseline_df, target_column, task_type)
+
         if X is not None and len(X) > 0:
             print(f"    Running {task_type} task...")
             if task_type == 'classification':
                 metrics = run_classification_task(X, y, target_encoder)
+                baseline_metric_value = metrics['f1_score']
+                metric_name = 'f1_score'
+                classification_count += 1
             elif task_type == 'regression':
                 metrics = run_regression_task(X, y)
+                baseline_metric_value = metrics['r2_score']
+                metric_name = 'r2_score'
+                regression_count += 1
             else:
                 print(f"    Unknown task type: {task_type}")
                 continue
             
+            # save baseline metric
+            table_results['baseline_metric'] = baseline_metric_value
+            
             step_result = {
-                'step': 1,
-                'subtables_used': [target_subtable_key],
+                'step': 0,
+                'added_column': None,
                 'num_features': X.shape[1],
                 'num_samples': len(X),
-                'metrics': metrics
+                'metrics': metrics,
+                'metric_diff': 0.0,  # baseline difference
+                'category': 'baseline'
             }
             table_results['incremental_results'].append(step_result)
             
             print(f"    Metrics:")
             for metric, value in metrics.items():
                 print(f"      {metric}: {value:.4f}")
+            print(f"    Baseline {metric_name}: {baseline_metric_value:.4f}")
+        else:
+            reason = f"Failed to preprocess baseline data (target subtable: {target_subtable_name}, rows: {len(baseline_df)}, cols: {len(baseline_df.columns)})"
+            print(f"    ❌ {reason}")
+            failed_tables[table_name] = reason
+            continue
 
-        # Now incrementally join other subtables
-        step_num = 2
-        subtables_used = [target_subtable_key]
-        
-        for subtable_key in subtable_keys:
-            if subtable_key == target_subtable_key:
-                continue  # Skip the target subtable (already used)
+        # Step 1-N: incremental prediction by adding single column
+        for idx, column_name in enumerate(available_columns, start=1):
+            print(f"\n  --- Step {idx}: Adding single column '{column_name}' ---")
             
-            subtable_info = dataset_info[subtable_key]
-            subtable_name = subtable_info['name']
+            # always start from target_subtable_df, only join current column
+            temp_df = target_subtable_df.copy()
             
-            print(f"\n  --- Step {step_num}: Adding subtable '{subtable_name}' ---")
-
-            if subtable_name not in subtables:
-                print(f"    Subtable '{subtable_name}' not found in loaded subtables")
-                continue
-
-            current_subtable = subtables[subtable_name]
-
-            # Join with cumulative data
+            # select join_columns + current column from non_target_subtable
+            columns_to_join = join_columns + [column_name]
+            column_data = non_target_subtable_df[columns_to_join]
+            
+            # Join
             if join_columns:
-                cumulative_df = cumulative_df.merge(current_subtable, on=join_columns, how='inner')
-                print(f"    After joining: {len(cumulative_df)} rows, {len(cumulative_df.columns)} columns")
+                temp_df = temp_df.merge(column_data, on=join_columns, how='inner')
+                print(f"    After joining: {len(temp_df)} rows, {len(temp_df.columns)} columns")
             else:
-                print(f"    No join columns specified, skipping join")
+                print(f"    No join columns specified, skipping")
                 continue
-
+            
             # Preprocess and run ML
-            print(f"    Preprocessing data...")
-            X, y, target_encoder, scaler = preprocess_data(cumulative_df, target_column, task_type)
+            X, y, target_encoder, scaler = preprocess_data(temp_df, target_column, task_type)
             
             if X is None or len(X) == 0:
                 print(f"    Failed to preprocess data")
                 continue
-
+            
             print(f"    Running {task_type} task...")
             if task_type == 'classification':
                 metrics = run_classification_task(X, y, target_encoder)
+                current_metric_value = metrics['f1_score']
             elif task_type == 'regression':
                 metrics = run_regression_task(X, y)
+                current_metric_value = metrics['r2_score']
             else:
                 print(f"    Unknown task type: {task_type}")
                 continue
-
-            subtables_used.append(subtable_key)
+            
+            # calculate the difference between current and baseline
+            metric_diff = current_metric_value - baseline_metric_value
+            
+            # classification
+            if metric_diff >= 0.01:
+                category = 'positive'
+                pair_name = f"{target_subtable_name}+{column_name}"
+                table_results['positive_pairs'].append(pair_name)
+            elif metric_diff <= -0.01:
+                category = 'negative'
+                pair_name = f"{target_subtable_name}+{column_name}"
+                table_results['negative_pairs'].append(pair_name)
+            else:  # -0.01 < metric_diff < 0.01
+                category = 'undefined'
+                pair_name = f"{target_subtable_name}+{column_name}"
+                table_results['undefined_pairs'].append(pair_name)
             
             # Store results
             step_result = {
-                'step': step_num,
-                'subtables_used': subtables_used.copy(),
+                'step': idx,
+                'added_column': column_name,
+                'pair_name': pair_name,
                 'num_features': X.shape[1],
                 'num_samples': len(X),
-                'metrics': metrics
+                'metrics': metrics,
+                'metric_diff': metric_diff,
+                'category': category
             }
             table_results['incremental_results'].append(step_result)
-
-            # Print metrics
+            
             print(f"    Metrics:")
             for metric, value in metrics.items():
                 print(f"      {metric}: {value:.4f}")
-            
-            step_num += 1
+            print(f"    {metric_name} diff: {metric_diff:+.4f} [{category}]")
 
-        # Verify final joined table matches original/verified table
-        print(f"\n  --- Verification: Comparing final joined table with original ---")
-        verify_final_join(table_name, cumulative_df)
+        # print statistics for this table
+        print(f"\n  --- Statistics for {table_name} ---")
+        print(f"    Positive pairs (diff >= 0.01): {len(table_results['positive_pairs'])}")
+        print(f"    Negative pairs (diff <= -0.01): {len(table_results['negative_pairs'])}")
+        print(f"    Undefined pairs (-0.01 < diff < 0.01): {len(table_results['undefined_pairs'])}")
 
         all_results[table_name] = table_results
 
-    # Print summary
+        # Calculate global statistics
+    total_tables_tested = len(all_results)
+    total_tables_failed = len(failed_tables)
+    total_tables_verified = len(verified_tables)
+    total_positive = sum(len(result['positive_pairs']) for result in all_results.values())
+    total_negative = sum(len(result['negative_pairs']) for result in all_results.values())
+    total_undefined = sum(len(result['undefined_pairs']) for result in all_results.values())
+    total_pairs = total_positive + total_negative + total_undefined
+    
+    # Print global statistics
     print(f"\n\n{'='*60}")
-    print(f"=== INCREMENTAL ML TASKS SUMMARY ===")
+    print(f"=== GLOBAL STATISTICS ===")
     print(f"{'='*60}")
+    print(f"Total verified tables: {total_tables_verified}")
+    print(f"Successfully tested: {total_tables_tested} ({total_tables_tested/total_tables_verified*100:.1f}%)")
+    print(f"Failed: {total_tables_failed} ({total_tables_failed/total_tables_verified*100:.1f}%)")
+    print(f"")
+    print(f"Among successful tests:")
+    print(f"  Total positive pairs (diff >= 0.01): {total_positive} ({total_positive/total_pairs*100 if total_pairs > 0 else 0:.1f}%)")
+    print(f"  Total negative pairs (diff <= -0.01): {total_negative} ({total_negative/total_pairs*100 if total_pairs > 0 else 0:.1f}%)")
+    print(f"  Total undefined pairs (-0.01 < diff < 0.01): {total_undefined} ({total_undefined/total_pairs*100 if total_pairs > 0 else 0:.1f}%)")
+    print(f"  Total column additions tested: {total_pairs}")
+    print(f"Classification tasks: {classification_count}")
+    print(f"Regression tasks: {regression_count}")
+    print(f"Total tasks: {classification_count + regression_count}")
+
+    # Print failed tables details
+    if failed_tables:
+        print(f"\n{'='*60}")
+        print(f"=== FAILED TABLES DETAILS ===")
+        print(f"{'='*60}")
+        for table_name, reason in failed_tables.items():
+            print(f"{table_name}:")
+            print(f"  Reason: {reason}")
+    
+    # Save results to JSON file
+    print(f"\n{'='*60}")
+    print(f"=== SAVING RESULTS TO JSON ===")
+    print(f"{'='*60}")
+
+    output_results = {
+        'global_statistics': {
+            'total_tables_verified': total_tables_verified,
+            'total_tables_tested': total_tables_tested,
+            'total_tables_failed': total_tables_failed,
+            'success_rate': f"{total_tables_tested/total_tables_verified*100:.1f}%",
+            'total_positive_pairs': total_positive,
+            'total_negative_pairs': total_negative,
+            'total_undefined_pairs': total_undefined,
+            'total_pairs': total_pairs
+        },
+        'failed_tables': failed_tables,
+        'per_table_results': {}
+    }
     
     for table_name, result_info in all_results.items():
-        print(f"\n{table_name} ({result_info['task_type']}):")
-        for step_result in result_info['incremental_results']:
-            print(f"  Step {step_result['step']} - Features: {step_result['num_features']}, Samples: {step_result['num_samples']}")
-            for metric, value in step_result['metrics'].items():
-                print(f"    {metric}: {value:.4f}")
+        output_results['per_table_results'][table_name] = {
+            'target_column': result_info['target_column'],
+            'task_type': result_info['task_type'],
+            'baseline_metric': result_info['baseline_metric'],
+            'metric_name': 'f1_score' if result_info['task_type'] == 'classification' else 'r2_score',
+            'positive_count': len(result_info['positive_pairs']),
+            'negative_count': len(result_info['negative_pairs']),
+            'undefined_count': len(result_info['undefined_pairs']),
+            'positive_pairs': result_info['positive_pairs'],
+            'negative_pairs': result_info['negative_pairs'],
+            'undefined_pairs': result_info['undefined_pairs'],
+            'detailed_results': result_info['incremental_results']
+        }
+
+    # Save to JSON file
+    with open('incremental_column_results.json', 'w') as f:
+        json.dump(output_results, f, indent=2)
+
+    print(f"Results saved to 'incremental_column_results.json'")
+    
+
+
+
+
+
+    #     cumulative_df = None
+        
+    #     # Start with the subtable that contains target column
+    #     target_subtable_info = dataset_info[target_subtable_key]
+    #     target_subtable_name = target_subtable_info['name']
+    #     cumulative_df = subtables[target_subtable_name].copy()
+    #     print(f"\n  Starting with target subtable '{target_subtable_name}': {len(cumulative_df)} rows, {len(cumulative_df.columns)} columns")
+        
+    #     # First prediction with just the target subtable
+    #     print(f"\n  --- Step 1: Using only '{target_subtable_name}' (contains target) ---")
+    #     X, y, target_encoder, scaler = preprocess_data(cumulative_df, target_column, task_type)
+        
+    #     if X is not None and len(X) > 0:
+    #         print(f"    Running {task_type} task...")
+    #         if task_type == 'classification':
+    #             metrics = run_classification_task(X, y, target_encoder)
+    #         elif task_type == 'regression':
+    #             metrics = run_regression_task(X, y)
+    #         else:
+    #             print(f"    Unknown task type: {task_type}")
+    #             continue
+            
+    #         step_result = {
+    #             'step': 1,
+    #             'subtables_used': [target_subtable_key],
+    #             'num_features': X.shape[1],
+    #             'num_samples': len(X),
+    #             'metrics': metrics
+    #         }
+    #         table_results['incremental_results'].append(step_result)
+            
+    #         print(f"    Metrics:")
+    #         for metric, value in metrics.items():
+    #             print(f"      {metric}: {value:.4f}")
+
+    #     # Now incrementally join other subtables
+    #     step_num = 2
+    #     subtables_used = [target_subtable_key]
+        
+    #     for subtable_key in subtable_keys:
+    #         if subtable_key == target_subtable_key:
+    #             continue  # Skip the target subtable (already used)
+            
+    #         subtable_info = dataset_info[subtable_key]
+    #         subtable_name = subtable_info['name']
+            
+    #         print(f"\n  --- Step {step_num}: Adding subtable '{subtable_name}' ---")
+
+    #         if subtable_name not in subtables:
+    #             print(f"    Subtable '{subtable_name}' not found in loaded subtables")
+    #             continue
+
+    #         current_subtable = subtables[subtable_name]
+
+    #         # Join with cumulative data
+    #         if join_columns:
+    #             cumulative_df = cumulative_df.merge(current_subtable, on=join_columns, how='inner')
+    #             print(f"    After joining: {len(cumulative_df)} rows, {len(cumulative_df.columns)} columns")
+    #         else:
+    #             print(f"    No join columns specified, skipping join")
+    #             continue
+
+    #         # Preprocess and run ML
+    #         print(f"    Preprocessing data...")
+    #         X, y, target_encoder, scaler = preprocess_data(cumulative_df, target_column, task_type)
+            
+    #         if X is None or len(X) == 0:
+    #             print(f"    Failed to preprocess data")
+    #             continue
+
+    #         print(f"    Running {task_type} task...")
+    #         if task_type == 'classification':
+    #             metrics = run_classification_task(X, y, target_encoder)
+    #         elif task_type == 'regression':
+    #             metrics = run_regression_task(X, y)
+    #         else:
+    #             print(f"    Unknown task type: {task_type}")
+    #             continue
+
+    #         subtables_used.append(subtable_key)
+            
+    #         # Store results
+    #         step_result = {
+    #             'step': step_num,
+    #             'subtables_used': subtables_used.copy(),
+    #             'num_features': X.shape[1],
+    #             'num_samples': len(X),
+    #             'metrics': metrics
+    #         }
+    #         table_results['incremental_results'].append(step_result)
+
+    #         # Print metrics
+    #         print(f"    Metrics:")
+    #         for metric, value in metrics.items():
+    #             print(f"      {metric}: {value:.4f}")
+            
+    #         step_num += 1
+
+    #     # Verify final joined table matches original/verified table
+    #     print(f"\n  --- Verification: Comparing final joined table with original ---")
+    #     verify_final_join(table_name, cumulative_df)
+
+    #     all_results[table_name] = table_results
+
+    # # Print summary
+    # print(f"\n\n{'='*60}")
+    # print(f"=== INCREMENTAL ML TASKS SUMMARY ===")
+    # print(f"{'='*60}")
+    
+    # for table_name, result_info in all_results.items():
+    #     print(f"\n{table_name} ({result_info['task_type']}):")
+    #     for step_result in result_info['incremental_results']:
+    #         print(f"  Step {step_result['step']} - Features: {step_result['num_features']}, Samples: {step_result['num_samples']}")
+    #         for metric, value in step_result['metrics'].items():
+    #             print(f"    {metric}: {value:.4f}")
     
     return all_results
 
