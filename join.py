@@ -42,6 +42,7 @@ def main():
     total_entered = len(analysis_results)
     successful_count = 0
     failed_details = []
+    successful_dataset_ids = []  # Track successful joins
     
     # Process each dataset
     for dataset_info in analysis_results:
@@ -60,30 +61,44 @@ def main():
             failed_details.append({'dataset': dataset_id, 'reason': 'No subtables directory found'})
             continue
         
-        # Load each subtable
-        for i in range(1, 4):
-            subtable_key = f'subtable_{i}'
-            if subtable_key in result:
-                subtable_config = result[subtable_key]
-                subtable_name = subtable_config.get('name', f'subtable_{i}')
-                csv_file = f"{subtable_dir}/{subtable_name}.csv"
-                
+        # Prefer new candidate/non-candidate tables
+        if 'candidate_table' in result and 'non_candidate_table' in result:
+            ct_conf = result['candidate_table']
+            nct_conf = result['non_candidate_table']
+            ct_name = ct_conf.get('name', 'Candidate_Features')
+            nct_name = nct_conf.get('name', 'NonCandidate_With_Target')
+            for name in [ct_name, nct_name]:
+                csv_file = f"{subtable_dir}/{name}.csv"
                 if os.path.exists(csv_file):
                     df = pd.read_csv(csv_file)
-                    
-                    # Check if join columns exist
                     missing_join_cols = [col for col in join_columns if col not in df.columns]
                     if missing_join_cols:
-                        print(f"{dataset_id}: FAILURE - {subtable_name} missing join columns: {missing_join_cols}")
-                        failed_details.append({'dataset': dataset_id, 'reason': f'{subtable_name} missing join columns: {missing_join_cols}'})
+                        print(f"{dataset_id}: FAILURE - {name} missing join columns: {missing_join_cols}")
+                        failed_details.append({'dataset': dataset_id, 'reason': f'{name} missing join columns: {missing_join_cols}'})
+                        subtables = {}
                         break
+                    subtables[name] = df
+        else:
+            # Legacy: load subtable_1..3
+            for i in range(1, 4):
+                subtable_key = f'subtable_{i}'
+                if subtable_key in result:
+                    subtable_config = result[subtable_key]
+                    subtable_name = subtable_config.get('name', f'subtable_{i}')
+                    csv_file = f"{subtable_dir}/{subtable_name}.csv"
+                    if os.path.exists(csv_file):
+                        df = pd.read_csv(csv_file)
+                        missing_join_cols = [col for col in join_columns if col not in df.columns]
+                        if missing_join_cols:
+                            print(f"{dataset_id}: FAILURE - {subtable_name} missing join columns: {missing_join_cols}")
+                            failed_details.append({'dataset': dataset_id, 'reason': f'{subtable_name} missing join columns: {missing_join_cols}'})
+                            break
+                        subtables[subtable_name] = df
                     
-                    subtables[subtable_name] = df
-                    
-        # Check if we have enough subtables
+        # Check if we have enough tables
         if len(subtables) < 2:
-            print(f"{dataset_id}: FAILURE - Not enough subtables (found {len(subtables)})")
-            failed_details.append({'dataset': dataset_id, 'reason': f'Not enough subtables (found {len(subtables)})'})
+            print(f"{dataset_id}: FAILURE - Not enough tables (found {len(subtables)})")
+            failed_details.append({'dataset': dataset_id, 'reason': f'Not enough tables (found {len(subtables)})'})
             continue
                     
         # Join subtables
@@ -134,6 +149,7 @@ def main():
             joined_df.to_csv(output_file, index=False)
             print(f"{dataset_id}: SUCCESS")
             successful_count += 1
+            successful_dataset_ids.append(dataset_id)  # Track successful join
     
     # Print summary
     print(f"\n{'='*80}")
@@ -149,6 +165,13 @@ def main():
         print(f"{'='*80}")
         for item in failed_details:
             print(f"  {item['dataset']}: {item['reason']}")
+    
+    # Save successful join dataset IDs for compare step
+    if successful_dataset_ids:
+        output_file = "successful_joins.json"
+        with open(output_file, 'w') as f:
+            json.dump(successful_dataset_ids, f, indent=2)
+        print(f"\nSaved {len(successful_dataset_ids)} successful join dataset IDs to {output_file}")
     
     print(f"{'='*80}\n")
 

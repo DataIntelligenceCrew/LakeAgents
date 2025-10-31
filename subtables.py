@@ -83,31 +83,52 @@ def main():
         output_dir = f"subtables/{dataset_id}"
         os.makedirs(output_dir, exist_ok=True)
         
-        # Create each subtable
-        for i in range(1, 4):
-            subtable_key = f'subtable_{i}'
-            if subtable_key in result:
-                subtable_config = result[subtable_key]
-                subtable_name = subtable_config.get('name', f'subtable_{i}')
-                columns = subtable_config.get('columns', [])
-                
-                # Check if columns exist in the dataframe
-                existing_columns = [col for col in columns if col in df.columns]
-                if not existing_columns:
-                    print(f"  Warning: No valid columns found for {subtable_name}")
-                    continue
-                
-                # Create subtable
-                subtable_df = df[existing_columns].copy()
-                
-                # Note: Do NOT remove duplicates based on join columns
-                # Some datasets naturally have duplicate join_column values (e.g., one-to-many relationships)
-                # Removing duplicates would lose data and make it impossible to reconstruct the original table
-                
-                # Save subtable
-                output_file = f"{output_dir}/{subtable_name}.csv"
-                subtable_df.to_csv(output_file, index=False)
-                print(f"  Created {subtable_name}: {len(subtable_df)} rows, {len(existing_columns)} columns")
+        # New format: candidate/non-candidate tables
+        wrote_any = False
+        if 'candidate_table' in result and 'non_candidate_table' in result:
+            ct_conf = result['candidate_table']
+            nct_conf = result['non_candidate_table']
+
+            ct_name = ct_conf.get('name', 'Candidate_Features')
+            nct_name = nct_conf.get('name', 'NonCandidate_With_Target')
+
+            ct_columns = [c for c in ct_conf.get('columns', []) if c in df.columns]
+            nct_columns = [c for c in nct_conf.get('columns', []) if c in df.columns]
+
+            if ct_columns:
+                ct_df = df[ct_columns].copy()
+                ct_path = f"{output_dir}/{ct_name}.csv"
+                ct_df.to_csv(ct_path, index=False)
+                print(f"  Created {ct_name}: {len(ct_df)} rows, {len(ct_columns)} columns")
+                wrote_any = True
+            else:
+                print(f"  Warning: No valid columns found for {ct_name}")
+
+            if nct_columns:
+                nct_df = df[nct_columns].copy()
+                nct_path = f"{output_dir}/{nct_name}.csv"
+                nct_df.to_csv(nct_path, index=False)
+                print(f"  Created {nct_name}: {len(nct_df)} rows, {len(nct_columns)} columns")
+                wrote_any = True
+            else:
+                print(f"  Warning: No valid columns found for {nct_name}")
+
+        # Legacy fallback: subtable_1..3
+        if not wrote_any:
+            for i in range(1, 4):
+                subtable_key = f'subtable_{i}'
+                if subtable_key in result:
+                    subtable_config = result[subtable_key]
+                    subtable_name = subtable_config.get('name', f'subtable_{i}')
+                    columns = subtable_config.get('columns', [])
+                    existing_columns = [col for col in columns if col in df.columns]
+                    if not existing_columns:
+                        print(f"  Warning: No valid columns found for {subtable_name}")
+                        continue
+                    subtable_df = df[existing_columns].copy()
+                    output_file = f"{output_dir}/{subtable_name}.csv"
+                    subtable_df.to_csv(output_file, index=False)
+                    print(f"  Created {subtable_name}: {len(subtable_df)} rows, {len(existing_columns)} columns")
     
     print("Processing completed!")
 

@@ -298,6 +298,53 @@ Return `"status": "no_suitable_join_column"` with a brief explanation.
 - The original table must be reconstructable by joining the subtables on the join column(s)
 
 
+## Step 3A — Candidate Augmentation Feature Identification
+
+### Goal
+Create a minimal baseline table (non_candidate_table) with only essential features, and an augmentation table (candidate_table) with all other potentially useful features.
+
+### Critical Strategy: Minimal Non-Candidate Table
+
+The **non_candidate_table** MUST be kept as small as possible:
+
+1. **Required components** (always include):
+   - Target column (required)
+   - All join column(s) (required for joining)
+
+2. **Optional core features** (1-2 columns MAXIMUM):
+   - Only include if absolutely necessary for a reasonable baseline
+   - Choose the 1-2 features that are MOST directly and strongly related to the target
+   - These should be features that are essential context for the target, not optional augmentation
+   - Examples:
+     * If target is "income", you might include "education_level" (highly correlated)
+     * If target is "disease_status", you might include "age" (strong risk factor)
+     * If target is "price", you might include a base price or category
+   
+3. **Selection criteria for core features** (if needed):
+   - The feature has a direct causal/logical relationship with the target
+   - The feature is commonly used as a primary predictor for this type of target
+   - Without this feature, the baseline would be too weak (<0.3 for classification, <0.1 for regression)
+   - The feature is NOT redundant with candidate features (don't include both "age" and "age_group")
+   
+4. **What NOT to include in non_candidate_table**:
+   - Features that could provide augmentation value (put them in candidate_table)
+   - Multiple redundant features (choose only the most essential)
+   - Features that are better suited as augmentation candidates
+   - More than 2 core features (strict limit)
+
+### Candidate Table:
+- Contains ALL columns EXCEPT:
+  - Target column (never include)
+  - Join columns (included in both tables for joining)
+  - The 1-2 core features placed in non_candidate_table (if any)
+- Even if a feature seems less useful, include it in candidate_table rather than non_candidate_table
+- Join columns MUST appear in candidate_table (required for joining)
+
+### Reasoning Required:
+For the non_candidate_table, you MUST provide explicit reasoning:
+- List the 1-2 core features (if any) beyond target+join
+- Explain WHY each core feature is essential and cannot be left to candidate_table
+- Justify why these specific features are chosen over alternatives
 ---
 
 ## Output Format (JSON Only)
@@ -314,20 +361,18 @@ Return `"status": "no_suitable_join_column"` with a brief explanation.
     "task_type": "classification or regression",
     "reasoning": "brief reason"
   }},
-  "subtable_1": {{
-    "name": "table_name",
-    "columns": ["col1", "col2", "..."]
+  "candidate_table": {{
+    "name": "Candidate_Features",
+    "professional_term": "feature table",
+    "columns": ["colA", "colB", "..."],
+    "reasoning": ["why colA helps", "why colB helps"]
   }},
-  "subtable_2": {{
-    "name": "table_name", 
-    "columns": ["col3", "col4", "..."]
+  "non_candidate_table": {{
+    "name": "NonCandidate_With_Target",
+    "professional_term": "label table",
+    "columns": ["target_column_name", "colX", "colY", "..."]
   }},
-  "subtable_3": {{
-    "name": "table_name",
-    "columns": ["col5", "col6", "..."]
-  }},
-  "join_columns": ["column_name"]
-}},
+
   "join_columns": ["column_name"],
   "join_column_analysis": {{
     "candidate_columns": [
@@ -445,10 +490,17 @@ def analyze_dataset(dataset_path, client):
     elif status == 'success':
         print(f"✓ Target: {result['target_column']['name']} ({result['target_column']['task_type']})")
         print(f"✓ Join columns: {result.get('join_columns', [])}")
-        print(f"✓ Subtable 1: {result['subtable_1']['name']} - {len(result['subtable_1']['columns'])} cols")
-        print(f"✓ Subtable 2: {result['subtable_2']['name']} - {len(result['subtable_2']['columns'])} cols")
-        if 'subtable_3' in result:
-            print(f"✓ Subtable 3: {result['subtable_3']['name']} - {len(result['subtable_3']['columns'])} cols")
+        # Prefer new candidate/non-candidate outputs; fall back to legacy subtables if present
+        if 'candidate_table' in result:
+            ct = result['candidate_table']
+            nct = result.get('non_candidate_table', {'name': 'NonCandidate', 'columns': []})
+            print(f"✓ Candidate table: {ct.get('name', 'Candidate_Features')} - {len(ct.get('columns', []))} cols")
+            print(f"✓ Non-candidate table: {nct.get('name', 'NonCandidate_With_Target')} - {len(nct.get('columns', []))} cols")
+        elif 'subtable_1' in result and 'subtable_2' in result:
+            print(f"✓ Subtable 1: {result['subtable_1']['name']} - {len(result['subtable_1']['columns'])} cols")
+            print(f"✓ Subtable 2: {result['subtable_2']['name']} - {len(result['subtable_2']['columns'])} cols")
+            if 'subtable_3' in result:
+                print(f"✓ Subtable 3: {result['subtable_3']['name']} - {len(result['subtable_3']['columns'])} cols")
     else:
         print(f"⚠ Unknown status: {status}")
     

@@ -8,6 +8,7 @@ import pandas as pd
 import os
 import glob
 import numpy as np
+import json
 
 def dataframes_equal_with_tolerance(df1, df2, tolerance=1e-5):
     """Compare two DataFrames whether they are equal, with tolerance for floating point numbers"""
@@ -71,19 +72,40 @@ def main():
     
     print("=== COMPARING REJOINED vs ORIGINAL TABLES ===")
     
-    # Find all joined tables
+    # Load successful join dataset IDs from join step
+    try:
+        with open("successful_joins.json", "r") as f:
+            successful_join_datasets = set(json.load(f))
+        print(f"Loaded {len(successful_join_datasets)} successful join dataset IDs from join step")
+    except FileNotFoundError:
+        print("Warning: successful_joins.json not found, will compare all joined files")
+        successful_join_datasets = None
+    
+    # Find joined tables directory
     joined_dir = "joined_tables"
     if not os.path.exists(joined_dir):
         print(f"Error: {joined_dir} directory not found!")
         return []
     
-    joined_files = glob.glob(f"{joined_dir}/*_joined.csv")
+    # Only process datasets that successfully passed the join step
+    if successful_join_datasets:
+        # Only verify datasets that passed join step
+        joined_files = []
+        for dataset_id in successful_join_datasets:
+            joined_file = f"{joined_dir}/{dataset_id}_joined.csv"
+            if os.path.exists(joined_file):
+                joined_files.append(joined_file)
+        
+        print(f"Found {len(joined_files)} joined tables (filtered to match successful_joins.json)")
+    else:
+        # Fallback: scan all joined files if successful_joins.json not found
+        joined_files = glob.glob(f"{joined_dir}/*_joined.csv")
+        print(f"Found {len(joined_files)} joined tables to compare (no successful_joins filter)")
+    
     total_tables = len(joined_files)
     successful_joins = 0
     failed_joins = 0
     successful_table_names = []
-
-    print(f"Found {len(joined_files)} joined tables to compare")
     
     # Compare each joined table with original
     for joined_file in joined_files:

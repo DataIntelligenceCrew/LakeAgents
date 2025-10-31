@@ -68,26 +68,45 @@ def load_subtables(dataset_id, dataset_info):
         print(f"  Subtables directory not found: {subtable_dir}")
         return None
     
-    # Get subtable names from dataset_info (from analysis_results_optimized.json)
-    subtable_keys = sorted([k for k in dataset_info.keys() if k.startswith('subtable_')])
-    
-    for subtable_key in subtable_keys:
-        subtable_info = dataset_info[subtable_key]
-        subtable_name = subtable_info['name']  # Get the name from analysis_results
+    # New format: candidate_table and non_candidate_table
+    if 'candidate_table' in dataset_info and 'non_candidate_table' in dataset_info:
+        ct_conf = dataset_info['candidate_table']
+        nct_conf = dataset_info['non_candidate_table']
+        ct_name = ct_conf.get('name', 'Candidate_Features')
+        nct_name = nct_conf.get('name', 'NonCandidate_With_Target')
         
-        # Construct the file path
-        file_path = f"{subtable_dir}/{subtable_name}.csv"
+        for name in [ct_name, nct_name]:
+            file_path = f"{subtable_dir}/{name}.csv"
+            if not os.path.exists(file_path):
+                print(f"    Warning: Table file not found: {file_path}")
+                continue
+            try:
+                df = pd.read_csv(file_path)
+                subtables[name] = df
+                print(f"    Loaded table '{name}': {len(df)} rows, {len(df.columns)} columns")
+            except Exception as e:
+                print(f"    Error loading {file_path}: {e}")
+    else:
+        # Legacy format: subtable_1, subtable_2, etc.
+        subtable_keys = sorted([k for k in dataset_info.keys() if k.startswith('subtable_')])
         
-        if not os.path.exists(file_path):
-            print(f"    Warning: Subtable file not found: {file_path}")
-            continue
-        
-        try:
-            df = pd.read_csv(file_path)
-            subtables[subtable_name] = df
-            print(f"    Loaded subtable '{subtable_name}': {len(df)} rows, {len(df.columns)} columns")
-        except Exception as e:
-            print(f"    Error loading {file_path}: {e}")
+        for subtable_key in subtable_keys:
+            subtable_info = dataset_info[subtable_key]
+            subtable_name = subtable_info['name']  # Get the name from analysis_results
+            
+            # Construct the file path
+            file_path = f"{subtable_dir}/{subtable_name}.csv"
+            
+            if not os.path.exists(file_path):
+                print(f"    Warning: Subtable file not found: {file_path}")
+                continue
+            
+            try:
+                df = pd.read_csv(file_path)
+                subtables[subtable_name] = df
+                print(f"    Loaded subtable '{subtable_name}': {len(df)} rows, {len(df.columns)} columns")
+            except Exception as e:
+                print(f"    Error loading {file_path}: {e}")
     
     return subtables
 
@@ -377,42 +396,81 @@ def run_incremental_ml_tasks(verified_tables):
             failed_tables[table_name] = reason
             continue
 
-        # Get ordered subtable names from dataset_info
-        subtable_keys = sorted([k for k in dataset_info.keys() if k.startswith('subtable_')])
-        
-        # Find which subtable contains the target column
-        target_subtable_key = None
-        for subtable_key in subtable_keys:
-            subtable_info = dataset_info[subtable_key]
-            subtable_name = subtable_info['name']
-            if subtable_name in subtables:
-                if target_column in subtables[subtable_name].columns:
-                    target_subtable_key = subtable_key
-                    print(f"\n  Target column found in subtable: '{subtable_name}' ({subtable_key})")
-                    break
-        
-        if not target_subtable_key:
-            reason = f"Target column '{target_column}' not found in any subtable"
-            print(f"  ❌ {reason}")
-            failed_tables[table_name] = reason
-            continue
-        
-        print(f"\n  Found {len(subtable_keys)} subtables: {subtable_keys}")
+        # New format: candidate_table and non_candidate_table
+        if 'candidate_table' in dataset_info and 'non_candidate_table' in dataset_info:
+            ct_conf = dataset_info['candidate_table']
+            nct_conf = dataset_info['non_candidate_table']
+            ct_name = ct_conf.get('name', 'Candidate_Features')
+            nct_name = nct_conf.get('name', 'NonCandidate_With_Target')
+            
+            # non_candidate_table contains the target (label table)
+            # candidate_table contains features (feature table)
+            if nct_name not in subtables:
+                reason = f"Non-candidate table '{nct_name}' not found in loaded tables"
+                print(f"  ❌ {reason}")
+                failed_tables[table_name] = reason
+                continue
+            
+            if ct_name not in subtables:
+                reason = f"Candidate table '{ct_name}' not found in loaded tables"
+                print(f"  ❌ {reason}")
+                failed_tables[table_name] = reason
+                continue
+            
+            target_subtable_name = nct_name
+            target_subtable_df = subtables[nct_name]
+            
+            # Verify target column is in non_candidate_table
+            if target_column not in target_subtable_df.columns:
+                reason = f"Target column '{target_column}' not found in non_candidate_table '{nct_name}'"
+                print(f"  ❌ {reason}")
+                failed_tables[table_name] = reason
+                continue
+            
+            print(f"\n  Using new table structure:")
+            print(f"    Target table (non_candidate): '{nct_name}' - contains target column")
+            print(f"    Feature table (candidate): '{ct_name}' - contains augmentation columns")
+            
+            candidate_table_df = subtables[ct_name]
+            available_columns = [col for col in candidate_table_df.columns if col not in join_columns]
+            
+        else:
+            # Legacy format: subtable_1, subtable_2, etc.
+            subtable_keys = sorted([k for k in dataset_info.keys() if k.startswith('subtable_')])
+            
+            # Find which subtable contains the target column
+            target_subtable_key = None
+            for subtable_key in subtable_keys:
+                subtable_info = dataset_info[subtable_key]
+                subtable_name = subtable_info['name']
+                if subtable_name in subtables:
+                    if target_column in subtables[subtable_name].columns:
+                        target_subtable_key = subtable_key
+                        print(f"\n  Target column found in subtable: '{subtable_name}' ({subtable_key})")
+                        break
+            
+            if not target_subtable_key:
+                reason = f"Target column '{target_column}' not found in any subtable"
+                print(f"  ❌ {reason}")
+                failed_tables[table_name] = reason
+                continue
+            
+            print(f"\n  Found {len(subtable_keys)} subtables: {subtable_keys}")
 
-        if len(subtable_keys) != 2:
-            reason = f"Expected 2 subtables, but found {len(subtable_keys)}"
-            print(f"  ❌ {reason}")
-            failed_tables[table_name] = reason
-            continue
+            if len(subtable_keys) != 2:
+                reason = f"Expected 2 subtables, but found {len(subtable_keys)}"
+                print(f"  ❌ {reason}")
+                failed_tables[table_name] = reason
+                continue
 
-        target_subtable_name = dataset_info[target_subtable_key]['name']
-        target_subtable_df = subtables[target_subtable_name]
+            target_subtable_name = dataset_info[target_subtable_key]['name']
+            target_subtable_df = subtables[target_subtable_name]
 
-        non_target_subtable_key = [k for k in subtable_keys if k != target_subtable_key][0]
-        non_target_subtable_name = dataset_info[non_target_subtable_key]['name']
-        non_target_subtable_df = subtables[non_target_subtable_name]
+            non_target_subtable_key = [k for k in subtable_keys if k != target_subtable_key][0]
+            non_target_subtable_name = dataset_info[non_target_subtable_key]['name']
+            non_target_subtable_df = subtables[non_target_subtable_name]
 
-        available_columns = [col for col in non_target_subtable_df.columns if col not in join_columns]
+            available_columns = [col for col in non_target_subtable_df.columns if col not in join_columns]
 
         # Incremental prediction
         table_results = {
@@ -478,9 +536,15 @@ def run_incremental_ml_tasks(verified_tables):
             # always start from target_subtable_df, only join current column
             temp_df = target_subtable_df.copy()
             
-            # select join_columns + current column from non_target_subtable
-            columns_to_join = join_columns + [column_name]
-            column_data = non_target_subtable_df[columns_to_join]
+            # select join_columns + current column from candidate/non-target table
+            if 'candidate_table' in dataset_info and 'non_candidate_table' in dataset_info:
+                # New format: join from candidate_table
+                columns_to_join = join_columns + [column_name]
+                column_data = candidate_table_df[columns_to_join]
+            else:
+                # Legacy format: join from non_target_subtable
+                columns_to_join = join_columns + [column_name]
+                column_data = non_target_subtable_df[columns_to_join]
             
             # Join
             if join_columns:
