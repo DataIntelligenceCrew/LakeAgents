@@ -95,6 +95,22 @@ def main():
             ct_columns = [c for c in ct_conf.get('columns', []) if c in df.columns]
             nct_columns = [c for c in nct_conf.get('columns', []) if c in df.columns]
 
+            # CRITICAL FIX: Ensure join columns are in both tables
+            join_columns = result.get('join_columns', [])
+            if join_columns:
+                # Add missing join columns to candidate table
+                for jc in join_columns:
+                    if jc in df.columns and jc not in ct_columns:
+                        print(f"  WARNING: Adding missing join column '{jc}' to {ct_name}")
+                        ct_columns.append(jc)
+                
+                # Add missing join columns to non-candidate table
+                for jc in join_columns:
+                    if jc in df.columns and jc not in nct_columns:
+                        print(f"  WARNING: Adding missing join column '{jc}' to {nct_name}")
+                        nct_columns.append(jc)
+
+
             if ct_columns:
                 ct_df = df[ct_columns].copy()
                 ct_path = f"{output_dir}/{ct_name}.csv"
