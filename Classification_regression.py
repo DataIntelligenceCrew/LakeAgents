@@ -576,11 +576,11 @@ def run_incremental_ml_tasks(verified_tables):
             metric_diff = current_metric_value - baseline_metric_value
             
             # classification
-            if metric_diff >= 0.01:
+            if metric_diff >= 0.1:
                 category = 'positive'
                 pair_name = f"{target_subtable_name}+{column_name}"
                 table_results['positive_pairs'].append(pair_name)
-            elif metric_diff <= -0.01:
+            elif metric_diff <= -0.1:
                 category = 'negative'
                 pair_name = f"{target_subtable_name}+{column_name}"
                 table_results['negative_pairs'].append(pair_name)

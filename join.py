@@ -45,9 +45,11 @@ def main():
     successful_dataset_ids = []  # Track successful joins
     
     # Process each dataset
-    for dataset_info in analysis_results:
+    for idx, dataset_info in enumerate(analysis_results, 1):
         dataset_id = dataset_info['dataset']
         result = dataset_info['result']
+        
+        print(f"\n[{idx}/{len(analysis_results)}] Processing {dataset_id}...")
         
         # Get join columns
         join_columns = result.get('join_columns', [])
@@ -104,16 +106,29 @@ def main():
         # Join subtables
         if len(subtables) >= 2:
             subtable_names = list(subtables.keys())
+            print(f"  {dataset_id}: Starting join with {len(subtables)} tables on {join_columns}...")
             joined_df = subtables[subtable_names[0]]
+            print(f"  {dataset_id}: Base table has {len(joined_df)} rows")
             
             # Join with remaining subtables
             initial_rows = len(subtables[subtable_names[0]])
             for subtable_name in subtable_names[1:]:
+                subtable_df = subtables[subtable_name].copy()
+                
+                # Remove columns that already exist in joined_df (except join columns)
+                cols_to_drop = [col for col in subtable_df.columns 
+                                if col in joined_df.columns and col not in join_columns]
+                if cols_to_drop:
+                    print(f"  {dataset_id}: Removing duplicate columns from {subtable_name}: {cols_to_drop}")
+                    subtable_df = subtable_df.drop(columns=cols_to_drop)
+                
+                print(f"  {dataset_id}: Joining with {subtable_name} ({len(subtable_df)} rows)...")
                 joined_df = joined_df.merge(
-                    subtables[subtable_name], 
+                    subtable_df, 
                     on=join_columns, 
                     how='inner'
                 )
+                print(f"  {dataset_id}: After join: {len(joined_df)} rows")
             
             # Check for join explosion
             explosion_threshold = 10
@@ -129,7 +144,15 @@ def main():
                 failed_details.append({'dataset': dataset_id, 'reason': f'Result too large ({len(joined_df)} rows)'})
                 continue
             
-            original_df = pd.read_csv(f"datasets/{dataset_id}/rows.csv", nrows=len(joined_df))
+            # Read original data with progress indication
+            print(f"  {dataset_id}: Reading original data for dtype alignment...")
+            try:
+                original_df = pd.read_csv(f"datasets/{dataset_id}/rows.csv", nrows=len(joined_df))
+                print(f"  {dataset_id}: Aligning data types...")
+            except Exception as e:
+                print(f"{dataset_id}: FAILURE - Could not read original data: {e}")
+                failed_details.append({'dataset': dataset_id, 'reason': f'Could not read original data: {e}'})
+                continue
 
             for col in joined_df.columns:
                 if col in original_df.columns:
@@ -146,8 +169,9 @@ def main():
             output_dir = f"joined_tables"
             os.makedirs(output_dir, exist_ok=True)
             output_file = f"{output_dir}/{dataset_id}_joined.csv"
+            print(f"  {dataset_id}: Saving joined table ({len(joined_df)} rows, {len(joined_df.columns)} columns)...")
             joined_df.to_csv(output_file, index=False)
-            print(f"{dataset_id}: SUCCESS")
+            print(f"{dataset_id}: SUCCESS ✓")
             successful_count += 1
             successful_dataset_ids.append(dataset_id)  # Track successful join
     

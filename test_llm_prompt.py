@@ -4,6 +4,7 @@ Simple LLM-based Table Analysis
 Reads metadata and sample rows, asks LLM to select target column and decompose table
 """
 
+from openai import OpenAI
 import google.generativeai as genai
 import json
 import os
@@ -13,17 +14,51 @@ import time
 from pathlib import Path
 
 csv.field_size_limit(min(1000000, sys.maxsize))
-class LLMClient:
+
+class OpenAIClient:
+    """Client for OpenAI API"""
+    
+    def __init__(self, api_key=None, model="gpt-4o"):
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        if not self.api_key:
+            raise ValueError("Please set OPENAI_API_KEY environment variable")
+        
+        # Initialize OpenAI client
+        self.client = OpenAI(api_key=self.api_key)
+        self.model = model
+        self.provider = "openai"
+    
+    def ask(self, prompt):
+        """Send prompt to LLM and get response"""
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                temperature=1.0
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"Error calling OpenAI API: {e}")
+            return None
+
+
+class GeminiClient:
     """Client for Google Gemini API"""
     
-    def __init__(self, api_key=None):
+    def __init__(self, api_key=None, model="gemini-2.0-flash-exp"):
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
         if not self.api_key:
             raise ValueError("Please set GOOGLE_API_KEY environment variable")
         
         # Configure the client with API key
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-2.5-flash')  
+        self.model = genai.GenerativeModel(model)
+        self.provider = "gemini"
     
     def ask(self, prompt):
         """Send prompt to LLM and get response"""
@@ -31,8 +66,29 @@ class LLMClient:
             response = self.model.generate_content(prompt)
             return response.text
         except Exception as e:
-            print(f"Error calling API: {e}")
+            print(f"Error calling Gemini API: {e}")
             return None
+
+
+def create_llm_client(provider="openai", model=None):
+    """
+    Factory function to create LLM client
+    
+    Args:
+        provider: "openai" or "gemini"
+        model: Model name (optional, uses defaults if not specified)
+    
+    Returns:
+        LLM client instance
+    """
+    if provider.lower() == "openai":
+        default_model = model or "gpt-4o"
+        return OpenAIClient(model=default_model)
+    elif provider.lower() == "gemini":
+        default_model = model or "gemini-2.0-flash-exp"
+        return GeminiClient(model=default_model)
+    else:
+        raise ValueError(f"Unknown provider: {provider}. Choose 'openai' or 'gemini'")
 
 
 def load_dataset(dataset_path, num_rows=30):
@@ -310,35 +366,32 @@ The **non_candidate_table** MUST be kept as small as possible:
 1. **Required components** (always include):
    - Target column (required)
    - All join column(s) (required for joining)
+   - Core features (1-2 columns MAXIMUM):
+        Only include if absolutely necessary for a reasonable baseline
+        Choose the 1-2 features that are MOST directly and strongly related to the target
+        These should be features that are essential context for the target, not optional augmentation
+        Examples:
+            *If target is "income", you might include "education_level" (highly correlated)
+            *If target is "disease_status", you might include "age" (strong risk factor)
+            *If target is "price", you might include a base price or category
 
-2. **Optional core features** (1-2 columns MAXIMUM):
-   - Only include if absolutely necessary for a reasonable baseline
-   - Choose the 1-2 features that are MOST directly and strongly related to the target
-   - These should be features that are essential context for the target, not optional augmentation
-   - Examples:
-     * If target is "income", you might include "education_level" (highly correlated)
-     * If target is "disease_status", you might include "age" (strong risk factor)
-     * If target is "price", you might include a base price or category
-   
-3. **Selection criteria for core features** (if needed):
-   - The feature has a direct causal/logical relationship with the target
-   - The feature is commonly used as a primary predictor for this type of target
-   - Without this feature, the baseline would be too weak (<0.3 for classification, <0.1 for regression)
-   - The feature is NOT redundant with candidate features (don't include both "age" and "age_group")
-   
-4. **What NOT to include in non_candidate_table**:
+2. **What NOT to include in non_candidate_table**:
    - Features that could provide augmentation value (put them in candidate_table)
    - Multiple redundant features (choose only the most essential)
    - Features that are better suited as augmentation candidates
    - More than 2 core features (strict limit)
 
 ### Candidate Table:
-- Contains ALL columns EXCEPT:
-  - Target column (never include)
-  - Join columns (included in both tables for joining)
-  - The 1-2 core features placed in non_candidate_table (if any)
+**CRITICAL**: The candidate_table MUST include:
+  - **ALL join column(s)** (REQUIRED for joining - this is mandatory!)
+  - ALL other columns EXCEPT:
+    * Target column (never include)
+    * The 1-2 core features placed in non_candidate_table (if any)
+
+**Summary**: candidate_table = join_columns + all_other_features (excluding target and non_candidate core features)
+
 - Even if a feature seems less useful, include it in candidate_table rather than non_candidate_table
-- Join columns MUST appear in candidate_table (required for joining)
+- **REMINDER**: Join columns are NOT optional - they MUST be in candidate_table!
 
 ### Reasoning Required:
 For the non_candidate_table, you MUST provide explicit reasoning:
@@ -529,19 +582,33 @@ def main():
     import sys
     
     if len(sys.argv) < 2:
-        print("Usage: python test_llm_prompt.py <datasets_directory> [--max N]")
+        print("Usage: python test_llm_prompt.py <datasets_directory> [--max N] [--provider openai|gemini] [--model MODEL_NAME]")
         print("Example: python test_llm_prompt.py datasets/")
         print("Example: python test_llm_prompt.py datasets/ --max 5")
+        print("Example: python test_llm_prompt.py datasets/ --provider openai --model gpt-4o")
+        print("Example: python test_llm_prompt.py datasets/ --provider gemini --model gemini-2.0-flash-exp")
         sys.exit(1)
     
     # Parse arguments
     datasets_dir = sys.argv[1]
     max_datasets = None
+    provider = "openai"  # Default to OpenAI
+    model = None  # Use default model for the provider
     
     if "--max" in sys.argv:
         max_idx = sys.argv.index("--max")
         if max_idx + 1 < len(sys.argv):
             max_datasets = int(sys.argv[max_idx + 1])
+    
+    if "--provider" in sys.argv:
+        provider_idx = sys.argv.index("--provider")
+        if provider_idx + 1 < len(sys.argv):
+            provider = sys.argv[provider_idx + 1]
+    
+    if "--model" in sys.argv:
+        model_idx = sys.argv.index("--model")
+        if model_idx + 1 < len(sys.argv):
+            model = sys.argv[model_idx + 1]
     
     # Find all datasets
     print(f"Scanning {datasets_dir} for datasets...")
@@ -554,10 +621,14 @@ def main():
     if max_datasets:
         dataset_paths = dataset_paths[:max_datasets]
     
-    print(f"Found {len(dataset_paths)} datasets to process\n")
+    print(f"Found {len(dataset_paths)} datasets to process")
+    print(f"Using LLM Provider: {provider.upper()}")
+    if model:
+        print(f"Using Model: {model}")
+    print()
     
-    # Process datasets
-    client = LLMClient()
+    # Create LLM client
+    client = create_llm_client(provider=provider, model=model)
     results = []
     
     for i, dataset_path in enumerate(dataset_paths, 1):
