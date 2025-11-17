@@ -478,8 +478,7 @@ def run_incremental_ml_tasks(verified_tables):
             'task_type': task_type,
             'incremental_results': [],
             'positive_pairs': [],  # increase >= 0.01
-            'negative_pairs': [],  # decrease >= 0.01
-            'undefined_pairs': []  # (0.01, -0.01)
+            'negative_pairs': [],  # metric_diff < 0.01 (no improvement, includes undefined)
         }
 
         # Step 0: Baseline - using only target subtable
@@ -576,18 +575,14 @@ def run_incremental_ml_tasks(verified_tables):
             metric_diff = current_metric_value - baseline_metric_value
             
             # classification
-            if metric_diff >= 0.1:
+            if metric_diff >= 0.01:
                 category = 'positive'
                 pair_name = f"{target_subtable_name}+{column_name}"
                 table_results['positive_pairs'].append(pair_name)
-            elif metric_diff <= -0.1:
+            else:  # metric_diff < 0.01 (includes all undefined samples)
                 category = 'negative'
                 pair_name = f"{target_subtable_name}+{column_name}"
                 table_results['negative_pairs'].append(pair_name)
-            else:  # -0.01 < metric_diff < 0.01
-                category = 'undefined'
-                pair_name = f"{target_subtable_name}+{column_name}"
-                table_results['undefined_pairs'].append(pair_name)
             
             # Store results
             step_result = {
@@ -610,8 +605,7 @@ def run_incremental_ml_tasks(verified_tables):
         # print statistics for this table
         print(f"\n  --- Statistics for {table_name} ---")
         print(f"    Positive pairs (diff >= 0.01): {len(table_results['positive_pairs'])}")
-        print(f"    Negative pairs (diff <= -0.01): {len(table_results['negative_pairs'])}")
-        print(f"    Undefined pairs (-0.01 < diff < 0.01): {len(table_results['undefined_pairs'])}")
+        print(f"    Negative pairs (diff < 0.01, includes undefined): {len(table_results['negative_pairs'])}")
 
         all_results[table_name] = table_results
 
@@ -621,8 +615,7 @@ def run_incremental_ml_tasks(verified_tables):
     total_tables_verified = len(verified_tables)
     total_positive = sum(len(result['positive_pairs']) for result in all_results.values())
     total_negative = sum(len(result['negative_pairs']) for result in all_results.values())
-    total_undefined = sum(len(result['undefined_pairs']) for result in all_results.values())
-    total_pairs = total_positive + total_negative + total_undefined
+    total_pairs = total_positive + total_negative
     
     # Print global statistics
     print(f"\n\n{'='*60}")
@@ -634,8 +627,7 @@ def run_incremental_ml_tasks(verified_tables):
     print(f"")
     print(f"Among successful tests:")
     print(f"  Total positive pairs (diff >= 0.01): {total_positive} ({total_positive/total_pairs*100 if total_pairs > 0 else 0:.1f}%)")
-    print(f"  Total negative pairs (diff <= -0.01): {total_negative} ({total_negative/total_pairs*100 if total_pairs > 0 else 0:.1f}%)")
-    print(f"  Total undefined pairs (-0.01 < diff < 0.01): {total_undefined} ({total_undefined/total_pairs*100 if total_pairs > 0 else 0:.1f}%)")
+    print(f"  Total negative pairs (diff < 0.01, includes undefined): {total_negative} ({total_negative/total_pairs*100 if total_pairs > 0 else 0:.1f}%)")
     print(f"  Total column additions tested: {total_pairs}")
     print(f"Classification tasks: {classification_count}")
     print(f"Regression tasks: {regression_count}")
@@ -663,7 +655,6 @@ def run_incremental_ml_tasks(verified_tables):
             'success_rate': f"{total_tables_tested/total_tables_verified*100:.1f}%",
             'total_positive_pairs': total_positive,
             'total_negative_pairs': total_negative,
-            'total_undefined_pairs': total_undefined,
             'total_pairs': total_pairs
         },
         'failed_tables': failed_tables,
@@ -678,10 +669,8 @@ def run_incremental_ml_tasks(verified_tables):
             'metric_name': 'f1_score' if result_info['task_type'] == 'classification' else 'r2_score',
             'positive_count': len(result_info['positive_pairs']),
             'negative_count': len(result_info['negative_pairs']),
-            'undefined_count': len(result_info['undefined_pairs']),
             'positive_pairs': result_info['positive_pairs'],
             'negative_pairs': result_info['negative_pairs'],
-            'undefined_pairs': result_info['undefined_pairs'],
             'detailed_results': result_info['incremental_results']
         }
 
@@ -690,127 +679,6 @@ def run_incremental_ml_tasks(verified_tables):
         json.dump(output_results, f, indent=2)
 
     print(f"Results saved to 'incremental_column_results.json'")
-    
-
-
-
-
-
-    #     cumulative_df = None
-        
-    #     # Start with the subtable that contains target column
-    #     target_subtable_info = dataset_info[target_subtable_key]
-    #     target_subtable_name = target_subtable_info['name']
-    #     cumulative_df = subtables[target_subtable_name].copy()
-    #     print(f"\n  Starting with target subtable '{target_subtable_name}': {len(cumulative_df)} rows, {len(cumulative_df.columns)} columns")
-        
-    #     # First prediction with just the target subtable
-    #     print(f"\n  --- Step 1: Using only '{target_subtable_name}' (contains target) ---")
-    #     X, y, target_encoder, scaler = preprocess_data(cumulative_df, target_column, task_type)
-        
-    #     if X is not None and len(X) > 0:
-    #         print(f"    Running {task_type} task...")
-    #         if task_type == 'classification':
-    #             metrics = run_classification_task(X, y, target_encoder)
-    #         elif task_type == 'regression':
-    #             metrics = run_regression_task(X, y)
-    #         else:
-    #             print(f"    Unknown task type: {task_type}")
-    #             continue
-            
-    #         step_result = {
-    #             'step': 1,
-    #             'subtables_used': [target_subtable_key],
-    #             'num_features': X.shape[1],
-    #             'num_samples': len(X),
-    #             'metrics': metrics
-    #         }
-    #         table_results['incremental_results'].append(step_result)
-            
-    #         print(f"    Metrics:")
-    #         for metric, value in metrics.items():
-    #             print(f"      {metric}: {value:.4f}")
-
-    #     # Now incrementally join other subtables
-    #     step_num = 2
-    #     subtables_used = [target_subtable_key]
-        
-    #     for subtable_key in subtable_keys:
-    #         if subtable_key == target_subtable_key:
-    #             continue  # Skip the target subtable (already used)
-            
-    #         subtable_info = dataset_info[subtable_key]
-    #         subtable_name = subtable_info['name']
-            
-    #         print(f"\n  --- Step {step_num}: Adding subtable '{subtable_name}' ---")
-
-    #         if subtable_name not in subtables:
-    #             print(f"    Subtable '{subtable_name}' not found in loaded subtables")
-    #             continue
-
-    #         current_subtable = subtables[subtable_name]
-
-    #         # Join with cumulative data
-    #         if join_columns:
-    #             cumulative_df = cumulative_df.merge(current_subtable, on=join_columns, how='inner')
-    #             print(f"    After joining: {len(cumulative_df)} rows, {len(cumulative_df.columns)} columns")
-    #         else:
-    #             print(f"    No join columns specified, skipping join")
-    #             continue
-
-    #         # Preprocess and run ML
-    #         print(f"    Preprocessing data...")
-    #         X, y, target_encoder, scaler = preprocess_data(cumulative_df, target_column, task_type)
-            
-    #         if X is None or len(X) == 0:
-    #             print(f"    Failed to preprocess data")
-    #             continue
-
-    #         print(f"    Running {task_type} task...")
-    #         if task_type == 'classification':
-    #             metrics = run_classification_task(X, y, target_encoder)
-    #         elif task_type == 'regression':
-    #             metrics = run_regression_task(X, y)
-    #         else:
-    #             print(f"    Unknown task type: {task_type}")
-    #             continue
-
-    #         subtables_used.append(subtable_key)
-            
-    #         # Store results
-    #         step_result = {
-    #             'step': step_num,
-    #             'subtables_used': subtables_used.copy(),
-    #             'num_features': X.shape[1],
-    #             'num_samples': len(X),
-    #             'metrics': metrics
-    #         }
-    #         table_results['incremental_results'].append(step_result)
-
-    #         # Print metrics
-    #         print(f"    Metrics:")
-    #         for metric, value in metrics.items():
-    #             print(f"      {metric}: {value:.4f}")
-            
-    #         step_num += 1
-
-    #     # Verify final joined table matches original/verified table
-    #     print(f"\n  --- Verification: Comparing final joined table with original ---")
-    #     verify_final_join(table_name, cumulative_df)
-
-    #     all_results[table_name] = table_results
-
-    # # Print summary
-    # print(f"\n\n{'='*60}")
-    # print(f"=== INCREMENTAL ML TASKS SUMMARY ===")
-    # print(f"{'='*60}")
-    
-    # for table_name, result_info in all_results.items():
-    #     print(f"\n{table_name} ({result_info['task_type']}):")
-    #     for step_result in result_info['incremental_results']:
-    #         print(f"  Step {step_result['step']} - Features: {step_result['num_features']}, Samples: {step_result['num_samples']}")
-    #         for metric, value in step_result['metrics'].items():
-    #             print(f"    {metric}: {value:.4f}")
     
     return all_results
 

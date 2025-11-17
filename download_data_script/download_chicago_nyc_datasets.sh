@@ -5,7 +5,7 @@
 # Skips datasets smaller than 5MB
 # Requires curl and jq
 
-cd /localdisk3/ytang49/opendata/OpenDataLink || exit 1
+cd /localdisk3/ytang49/opendata/ || exit 1
 mkdir -p datasets && cd datasets || exit 1
 
 discovery_api_url='https://api.us.socrata.com/api/catalog/v1'

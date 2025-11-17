@@ -12,12 +12,25 @@ build/
 OpenDataLink/datasets/
 OpenDataLink/subtables/
 OpenDataLink/joined_tables/
+datasets/
+datasets_opendata/
+joined_tables/
+subtables/
+processed_data/
+.hf_cache/
+.hf_models/
 
 # Output and result files
 OpenDataLink/analysis_results.json
 OpenDataLink/debug_*.json
 OpenDataLink/debug_*.py
 OpenDataLink/verified_tables.json
+analysis_results_optimized*.json
+incremental_column_results.json
+successful_joins.json
+verified_tables.json
+llm_config.json
+*.npz
 *.log
 
 # Large model files
@@ -44,3 +57,9 @@ Thumbs.db
 *.tmp
 *.bak
 
+third_party/tapas/
+tapas/
+
+# Ignore entire third_party reference repos
+third_party/**
+!third_party/.keep

@@ -1,0 +1,105 @@
+# Model Configuration for Table Augmentation
+# Architecture hyperparameters for all three layers
+
+# Layer 1: Table Embedding (TableFormer-style)
+layer1:
+  embedding_dim: 128
+  max_vocab_size: 10000
+  
+  # Cell encoder settings
+  cell_encoder:
+    type: transformer  # Options: 'transformer', 'lstm', 'mlp'
+    num_layers: 2
+    num_heads: 4
+    hidden_dim: 128
+    dropout: 0.1
+  
+  # Position encoding
+  position_encoding:
+    type: learned  # Options: 'learned', 'sinusoidal'
+    max_rows: 5000
+    max_cols: 100
+    row_dim: 32
+    col_dim: 32
+  
+  # Column aggregation method
+  pooling:
+    method: mean  # Options: 'mean', 'attention', 'max', 'lstm'
+    attention_heads: 4  # Only used if method='attention'
+  
+  # Role embeddings
+  role_embedding:
+    enabled: true
+    embedding_dim: 32
+    num_roles: 3  # 0=target, 1=join, 2=attribute
+  
+  # Output dimension
+  output_dim: 128
+
+# Layer 2: Table-Level Joinability Classifier
+layer2:
+  input_dim: 128  # Should match layer1.output_dim
+  
+  # MLP architecture
+  hidden_dims: [256, 128, 64]
+  dropout: 0.3
+  activation: relu  # Options: 'relu', 'gelu', 'tanh'
+  batch_norm: true
+  
+  # Pooling strategy
+  table_pooling:
+    method: role_aware_mean  # Options: 'mean', 'attention', 'role_aware_mean'
+    exclude_join_columns: true  # For purity of representation
+  
+  # Pair representation
+  pair_features:
+    - concat           # [h_cand; h_non_cand]
+    - difference       # |h_cand - h_non_cand|
+    - element_product  # h_cand ⊙ h_non_cand
+  
+  # Output
+  output_dim: 1  # Binary classification score
+
+# Layer 3: Graph Transformer for Column Augmentation
+layer3:
+  input_dim: 128  # Should match layer1.output_dim
+  hidden_dim: 128
+  
+  # Graph Transformer architecture
+  num_layers: 3
+  num_heads: 4
+  dropout: 0.2
+  
+  # Edge types
+  edge_types:
+    - join          # Type 0: Between join columns
+    - intra_table   # Type 1: Within same table
+    - augmentation  # Type 2: Candidate → target
+  
+  edge_embedding_dim: 16
+  
+  # Message passing
+  message_passing:
+    aggregation: add  # Options: 'add', 'mean', 'max'
+    residual_connections: true
+    layer_norm: true
+  
+  # Scoring MLP
+  scoring_mlp:
+    hidden_dims: [128, 64]
+    dropout: 0.2
+    include_joinability_score: true  # Concatenate s_join
+  
+  # Output
+  output_dim: 1  # Binary score per candidate column
+
+# Global settings
+global:
+  device: cuda  # Options: 'cuda', 'cpu', 'mps'
+  dtype: float32  # Options: 'float32', 'float16' (for mixed precision)
+  
+# Initialization
+initialization:
+  method: xavier_uniform  # Options: 'xavier_uniform', 'kaiming_normal'
+  seed: 42
+

@@ -1,0 +1,80 @@
+# Data Configuration for Table Augmentation Model
+# Paths and data processing settings
+
+# Data paths
+data_dir: /localdisk3/ytang49/opendata
+output_dir: ./processed_data
+
+# Input files
+input_files:
+  analysis_results: analysis_results_optimized.json
+  incremental_results: incremental_column_results.json
+  successful_joins: successful_joins.json
+  verified_tables: verified_tables.json
+  subtables_dir: subtables
+  joined_tables_dir: joined_tables
+
+# Layer 2: Table-level Joinability Settings
+layer2:
+  positive_source: verified_tables.json
+  
+  # Natural negative sources (failed joins or verifications)
+  natural_negative_sources:
+    - failed_joins          # Analyzed but failed to join
+    - failed_verifications  # Joined but failed verification
+  
+  # Synthetic negative sampling
+  synthetic_negative_ratio: 1.5  # neg:pos ratio for synthetic samples
+  min_negative_samples: 50       # Minimum total negative samples
+  
+  # Cross-dataset pairing strategy
+  cross_dataset_sampling:
+    enabled: true
+    difficulty_mix: 0.7  # 70% hard negatives (similar schemas), 30% easy
+
+# Layer 3: Column-level Augmentation Settings
+layer3:
+  positive_threshold: 0.01  # metric_diff >= 0.01 → positive
+  source: incremental_column_results.json
+  
+  # Handle undefined samples (optional)
+  include_undefined: false  # If true, treat as separate class
+  undefined_label: -1       # Label for undefined samples
+
+# Table preprocessing
+preprocessing:
+  max_rows_per_table: 5000  # Sample rows for large tables
+  max_cols_per_table: 100   # Handle wide tables
+  max_cell_length: 200       # Truncate long text cells
+  sample_strategy: random   # or 'head', 'stratified'
+  
+  # Data type handling
+  numerical_binning:
+    enabled: true
+    num_bins: 10
+  
+  categorical_encoding:
+    max_unique_values: 100  # Beyond this, treat as text
+    unknown_token: <UNK>
+  
+  text_processing:
+    lowercase: true
+    remove_punctuation: false
+    max_tokens: 200
+
+# Caching
+caching:
+  enabled: true
+  cache_dir: ./processed_data/cache
+  force_recompute: false  # Set to true to ignore cached data
+  
+# Statistics and logging
+logging:
+  log_data_stats: true
+  save_sample_visualization: true
+  verbose: true
+  use_aim: true  # Log data statistics to Aim
+
+# Random seed for reproducibility
+random_seed: 42
+

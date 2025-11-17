@@ -1,0 +1,30 @@
+# Core dependencies for Table Augmentation Model
+torch>=2.0.0
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+
+# Graph Neural Networks
+torch-geometric>=2.3.0
+torch-scatter>=2.1.0
+torch-sparse>=0.6.0
+
+# Data processing
+pyyaml>=6.0
+tqdm>=4.65.0
+
+# Experiment tracking
+aim>=3.17.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.14.0
+
+# XGBoost (for baseline comparisons)
+xgboost>=2.0.0
+
+# Optional: Pre-trained models
+# sentence-transformers>=2.2.0
+# transformers>=4.30.0
+
