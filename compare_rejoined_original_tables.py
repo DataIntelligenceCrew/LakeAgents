@@ -9,6 +9,7 @@ import os
 import glob
 import numpy as np
 import json
+import sys
 
 def dataframes_equal_with_tolerance(df1, df2, tolerance=1e-5):
     """Compare two DataFrames whether they are equal, with tolerance for floating point numbers"""
@@ -67,10 +68,15 @@ def rows_equal_with_tolerance(row1, row2, tolerance=1e-5):
             return False
     return True
 
-def main():
-    """Main function to compare rejoined and original tables."""
+def main(datasets_dir="datasets"):
+    """Main function to compare rejoined and original tables.
+    
+    Args:
+        datasets_dir: Directory containing the datasets (default: "datasets")
+    """
     
     print("=== COMPARING REJOINED vs ORIGINAL TABLES ===")
+    print(f"Using datasets directory: {datasets_dir}")
     
     # Load successful join dataset IDs from join step
     try:
@@ -122,7 +128,7 @@ def main():
             continue
         
         # Load original table
-        original_file = f"datasets/{dataset_id}/rows.csv"
+        original_file = f"{datasets_dir}/{dataset_id}/rows.csv"
         try:
             # Determine nrows based on file size (same logic as subtables.py)
             file_size = os.path.getsize(original_file) / (1024*1024)  # Size in MB
@@ -244,13 +250,20 @@ def main():
     print(f"\n=== COMPARISON COMPLETED ===")
     return successful_table_names
 
-def get_successful_rejoined_tables():
+def get_successful_rejoined_tables(datasets_dir="datasets"):
     """Wrapper function to get successful rejoined table names.
+    
+    Args:
+        datasets_dir: Directory containing the datasets (default: "datasets")
     
     Returns:
         list: List of dataset_ids that successfully passed the comparison
     """
-    return main()
+    return main(datasets_dir)
     
 if __name__ == "__main__":
-    main()
+    datasets_dir = "datasets"
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--datasets-dir" and len(sys.argv) > 2:
+            datasets_dir = sys.argv[2]
+    main(datasets_dir)

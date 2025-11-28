@@ -7,15 +7,21 @@ Reads analysis_results_optimized.json and creates separate CSV files for each su
 import json
 import pandas as pd
 import os
+import sys
 
-def main():
-    """Main function to process all datasets and create subtables."""
+def main(datasets_dir="datasets"):
+    """Main function to process all datasets and create subtables.
+
+    Args:
+        datasets_dir: Directory containing the datasets (default: "datasets")
+    """
     
     # Load analysis results
     with open("analysis_results_optimized.json", "r") as f:
         all_results = json.load(f)
     
     print(f"Found {len(all_results)} datasets in analysis_results_optimized.json")
+    print(f"Using datasets directory: {datasets_dir}")
     
     # Filter to only include successful datasets
     analysis_results = []
@@ -53,7 +59,7 @@ def main():
         print(f"  ✓ Valid ML dataset - Target: {result['target_column']['name']} ({result['target_column']['task_type']})")
         
         # Try to find the CSV file
-        csv_path = f"datasets/{dataset_id}/rows.csv"
+        csv_path = f"{datasets_dir}/{dataset_id}/rows.csv"
 
     
         if not os.path.exists(csv_path):  
@@ -150,4 +156,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    datasets_dir = "datasets"
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--datasets-dir" and len(sys.argv) > 2:
+            datasets_dir = sys.argv[2]
+    main(datasets_dir)

@@ -50,7 +50,7 @@ class OpenAIClient:
 class GeminiClient:
     """Client for Google Gemini API"""
     
-    def __init__(self, api_key=None, model="gemini-2.0-flash-exp"):
+    def __init__(self, api_key=None, model="gemini-2.5-flash"):
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
         if not self.api_key:
             raise ValueError("Please set GOOGLE_API_KEY environment variable")
@@ -85,7 +85,7 @@ def create_llm_client(provider="openai", model=None):
         default_model = model or "gpt-4o"
         return OpenAIClient(model=default_model)
     elif provider.lower() == "gemini":
-        default_model = model or "gemini-2.0-flash-exp"
+        default_model = model or "gemini-2.5-flash"
         return GeminiClient(model=default_model)
     else:
         raise ValueError(f"Unknown provider: {provider}. Choose 'openai' or 'gemini'")

@@ -10,6 +10,8 @@ import pandas as pd
 import json
 import numpy as np
 import random
+import yaml
+from pathlib import Path
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.linear_model import LinearRegression
@@ -23,6 +25,19 @@ RANDOM_SEED = 42
 random.seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 os.environ['PYTHONHASHSEED'] = str(RANDOM_SEED)
+
+# Load configuration
+def load_config():
+    """Load configuration from data_config.yaml"""
+    config_path = Path("configs/data_config.yaml")
+    if config_path.exists():
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        return config.get('layer3', {}).get('positive_threshold', 0.01)
+    return 0.01  # Default threshold
+
+# Get threshold from config
+POSITIVE_THRESHOLD = load_config()
 
 
 def load_analysis_results():
@@ -575,11 +590,11 @@ def run_incremental_ml_tasks(verified_tables):
             metric_diff = current_metric_value - baseline_metric_value
             
             # classification
-            if metric_diff >= 0.01:
+            if metric_diff >= POSITIVE_THRESHOLD:
                 category = 'positive'
                 pair_name = f"{target_subtable_name}+{column_name}"
                 table_results['positive_pairs'].append(pair_name)
-            else:  # metric_diff < 0.01 (includes all undefined samples)
+            else:  # metric_diff < POSITIVE_THRESHOLD (includes all undefined samples)
                 category = 'negative'
                 pair_name = f"{target_subtable_name}+{column_name}"
                 table_results['negative_pairs'].append(pair_name)
@@ -604,8 +619,8 @@ def run_incremental_ml_tasks(verified_tables):
 
         # print statistics for this table
         print(f"\n  --- Statistics for {table_name} ---")
-        print(f"    Positive pairs (diff >= 0.01): {len(table_results['positive_pairs'])}")
-        print(f"    Negative pairs (diff < 0.01, includes undefined): {len(table_results['negative_pairs'])}")
+        print(f"    Positive pairs (diff >= {POSITIVE_THRESHOLD}): {len(table_results['positive_pairs'])}")
+        print(f"    Negative pairs (diff < {POSITIVE_THRESHOLD}, includes undefined): {len(table_results['negative_pairs'])}")
 
         all_results[table_name] = table_results
 
@@ -626,8 +641,8 @@ def run_incremental_ml_tasks(verified_tables):
     print(f"Failed: {total_tables_failed} ({total_tables_failed/total_tables_verified*100:.1f}%)")
     print(f"")
     print(f"Among successful tests:")
-    print(f"  Total positive pairs (diff >= 0.01): {total_positive} ({total_positive/total_pairs*100 if total_pairs > 0 else 0:.1f}%)")
-    print(f"  Total negative pairs (diff < 0.01, includes undefined): {total_negative} ({total_negative/total_pairs*100 if total_pairs > 0 else 0:.1f}%)")
+    print(f"  Total positive pairs (diff >= {POSITIVE_THRESHOLD}): {total_positive} ({total_positive/total_pairs*100 if total_pairs > 0 else 0:.1f}%)")
+    print(f"  Total negative pairs (diff < {POSITIVE_THRESHOLD}, includes undefined): {total_negative} ({total_negative/total_pairs*100 if total_pairs > 0 else 0:.1f}%)")
     print(f"  Total column additions tested: {total_pairs}")
     print(f"Classification tasks: {classification_count}")
     print(f"Regression tasks: {regression_count}")

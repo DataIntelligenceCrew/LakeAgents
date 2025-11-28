@@ -7,15 +7,21 @@ Reads analysis_results_optimized.json and joins subtables for each dataset.
 import json
 import pandas as pd
 import os
+import sys
 
-def main():
-    """Main function to join all subtables."""
+def main(datasets_dir="datasets"):
+    """Main function to join all subtables.
+
+    Args:
+        datasets_dir: Directory containing the datasets (default: "datasets")
+    """
     
     # Load analysis results
     with open("analysis_results_optimized.json", "r") as f:
         all_results = json.load(f)
     
     print(f"Found {len(all_results)} datasets in analysis_results_optimized.json")
+    print(f"Using datasets directory: {datasets_dir}")
     
     # Filter to only include successful datasets
     analysis_results = []
@@ -147,7 +153,7 @@ def main():
             # Read original data with progress indication
             print(f"  {dataset_id}: Reading original data for dtype alignment...")
             try:
-                original_df = pd.read_csv(f"datasets/{dataset_id}/rows.csv", nrows=len(joined_df))
+                original_df = pd.read_csv(f"{datasets_dir}/{dataset_id}/rows.csv", nrows=len(joined_df))
                 print(f"  {dataset_id}: Aligning data types...")
             except Exception as e:
                 print(f"{dataset_id}: FAILURE - Could not read original data: {e}")
@@ -201,4 +207,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    datasets_dir = "datasets"
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--datasets-dir" and len(sys.argv) > 2:
+            datasets_dir = sys.argv[2]
+    main(datasets_dir)

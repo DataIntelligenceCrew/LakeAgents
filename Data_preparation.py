@@ -8,15 +8,19 @@ Usage:
     python Data_preparation.py llm subtables join compare  # Run specific scripts
     python Data_preparation.py subtables join compare     # Run specific scripts (skip llm)
 """
-from compare_rejoined_original_tables import get_successful_rejoined_tables, main as compare_main
+from compare_rejoined_original_tables import get_successful_rejoined_tables
 import subprocess
 import sys
 import os
 import json  
 
-def get_verified_tables():
-    """get rejoined table names"""
-    successful_tables = get_successful_rejoined_tables()
+def get_verified_tables(datasets_dir="datasets"):
+    """get rejoined table names
+    
+    Args:
+        datasets_dir: Directory containing the datasets (default: "datasets")
+    """
+    successful_tables = get_successful_rejoined_tables(datasets_dir)
     return successful_tables
 
 def save_verified_tables_to_file(verified_tables):
@@ -80,24 +84,26 @@ def load_llm_config():
             return json.load(f)
     return None
 
-def run_llm_step(provider="openai", model=None, max_datasets=50):
+def run_llm_step(provider="openai", model=None, max_datasets=50, datasets_dir="datasets"):
     """Run LLM prompt step
     
     Args:
         provider: "openai" or "gemini"
         model: Model name (optional)
         max_datasets: Maximum number of datasets to process
+        datasets_dir: Directory containing the datasets (default: "datasets")
     """
     print("=== Running LLM Step ===")
     print(f"Provider: {provider.upper()}")
     if model:
         print(f"Model: {model}")
     print(f"Max datasets: {max_datasets}")
+    print(f"Datasets directory: {datasets_dir}")
     
     # Save LLM configuration
     save_llm_config(provider, model, max_datasets)
     
-    cmd = ["python", "test_llm_prompt.py", "datasets/", "--max", str(max_datasets), 
+    cmd = ["python", "test_llm_prompt.py", f"{datasets_dir}/", "--max", str(max_datasets), 
            "--provider", provider]
     
     if model:
@@ -106,25 +112,42 @@ def run_llm_step(provider="openai", model=None, max_datasets=50):
     result = subprocess.run(cmd)
     return result.returncode == 0
 
-def run_subtables_step():
-    """Run subtables step"""
+def run_subtables_step(datasets_dir="datasets"):
+    """Run subtables step
+    
+    Args:
+        datasets_dir: Directory containing the datasets (default: "datasets")
+    """
     print("=== Running Subtables Step ===")
-    cmd = ["python", "subtables.py"]
+    print(f"Datasets directory: {datasets_dir}")
+    cmd = ["python", "subtables.py", "--datasets-dir", datasets_dir]
     result = subprocess.run(cmd)
     return result.returncode == 0
 
-def run_join_step():
-    """Run join step"""
+def run_join_step(datasets_dir="datasets"):
+    """Run join step
+    
+    Args:
+        datasets_dir: Directory containing the datasets (default: "datasets")
+    """
     print("=== Running Join Step ===")
-    cmd = ["python", "join.py"]
+    print(f"Datasets directory: {datasets_dir}")
+    cmd = ["python", "join.py", "--datasets-dir", datasets_dir]
     result = subprocess.run(cmd)
     return result.returncode == 0
 
-def run_compare_step():
-    """Run compare step and save verified tables"""
+def run_compare_step(datasets_dir="datasets"):
+    """Run compare step and save verified tables
+    
+    Args:
+        datasets_dir: Directory containing the datasets (default: "datasets")
+    """
     print("=== Running Compare Step ===")
+    print(f"Datasets directory: {datasets_dir}")
 
-    verified_tables = compare_main()
+    # Import the function and call it with datasets_dir
+    from compare_rejoined_original_tables import main as compare_main_func
+    verified_tables = compare_main_func(datasets_dir)
     
     if verified_tables is not None:
         # Save verified tables
@@ -137,7 +160,7 @@ def run_compare_step():
     else:
         return False
 
-def run_data_preparation_steps(script_names, provider="openai", model=None, max_datasets=50):
+def run_data_preparation_steps(script_names, provider="openai", model=None, max_datasets=50, datasets_dir="datasets"):
     """Run selected data preparation steps
     
     Args:
@@ -145,14 +168,15 @@ def run_data_preparation_steps(script_names, provider="openai", model=None, max_
         provider: LLM provider ("openai" or "gemini")
         model: Model name (optional)
         max_datasets: Maximum number of datasets to process
+        datasets_dir: Directory containing the datasets (default: "datasets")
     """
     
     # Define available steps
     available_steps = {
-        "llm": lambda: run_llm_step(provider=provider, model=model, max_datasets=max_datasets),
-        "subtables": run_subtables_step,
-        "join": run_join_step,
-        "compare": run_compare_step
+        "llm": lambda: run_llm_step(provider=provider, model=model, max_datasets=max_datasets, datasets_dir=datasets_dir),
+        "subtables": lambda: run_subtables_step(datasets_dir=datasets_dir),
+        "join": lambda: run_join_step(datasets_dir=datasets_dir),
+        "compare": lambda: run_compare_step(datasets_dir=datasets_dir)
     }
     
     # Validate script names
@@ -164,6 +188,7 @@ def run_data_preparation_steps(script_names, provider="openai", model=None, max_
     
     # Print what we're going to run
     print(f"=== RUNNING SCRIPTS: {', '.join(script_names)} ===")
+    print(f"Datasets directory: {datasets_dir}")
     if "llm" in script_names:
         print(f"LLM Configuration: Provider={provider.upper()}, Model={model or 'default'}, Max={max_datasets}")
     else:
@@ -206,11 +231,13 @@ def main():
         print("  --provider openai|gemini    LLM provider (default: openai)")
         print("  --model MODEL_NAME          Model name (optional)")
         print("  --max N                     Maximum datasets to process (default: 50)")
+        print("  --datasets-dir DIR          Datasets directory (default: datasets)")
         print("\nExamples:")
         print("  python Data_preparation.py all --provider openai")
         print("  python Data_preparation.py all --provider gemini --model gemini-2.0-flash-exp")
         print("  python Data_preparation.py llm subtables --provider openai --max 100")
         print("  python Data_preparation.py subtables join compare  # Skip LLM step")
+        print("  python Data_preparation.py all --datasets-dir datasets2  # Use datasets2 folder")
         sys.exit(1)
     
     # Parse arguments
@@ -219,6 +246,16 @@ def main():
     provider = "openai"
     model = None
     max_datasets = 50
+    # Try to find the correct datasets directory
+    datasets_dir = "datasets"
+    # Check if default directory exists, if not try alternatives
+    if not os.path.exists(datasets_dir):
+        if os.path.exists("datasets_omnimatch2"):
+            datasets_dir = "datasets_omnimatch2"
+            print(f"Note: 'datasets' directory not found, using '{datasets_dir}' instead")
+        elif os.path.exists("datasets2"):
+            datasets_dir = "datasets2"
+            print(f"Note: 'datasets' directory not found, using '{datasets_dir}' instead")
     
     # Extract script names and options
     i = 0
@@ -233,6 +270,9 @@ def main():
             i += 2
         elif arg == "--max" and i + 1 < len(args):
             max_datasets = int(args[i + 1])
+            i += 2
+        elif arg == "--datasets-dir" and i + 1 < len(args):
+            datasets_dir = args[i + 1]
             i += 2
         elif arg.startswith("--"):
             print(f"Unknown option: {arg}")
@@ -251,7 +291,7 @@ def main():
         sys.exit(1)
     
     # Run the steps
-    success = run_data_preparation_steps(script_names, provider=provider, model=model, max_datasets=max_datasets)
+    success = run_data_preparation_steps(script_names, provider=provider, model=model, max_datasets=max_datasets, datasets_dir=datasets_dir)
     
     if not success:
         sys.exit(1)
