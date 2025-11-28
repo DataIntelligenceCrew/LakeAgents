@@ -14,6 +14,8 @@ OpenDataLink/subtables/
 OpenDataLink/joined_tables/
 datasets/
 datasets_opendata/
+datasets_omnimatch/
+datasets_omnimatch2/
 joined_tables/
 subtables/
 processed_data/
@@ -59,6 +61,7 @@ Thumbs.db
 
 third_party/tapas/
 tapas/
+pytorch-frame/
 
 # Ignore entire third_party reference repos
 third_party/**
