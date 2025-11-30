@@ -260,12 +260,29 @@ def extract_omnimatch_join_columns(test_features_dir, test_datasets_dir, results
     else:
         embeddings = torch.stack([torch.tensor(e) if isinstance(e, np.ndarray) else e for e in embeddings])
     
-    # 加载 column_ids
-    with open(os.path.join(test_features_dir, "individual_features.pickle"), 'rb') as f:
-        column_features = pickle.load(f)
+    # 关键修改：使用 training data 的 column_ids，因为 embeddings 是基于 training graph 计算的
+    train_node_features_path = "/localdisk3/ytang49/opendata/omnimatch/assets/features/city_government/train_tables/individual_features.pickle"
     
-    column_ids = {col: i for i, col in enumerate(column_features.keys())}
-    id_to_column = {i: col for col, i in column_ids.items()}
+    if not os.path.exists(train_node_features_path):
+        raise FileNotFoundError(f"Training node features not found: {train_node_features_path}")
+    
+    # 加载 training data 的 column_ids（embeddings 的索引对应这个）
+    with open(train_node_features_path, 'rb') as f:
+        train_column_features = pickle.load(f)
+    
+    # 使用与 get_column_ids 相同的逻辑
+    train_column_ids = {}
+    for i, (col, features) in enumerate(train_column_features.items()):
+        # 注意：get_column_ids 中使用了 rstrip()
+        col_key = (col[0], col[1].rstrip())
+        train_column_ids[col_key] = i
+    
+    print(f"Loaded {len(train_column_ids)} training column IDs")
+    print(f"Embeddings shape: {embeddings.shape}")
+    
+    # 加载 test data 的 column features（用于获取列名）
+    with open(os.path.join(test_features_dir, "individual_features.pickle"), 'rb') as f:
+        test_column_features = pickle.load(f)
     
     # 加载 LLM 结果
     with open(analysis_results_file, 'r') as f:
@@ -289,6 +306,9 @@ def extract_omnimatch_join_columns(test_features_dir, test_datasets_dir, results
         nct_name = result['non_candidate_table'].get('name', 'NonCandidate_With_Target')
         llm_join_columns = result.get('join_columns', [])
         
+        # 对 LLM 的列名也进行 rstrip() 处理，与 featurizer 保持一致
+        llm_join_columns = [col.rstrip() for col in llm_join_columns]
+        
         candidate_table_file = f"{dataset_name}_{ct_name}.csv"
         non_candidate_table_file = f"{dataset_name}_{nct_name}.csv"
         
@@ -309,75 +329,92 @@ def extract_omnimatch_join_columns(test_features_dir, test_datasets_dir, results
         # 计算所有列对的分数
         best_scores = {}  # {col_name: (score, matched_col)}
         
+        # 为每个 candidate 列找到对应的 embedding（只根据 column name，忽略 table name）
+        col1_to_emb = {}
         for col1 in df_candidate.columns:
-            # 查找所有具有相同列名的列（不管表名），用于匹配训练数据中的 embedding
-            col1_candidates = []
-            for col_key, col_id in column_ids.items():
-                table_name, col_name = col_key
-                if col_name == col1:  # 列名匹配
-                    col1_candidates.append((col_id, table_name))
-            
-            if not col1_candidates:
-                # 如果找不到匹配的列，跳过
-                continue
-            
+            # 只根据 column name 查找，忽略 table name
+            for (train_table, train_col), col_id in train_column_ids.items():
+                if train_col == col1:  # 只比较 column name
+                    try:
+                        if col_id < len(embeddings):
+                            col1_to_emb[col1] = embeddings[col_id]
+                            break  # 找到第一个匹配就停止
+                    except (IndexError, KeyError):
+                        pass
+        
+        # 为每个 non-candidate 列找到对应的 embedding（只根据 column name，忽略 table name）
+        col2_to_emb = {}
             for col2 in df_non_candidate.columns:
-                # 只考虑列名匹配的情况（因为这是同一个数据集内的 join）
-                if col1 != col2:
+            # 只根据 column name 查找，忽略 table name
+            for (train_table, train_col), col_id in train_column_ids.items():
+                if train_col == col2:  # 只比较 column name
+                    try:
+                        if col_id < len(embeddings):
+                            col2_to_emb[col2] = embeddings[col_id]
+                            break  # 找到第一个匹配就停止
+                    except (IndexError, KeyError):
+                        pass
+        
+        # 计算所有列对的 embedding 相似度（不再要求列名匹配）
+        for col1, emb1 in col1_to_emb.items():
+            for col2, emb2 in col2_to_emb.items():
+                try:
+                distance = torch.norm(emb1 - emb2).item()
+                score = 1.0 / (1.0 + distance)
+                
+                    # 记录每个 candidate 列的最佳匹配
+                    if col1 not in best_scores or score > best_scores[col1][0]:
+                        best_scores[col1] = (score, col2)
+                except Exception as e:
                     continue
-                
-                # 查找所有具有相同列名的列（不管表名）
-                col2_candidates = []
-                for col_key, col_id in column_ids.items():
-                    table_name, col_name = col_key
-                    if col_name == col2:  # 列名匹配
-                        col2_candidates.append((col_id, table_name))
-                
-                if not col2_candidates:
-                    continue
-                
-                # 计算所有候选对之间的相似度，取最高分
-                best_score = 0
-                best_pair = None
-                for col1_id, col1_table in col1_candidates:
-                    for col2_id, col2_table in col2_candidates:
-                        try:
-                            emb1 = embeddings[col1_id]
-                            emb2 = embeddings[col2_id]
-                            distance = torch.norm(emb1 - emb2).item()
-                            score = 1.0 / (1.0 + distance)
-                            if score > best_score:
-                                best_score = score
-                                best_pair = (col1_table, col2_table)
-                        except (IndexError, KeyError) as e:
-                            # 如果 embedding 索引超出范围，跳过
-                            continue
-                
-                if best_score > 0 and (col1 not in best_scores or best_score > best_scores[col1][0]):
-                    best_scores[col1] = (best_score, col2)
         
         # 按分数排序，选择 top join columns
         sorted_cols = sorted(best_scores.items(), key=lambda x: x[1][0], reverse=True)
-        predicted_join_cols = [col for col, (score, _) in sorted_cols if score > 0.5]  # 阈值可调
+        
+        # 根据 LLM 的 join column 数量，选择 top n
+        n_llm = len(llm_join_columns)
+        if n_llm > 0:
+            # 选择 top n，但只保留分数 > 0.5 的
+            predicted_join_cols = [col for col, (score, _) in sorted_cols[:n_llm] if score > 0.5]
+        else:
+            # 如果 LLM 没有 join columns，OmniMatch 也不选择
+            predicted_join_cols = []
         
         omnimatch_results[dataset_name] = predicted_join_cols
         
         # 比较结果
-        llm_set = set(llm_join_columns)
-        omnimatch_set = set(predicted_join_cols)
+        # 确保两个集合中的列名都经过 rstrip() 处理
+        llm_set = set(llm_join_columns)  # 已经 rstrip() 过了
+        omnimatch_set = set(predicted_join_cols)  # 已经 rstrip() 过了
+        
+        # 计算重叠比例
+        intersection = llm_set & omnimatch_set
+        union = llm_set | omnimatch_set
+        
+        # 重叠比例：重叠的列数 / LLM 的列数
+        overlap_ratio = len(intersection) / len(llm_set) if len(llm_set) > 0 else 0.0
+        # Jaccard 相似度：重叠的列数 / 并集的列数
+        jaccard_similarity = len(intersection) / len(union) if len(union) > 0 else 0.0
         
         comparison_results[dataset_name] = {
             'llm_join_columns': llm_join_columns,
             'omnimatch_join_columns': predicted_join_cols,
+            'llm_count': len(llm_join_columns),
+            'omnimatch_count': len(predicted_join_cols),
             'match': llm_set == omnimatch_set,
+            'overlap_ratio': overlap_ratio,  # 重叠列数 / LLM 列数
+            'jaccard_similarity': jaccard_similarity,  # 重叠列数 / 并集列数
+            'intersection_count': len(intersection),
             'llm_only': list(llm_set - omnimatch_set),
             'omnimatch_only': list(omnimatch_set - llm_set),
-            'common': list(llm_set & omnimatch_set)
+            'common': list(intersection)
         }
         
         print(f"\n{dataset_name}:")
-        print(f"  LLM:        {llm_join_columns}")
-        print(f"  OmniMatch:  {predicted_join_cols}")
+        print(f"  LLM:        {llm_join_columns} (n={len(llm_join_columns)})")
+        print(f"  OmniMatch:  {predicted_join_cols} (n={len(predicted_join_cols)})")
+        print(f"  Overlap:    {len(intersection)}/{len(llm_set)} = {overlap_ratio:.2%}")
+        print(f"  Jaccard:    {jaccard_similarity:.2%}")
         print(f"  Match:      {comparison_results[dataset_name]['match']}")
         if not comparison_results[dataset_name]['match']:
             print(f"  LLM only:   {comparison_results[dataset_name]['llm_only']}")
