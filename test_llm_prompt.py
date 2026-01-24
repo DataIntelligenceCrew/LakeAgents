@@ -306,7 +306,7 @@ Return a JSON with `"status": "no_suitable_target_column"` and explain why (e.g.
 ## Step 2 — Join Column(s) Selection
 
 ### Goal
-Find **one or more columns** that can serve as the join key(s) for table decomposition.
+Find **1 or 2 columns** (maximum 2 columns) that can serve as the join key(s) for table decomposition.
 
 ### Rules
 1. **Try single column first**:
@@ -321,21 +321,41 @@ Find **one or more columns** that can serve as the join key(s) for table decompo
     - **CRITICAL: If the dataset contains date/time columns, strongly consider using them as composite keys even if they don't meet the 90% uniqueness threshold, as they are often essential for temporal data integrity**
 {uniqueness_info}
 
-2. **If no single column qualifies, try composite key**:
-   - Select 2-3 columns that together form a unique identifier
-   - Example: For aggregate reports, use `(store_id, date)` or `(base_number, week_start_date)`
+2. **If no single column qualifies, try composite key (MAXIMUM 2 COLUMNS)**:
+   - **CRITICAL LIMIT: You can select AT MOST 2 columns for the join key**
+   - Select 1-2 columns (maximum 2) that together form a unique identifier
+   - Example: For aggregate reports, use `(store_id, date)` or `(id, date)` (2 columns maximum)
    - Verify: The combination of these columns should uniquely identify each row
    - Must NOT include the target column
+   - **If you need more than 2 columns to form a unique key, return `"status": "no_suitable_join_column"`**
 
-3. **Special consideration for date/time columns**:
-- **If using date/time columns as join columns, check if they need to be combined with other columns**
-- **For temporal data (like pickup_start_date, report_date), consider composite keys like (date, id) or (start_date, end_date, location)**
-- **For time range data with start and end dates (e.g., pickup_date and dropoff_date), consider BOTH dates as a composite key to preserve temporal integrity**
-- **If the dataset contains date range pairs (e.g., pickup_date and dropoff_date), consider using both dates as a composite key to preserve temporal integrity**
-- **Date columns often have low uniqueness in aggregated datasets and require composite keys**
-- **IMPORTANT RULE: When a dataset contains date/time columns, strongly consider including them in composite join keys, even if other columns seem unique**
-- **VERY IMPORTANT RULE: Read {date_columns_info}, If a dataset contains date-related columns (Date, Time, Published Date, Issue Date, etc.), ALWAYS include at least one date column in the join key unless there is a compelling reason not to **
+3. **Special consideration for date/time columns (MAXIMUM 2 COLUMNS)**:
+- **CRITICAL LIMIT: When using date/time columns, you can select AT MOST 2 columns total (e.g., one date column + one id column, or two date columns)**
+- **If using date/time columns as join columns, check if they need to be combined with other columns (but total must not exceed 2 columns)**
+- **For temporal data (like pickup_start_date, report_date), consider composite keys like (date, id) - maximum 2 columns**
+- **For time range data with start and end dates (e.g., pickup_date and dropoff_date), you can use BOTH dates as a composite key (2 columns maximum) to preserve temporal integrity**
+- **If the dataset contains date range pairs (e.g., pickup_date and dropoff_date), you can use both dates as a composite key (2 columns maximum)**
+- **Date columns often have low uniqueness in aggregated datasets and require composite keys, but remember the 2-column maximum limit**
+- **IMPORTANT RULE: When a dataset contains date/time columns, strongly consider including them in composite join keys, but ensure the total number of join columns does not exceed 2**
+- **VERY IMPORTANT RULE: Read {date_columns_info}, If a dataset contains date-related columns (Date, Time, Published Date, Issue Date, etc.), ALWAYS include at least one date column in the join key unless there is a compelling reason not to, but remember the maximum is 2 columns total**
 
+4. **CRITICAL: Lossless Join Verification**
+   - **MANDATORY CHECK**: Before finalizing your join column selection, you MUST verify that the selected join column(s) can perform a **lossless join**
+   - **REMINDER: Maximum 2 columns allowed for join key**
+   - A lossless join means:
+     a) The join column(s) must have **NO duplicate values** in either subtable (each value appears exactly once)
+     b) When joining the two subtables on the join column(s), the resulting table must have **exactly the same number of rows** as the original table
+     c) All columns from the original table must be preserved in the joined result
+   - **Verification steps**:
+     1. Check the sample rows provided: count how many times each join column value appears
+     2. If any join column value appears more than once in the sample, that column is NOT suitable for lossless join
+     3. For composite keys (maximum 2 columns), verify that the combination of values is unique across all rows
+     4. If you find duplicates, you MUST either:
+        - Select different join column(s) that are truly unique (remember: maximum 2 columns)
+        - Use a composite key (1-2 columns) that together forms a unique identifier
+        - Return `"status": "no_suitable_join_column"` if no lossless join is possible with 1-2 columns
+   - **Example**: If a column has values [1, 2, 2, 3] in the sample, it has duplicates and cannot guarantee a lossless join
+   - **Example**: If composite key (id, date) has combinations [(1, '2024-01-01'), (1, '2024-01-02'), (2, '2024-01-01')], this is unique and suitable for lossless join (2 columns maximum)
 
 ### If no suitable join column(s) exist
 Return `"status": "no_suitable_join_column"` with a brief explanation.
@@ -351,7 +371,7 @@ Return `"status": "no_suitable_join_column"` with a brief explanation.
 - Even if some columns are empty, they should be included in the subtables
 - After decomposition, count the number of distinct columns in the subtables and the original table, and the number of distinct columns in the subtables must be same as the number of distinct columns in the original table
 - Each subtable should contain a balanced, meaningful subset of columns
-- The original table must be reconstructable by joining the subtables on the join column(s)
+- **The original table must be reconstructable by joining the subtables on the join column(s) using an INNER JOIN, and the result must have exactly the same number of rows as the original table (lossless join)**
 
 
 ## Step 3A — Candidate Augmentation Feature Identification
@@ -436,7 +456,12 @@ For the non_candidate_table, you MUST provide explicit reasoning:
       }}
     ],
     "selected_columns": ["column_name"],
-    "selection_reasoning": "Selected based on uniqueness ≥ 90% and key-like properties"
+    "selection_reasoning": "Selected based on uniqueness ≥ 90% and key-like properties",
+    "lossless_join_verification": {{
+      "verified": true,
+      "verification_method": "Checked sample rows - no duplicate values found in join column(s)",
+      "row_count_check": "Original table has X rows, join will preserve all X rows"
+    }}
   }}
 }}
 
@@ -462,8 +487,8 @@ Table: [id, user_name, age, city, income]
 **Example 2 **
 Table: [Student_ID, Course_ID, Semester, Grade, Credits, Instructor_Name]
 → target_column: "Grade"
-→ join_columns: ["Student_ID", "Course_ID", "Semester"]
-(Composite key needed: same student can take multiple courses, same course has multiple students)
+→ join_columns: ["Student_ID", "Course_ID"]
+(Composite key needed: same student can take multiple courses, same course has multiple students. Note: Maximum 2 columns, so we use Student_ID + Course_ID instead of including Semester)
 
 ---
 
@@ -486,7 +511,18 @@ Sample rows (first 30):
 
 def extract_json(text):
     """Extract JSON from LLM response"""
+    # Handle None or empty response
+    if text is None:
+        return '{"status": "failed", "error": "LLM returned None (API error or quota exceeded)"}'
+    
+    if not isinstance(text, str):
+        return '{"status": "failed", "error": "LLM returned non-string response"}'
+    
     text = text.strip()
+    
+    # If empty after strip, return error JSON
+    if not text:
+        return '{"status": "failed", "error": "LLM returned empty response"}'
     
     # Remove markdown code blocks
     if "```json" in text:
@@ -526,9 +562,27 @@ def analyze_dataset(dataset_path, client):
     prompt = create_prompt(table_info, sample_rows)
     response = client.ask(prompt)
     
+    # Check if response is None (API error)
+    if response is None:
+        print(f"✗ Error: LLM API returned None (likely quota exceeded or API error)")
+        return {
+            "dataset": dataset_id,
+            "status": "failed",
+            "error": "LLM API returned None (quota exceeded or API error)"
+        }
+    
     # Parse JSON
+    try:
     json_str = extract_json(response)
     result = json.loads(json_str)
+    except json.JSONDecodeError as e:
+        print(f"✗ Error: Failed to parse JSON from LLM response: {e}")
+        print(f"  Response preview: {response[:200] if response else 'None'}...")
+        return {
+            "dataset": dataset_id,
+            "status": "failed",
+            "error": f"JSON parsing error: {str(e)}"
+        }
     
     # Print result based on status
     status = result.get('status', 'unknown')

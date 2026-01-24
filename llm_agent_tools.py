@@ -13,15 +13,342 @@ from sklearn.metrics import r2_score, f1_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 import xgboost as xgb
 import warnings
+from agent_config_loader import load_config
 warnings.filterwarnings('ignore')
+from typing import Dict, Any, List
+from google.adk.tools.tool_context import ToolContext
 
-def find_dataset_dir(dataset_name: str, base_dir: str = "datasets_omnimatch2") -> str:
+def analyze_user_intent(
+    user_intent: str,
+    target_column: str,
+    join_columns: List[str] = None,
+    task_type: str = None
+) -> Dict[str, Any]:
+    """
+    Analyze user intent and determine which dimensions are explicitly mentioned.
+    This function returns instructions for the LLM to perform the analysis.
+    The LLM should analyze the user_intent and return a structured result.
+    
+    Args:
+        user_intent: User's intent/prediction goal
+        target_column: Target column name to predict
+        join_columns: List of join column names
+        task_type: Task type ("regression" or "classification")
+        
+    Returns:
+        Dictionary with analysis instructions and structure.
+        The LLM should fill in the actual values based on the user_intent.
+    """
+    # This is a guidance structure - LLM should analyze and fill in the values
+    return {
+        "user_intent": user_intent,
+        "target_column": target_column,
+        "join_columns": join_columns if join_columns else [],
+        "task_type": task_type,
+        "analysis_instructions": {
+            "domain_field": {
+                "check": "Analyze if user_intent explicitly mentions any domain/field (e.g., 'demographics', 'education', 'economy', 'crime', 'health').",
+                "if_mentioned": "Extract and list the domains mentioned.",
+                "if_not_mentioned": "Return empty list and suggest relevant domains based on target_column."
+            },
+            "geographic": {
+                "check": "Analyze if user_intent or join_columns explicitly specify a geographic level (e.g., 'NYC', 'Borough', 'City', 'State', 'County').",
+                "if_mentioned": "Extract the geographic level mentioned.",
+                "if_not_mentioned": "Return None and suggest appropriate geographic level based on join_columns."
+            },
+            "temporal": {
+                "check": "Analyze if user_intent explicitly mentions time periods (e.g., '2020', 'historical', 'seasonal', 'quarterly').",
+                "if_mentioned": "Extract the time period mentioned.",
+                "if_not_mentioned": "Return None and suggest appropriate temporal dimensions."
+            },
+            "population_group": {
+                "check": "Analyze if user_intent explicitly mentions population groups (e.g., 'by age', 'by income', 'by education', 'by race').",
+                "if_mentioned": "Extract and list the population groups mentioned.",
+                "if_not_mentioned": "Return empty list and suggest relevant population groups based on target_column."
+            }
+        },
+        "expected_output_structure": {
+            "domain_field": {
+                "is_explicitly_mentioned": "Boolean: True if domain/field is mentioned in user_intent, False otherwise",
+                "explicitly_mentioned_value": "List[str] or None: Domains mentioned if any, otherwise None",
+                "suggested_values": "List[str]: Suggested domains if not mentioned"
+            },
+            "geographic": {
+                "is_explicitly_mentioned": "Boolean: True if geographic level is mentioned, False otherwise",
+                "explicitly_mentioned_value": "str or None: Geographic level mentioned if any, otherwise None",
+                "suggested_values": "List[str]: Suggested geographic levels if not mentioned"
+            },
+            "temporal": {
+                "is_explicitly_mentioned": "Boolean: True if time period is mentioned, False otherwise",
+                "explicitly_mentioned_value": "str or None: Time period mentioned if any, otherwise None",
+                "suggested_values": "List[str]: Suggested temporal dimensions if not mentioned"
+            },
+            "population_group": {
+                "is_explicitly_mentioned": "Boolean: True if population groups are mentioned, False otherwise",
+                "explicitly_mentioned_value": "List[str] or None: Population groups mentioned if any, otherwise None",
+                "suggested_values": "List[str]: Suggested population groups if not mentioned"
+            }
+        }
+    }
+
+def confirm_dimension_requirement(
+    dimension_name: str,
+    dimension_type: str,  # "Domain/Field", "Geographic", "Temporal", "Population Group"
+    is_explicitly_mentioned: bool,
+    tool_context: ToolContext,
+    explicitly_mentioned_value: str = None,
+    suggested_values: List[str] = None,
+    reasoning: str = None,
+    question: str = None
+) -> Dict[str, Any]:
+    """
+    Ask user to confirm or specify requirements for a dimension.
+    This is used when a dimension is not explicitly mentioned in user_intent.
+    
+    Args:
+        dimension_name: Name of the dimension (e.g., "Geographic", "Domain/Field")
+        dimension_type: Type of dimension
+        is_explicitly_mentioned: Whether this dimension was explicitly mentioned
+        explicitly_mentioned_value: The value if explicitly mentioned
+        suggested_values: List of suggested values if not explicitly mentioned
+        reasoning: Why this dimension is relevant
+        question: Question to ask the user
+        
+    Returns:
+        Dictionary with confirmation result
+    """
+
+    if is_explicitly_mentioned:
+        # If explicitly mentioned, just return the value
+        return {
+            "dimension_name": dimension_name,
+            "dimension_type": dimension_type,
+            "is_explicitly_mentioned": True,
+            "confirmed_value": explicitly_mentioned_value,
+            "message": f"Dimension '{dimension_name}' was explicitly mentioned: {explicitly_mentioned_value}"
+        }
+    
+    # If not explicitly mentioned, ask user
+    if not tool_context.tool_confirmation:
+        # First call - request user confirmation
+        if question is None:
+            question = f"Do you want to specify a {dimension_name} dimension for table selection?"
+            if suggested_values:
+                question += f" Suggested options: {', '.join(suggested_values)}"
+        
+        # Build hint message
+        hint_text = f"""
+📋 Dimension Requirement Specification
+
+Dimension: {dimension_name}
+Type: {dimension_type}
+
+Reasoning: {reasoning or f"This dimension might be relevant for the prediction task"}
+
+Question: {question}
+"""
+        if suggested_values:
+            hint_text += f"\nSuggested options: {', '.join(suggested_values)}"
+        
+        hint_text += """
+
+Please specify your requirement for this dimension.
+Examples:
+- For Geographic: "Borough", "Zip Code", "Neighborhood", "California", "Los Angeles County", etc.
+- For Domain/Field: "Demographics", "Education", "Economy", etc.
+- For Temporal: "Historical trends", "2020-2023", "Seasonal patterns", etc.
+- For Population Group: "by Age Group", "by Income Level", "by Education", "18-25, 26-35", etc.
+
+You can:
+- Provide a specific value (e.g., "California", "by Age Group")
+- Type "done" to finish specifying this dimension
+- Type "skip" to skip this dimension entirely
+"""
+        
+        tool_context.request_confirmation(
+            hint=hint_text,
+            payload={
+                "dimension_name": dimension_name,
+                "dimension_type": dimension_type,
+                "reasoning": reasoning or f"This dimension might be relevant for the prediction task",
+                "suggested_values": suggested_values or [],
+                "question": question
+            }
+        )
+        
+        return {
+            "dimension_name": dimension_name,
+            "dimension_type": dimension_type,
+            "is_explicitly_mentioned": False,
+            "pending_confirmation": True,
+            "question": question,
+            "suggested_values": suggested_values or [],
+            "message": f"Waiting for user confirmation on {dimension_name} dimension"
+        }
+    
+    # Second call - user has responded
+    is_confirmed = tool_context.tool_confirmation
+    
+    if is_confirmed:
+        # User wants to specify this dimension
+        # The user's response might contain the specific value they want
+        user_response = tool_context.get_user_response() if hasattr(tool_context, 'get_user_response') else None
+        
+        return {
+            "dimension_name": dimension_name,
+            "dimension_type": dimension_type,
+            "is_explicitly_mentioned": False,
+            "user_wants_to_specify": True,
+            "user_specified_value": user_response if user_response else None,
+            "suggested_values": suggested_values or [],
+            "message": f"User wants to specify {dimension_name} dimension"
+        }
+    else:
+        # User doesn't want to specify this dimension
+        return {
+            "dimension_name": dimension_name,
+            "dimension_type": dimension_type,
+            "is_explicitly_mentioned": False,
+            "user_wants_to_specify": False,
+            "message": f"User does not want to specify {dimension_name} dimension - will use suggested values or skip"
+        }
+        
+def generate_table_selection_plan(
+    analyzed_intent: Dict[str, Any],
+    candidate_tables: List[str],
+    tool_context: ToolContext
+) -> Dict[str, Any]:
+    """
+    Generate a chain-of-thoughts plan based on analyzed intent.
+    First call: LLM generates plan structure and requests user approval.
+    Second call: Returns approved/rejected status.
+    
+    Args:
+        analyzed_intent: Output from analyze_user_intent
+        candidate_tables: List of candidate table names
+        tool_context: Tool context for user interaction
+        
+    Returns:
+        Dictionary with plan and status
+    """
+    # -----------------------------------------------------------------------------------------------
+    # SCENARIO 1: First call - LLM should have generated a plan, request user confirmation
+    if not tool_context.tool_confirmation:
+        # The plan content comes from LLM's reasoning when calling this tool
+        # We format it for user confirmation
+        
+        user_intent = analyzed_intent.get("user_intent", "")
+        target = analyzed_intent.get("target_variable", "")
+        
+        tool_context.request_confirmation(
+            hint=f"""
+📋 Table Selection Plan Generated
+
+🎯 User Intent: {user_intent}
+🎯 Target Variable: {target}
+📊 Available Candidate Tables: {len(candidate_tables)} tables
+
+The agent has generated a plan for selecting relevant tables. 
+Please review the plan details above and confirm if you want to proceed.
+""",
+            payload={
+                "analyzed_intent": analyzed_intent,
+                "candidate_tables": candidate_tables,
+                "candidate_table_count": len(candidate_tables)
+            }
+        )
+        
+        return {
+            "status": "pending_approval",
+            "message": "Plan generated. Waiting for user approval.",
+            "analyzed_intent": analyzed_intent
+        }
+    
+    # -----------------------------------------------------------------------------------------------
+    # SCENARIO 2: User confirmed or rejected
+    if tool_context.tool_confirmation.confirmed:
+        return {
+            "status": "approved",
+            "message": "Plan approved. Proceeding with table search.",
+            "plan": tool_context.tool_confirmation.payload
+        }
+    else:
+        return {
+            "status": "rejected",
+            "message": "Plan rejected by user."
+        }
+
+def confirm_table_category(
+    category_name: str,
+    category_type: str,
+    reasoning: str,
+    question: str,
+    tool_context: ToolContext
+) -> Dict[str, Any]:
+    """
+    Confirm a table category requirement with the user.
+    
+    Args:
+        category_name: Name of the category (e.g., "Demographics")
+        category_type: Type of dimension (e.g., "Domain/Field", "Population Group")
+        reasoning: Why this category is relevant
+        question: Question to ask the user
+        tool_context: Tool context for user interaction
+        
+    Returns:
+        Dictionary with confirmation status
+    """
+    if not tool_context.tool_confirmation:
+        tool_context.request_confirmation(
+            hint=f"""
+📋 Table Category Confirmation
+
+Category: {category_name}
+Type: {category_type}
+
+Reasoning: {reasoning}
+
+Question: {question}
+
+Please confirm if you need tables in this category (yes/no).
+""",
+            payload={
+                "category_name": category_name,
+                "category_type": category_type,
+                "reasoning": reasoning,
+                "question": question
+            }
+        )
+        
+        return {
+            "status": "pending_approval",
+            "message": f"Waiting for confirmation on category: {category_name}"
+        }
+    
+    # User has responded
+    is_confirmed = tool_context.tool_confirmation.get("confirmed", False)
+    
+    return {
+        "status": "confirmed" if is_confirmed else "rejected",
+        "category_name": category_name,
+        "category_type": category_type,
+        "confirmed": is_confirmed,
+        "message": f"Category '{category_name}' {'confirmed' if is_confirmed else 'rejected'}"
+    } 
+
+def _get_default_base_dir() -> str:
+    """Get default base_dir from config file."""
+    
+    config = load_config()
+    return config['data']['base_dir']
+
+def find_dataset_dir(dataset_name: str, base_dir: str = None) -> str:
     """
     Find the real directory name based on the cleaned dataset name (ignoring trailing spaces, case, etc.).
     
     Args:
         dataset_name: The dataset name returned by LLM (possibly without trailing spaces)
-        base_dir: The base directory path
+        base_dir: The base directory path (if None, reads from config)
         
     Returns:
         The real directory name (with spaces, etc.)
@@ -29,6 +356,9 @@ def find_dataset_dir(dataset_name: str, base_dir: str = "datasets_omnimatch2") -
     Raises:
         FileNotFoundError: If the base directory does not exist
     """
+    if base_dir is None:
+        base_dir = _get_default_base_dir()
+    
     base_path = Path(base_dir).resolve()
     
     if not base_path.exists():
@@ -63,9 +393,9 @@ def find_dataset_dir(dataset_name: str, base_dir: str = "datasets_omnimatch2") -
     )
 
 
-def read_metadata(dataset_name: str = None, base_dir: str = "datasets_omnimatch2") -> Dict[str, Any]:
-    if "datasets_omnimatch2" not in str(base_dir):
-        base_dir = "datasets_omnimatch2"
+def read_metadata(dataset_name: str = None, base_dir: str = None) -> Dict[str, Any]:
+    if base_dir is None:
+        base_dir = _get_default_base_dir()
 
     base_path = Path(base_dir).resolve()
     
@@ -118,7 +448,7 @@ def compute_statistics(
     dataset_name: str,
     join_table_name: str,
     join_column: List[str],
-    base_dir: str = "datasets_omnimatch2",
+    base_dir: str = None,
     data_filename: str = "rows.csv",
     max_rows: int = 1000
 ) -> List[Dict[str, Any]]:
@@ -150,7 +480,8 @@ def compute_statistics(
         - join_column_name: Join column name from metadata
         - join_column_description: Join column description from metadata
     """
-    base_dir = "datasets_omnimatch2"
+    if base_dir is None:
+        base_dir = _get_default_base_dir()
 
     real_candidate_name = find_dataset_dir(dataset_name, base_dir)
     real_join_table_name = find_dataset_dir(join_table_name, base_dir)
@@ -330,7 +661,7 @@ def compute_integration_quality(
     candidate_table_name: str,
     base_join_columns: List[str],
     candidate_join_columns: List[str] = None,
-    base_dir: str = "datasets_omnimatch2",
+    base_dir: str = None,
     data_filename: str = "rows.csv"
 ) -> float:
     """
@@ -348,6 +679,9 @@ def compute_integration_quality(
     Returns:
         IQ value (float between 0.0 and 1.0): proportion of base table rows successfully joined
     """
+    if base_dir is None:
+        base_dir = _get_default_base_dir()
+    
     # Find real directory names
     real_base_name = find_dataset_dir(base_table_name, base_dir)
     real_candidate_name = find_dataset_dir(candidate_table_name, base_dir)
@@ -399,7 +733,7 @@ def compute_feature_importance(
     target_column: str,
     task_type: str,
     candidate_join_columns: Optional[List[str]] = None,
-    base_dir: str = "datasets_omnimatch2",
+    base_dir: str = None,
     data_filename: str = "rows.csv",
     sample_size: int = 1000
 ) -> Dict[str, Any]:
@@ -424,6 +758,9 @@ def compute_feature_importance(
     Returns:
         Dictionary with FI value and metadata
     """
+    if base_dir is None:
+        base_dir = _get_default_base_dir()
+    
     try:
         # Find real directory names
         real_base_name = find_dataset_dir(base_table_name, base_dir)
@@ -511,7 +848,7 @@ def compute_feature_importance(
         baseline_df = baseline_df.dropna(subset=[target_column])
         augmented_df = augmented_df.dropna(subset=[target_column])
         
-        if len(baseline_df) < 10 or len(augmented_df) < 10:
+        if len(baseline_df) < 3 or len(augmented_df) < 3:
             return {
                 "error": f"Insufficient data after removing missing values (baseline: {len(baseline_df)}, augmented: {len(augmented_df)})",
                 "feature_importance": 0.0
@@ -610,7 +947,7 @@ def compute_utility_gain_from_params(
     target_column: str,
     task_type: str,
     candidate_join_columns: Optional[List[str]] = None,
-    base_dir: str = "datasets_omnimatch2",
+    base_dir: str = None,
     data_filename: str = "rows.csv",
     sample_size: int = 1000
 ) -> Dict[str, Any]:
@@ -619,6 +956,9 @@ def compute_utility_gain_from_params(
     
     Returns a dictionary with utility_gain, iq, fi, and other metadata.
     """
+    if base_dir is None:
+        base_dir = _get_default_base_dir()
+    
     # Compute IQ
     try:
         iq_result = compute_integration_quality(

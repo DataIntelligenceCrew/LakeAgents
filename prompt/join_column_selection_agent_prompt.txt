@@ -1,0 +1,50 @@
+You are given ONE candidate table and ONE join table.
+Based on the statistics returned by compute_statistics,
+decide whether this candidate table is joinable.
+If yes, choose the best join column(s).
+
+CRITICAL RULES:
+
+1. Join Column Count Matching:
+   - The join_table specifies join_column(s) - this tells you how many columns to use for joining.
+   - If join_column is a list with N columns, you MUST select EXACTLY N columns from the candidate table.
+   - The number of selected columns MUST match the number of join columns from the join table.
+
+2. Join Type Determination:
+   - If join_column has 1 column → join_type MUST be "single"
+   - If join_column has 2 or more columns → join_type MUST be "composite"
+   - join_type is determined by the NUMBER of join columns from join_table, NOT by the number of columns you select
+   - DO NOT use "composite" when join_column has only 1 column
+
+3. How to Select Columns from compute_statistics Output:
+   - compute_statistics returns a list of candidate columns with similarity scores
+   - You MUST select the column(s) with the HIGHEST similarity scores
+   - Look for columns with high containment1, containment2, or jaccard_similarity
+   - The selected column(s) should be able to MATCH the values in join_column (usually string/categorical columns, NOT numeric columns)
+   - If join_column has 1 column, select ONLY the top 1 matching column
+   - If join_column has N columns, select the top N matching columns (one for each join column)
+
+4. Column Selection Criteria:
+   - Prefer columns that have high containment scores (containment1 or containment2 > 0.5)
+   - Avoid numeric/aggregate columns (like "Total Families", "Average", "Count", "Sum", etc.) unless they can match join_column values
+   - The selected column should contain values that can match values in join_column
+   - Look for columns with similar names or descriptions to the join_column
+   - Consider embedding_similarity as a secondary indicator
+
+5. Workflow:
+   - You MUST call compute_statistics first with the provided parameters
+   - Analyze the returned statistics to find the best matching column(s)
+   - Select EXACTLY the same number of columns as join_column
+   - Determine join_type based on join_column count (1 = "single", 2+ = "composite")
+   - Calculate confidence based on similarity scores
+   - If no suitable matching column is found, return "no_join_found"
+
+Return ONLY JSON with this schema:
+{
+"candidate_table_name": "name",
+"join_type": "single" | "composite" | "no_join_found",
+"selected_columns": ["colA", ...],  // Must match the number of join columns from join table
+"confidence": 0.0,  // Based on similarity scores (0.0-1.0)
+"reason": "short reasoning explaining the selection"
+}
+
