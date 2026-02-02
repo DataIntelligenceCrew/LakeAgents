@@ -68,7 +68,7 @@ class JoinValidatorCallback:
                 # 2. Perform the actual physical join verification
                 self.verify(choice)
 
-    def verify(self, choice, global_join_col):
+    def verify(self, choice, global_join_col, opendata_domain=None):
             try:
                 cand_name = choice["candidate_table_name"]
                 selected_cols = choice["selected_columns"]
@@ -86,10 +86,17 @@ class JoinValidatorCallback:
                     print(f"--- [Callback] Verification Failed: {self.reason} ---")
                     return
 
-                real_cand_name = find_dataset_dir(cand_name, self.base_dir)
-
-                # Load candidate data
-                cand_df = pd.read_csv(Path(self.base_dir) / real_cand_name / "rows.csv", low_memory=False)
+                cand_df = None
+                if opendata_domain:
+                    from agent_config_loader import load_config
+                    from datalake_client import SocrataDatalakeClient
+                    cfg = load_config()
+                    client = SocrataDatalakeClient(cfg.get("data", {}).get("datalake", {}))
+                    rows = client.read_data(cand_name, opendata_domain, max_rows=10000)
+                    cand_df = pd.DataFrame(rows) if rows else None
+                if cand_df is None or cand_df.empty:
+                    real_cand_name = find_dataset_dir(cand_name, self.base_dir)
+                    cand_df = pd.read_csv(Path(self.base_dir) / real_cand_name / "rows.csv", low_memory=False)
                 
                 # Create copies for case-insensitive matching
                 join_df_copy = self.join_table_df.copy()
@@ -170,7 +177,7 @@ class AugmentValidatorCallback:
             print(f"   ⚠️  Baseline computation failed: {e}")
             return None
     
-    def verify(self, candidate_table_name, selected_columns, candidate_join_columns):
+    def verify(self, candidate_table_name, selected_columns, candidate_join_columns, opendata_domain=None):
         """
         Merge selected columns to base table and run ML task.
         Compare with baseline to show improvement.
@@ -179,6 +186,7 @@ class AugmentValidatorCallback:
             candidate_table_name: Name of candidate table
             selected_columns: List of columns to join (augment columns)
             candidate_join_columns: Join columns in candidate table
+            opendata_domain: If provided and local load fails, fetch from API
         
         Returns:
             Dictionary with metric result and improvement
@@ -191,9 +199,21 @@ class AugmentValidatorCallback:
                 if self.baseline_metric is not None:
                     print(f"   Baseline metric: {self.baseline_metric:.4f}")
             
-            # Load candidate table
-            real_cand_name = find_dataset_dir(candidate_table_name, self.base_dir)
-            cand_df = pd.read_csv(Path(self.base_dir) / real_cand_name / "rows.csv", low_memory=False)
+            # Load candidate table (API if opendata_domain, else local)
+            cand_df = None
+            if opendata_domain:
+                try:
+                    from agent_config_loader import load_config
+                    from datalake_client import SocrataDatalakeClient
+                    cfg = load_config()
+                    api_client = SocrataDatalakeClient(cfg.get("data", {}).get("datalake", {}))
+                    rows = api_client.read_data(candidate_table_name, opendata_domain, max_rows=10000)
+                    cand_df = pd.DataFrame(rows) if rows else None
+                except Exception:
+                    pass
+            if cand_df is None or cand_df.empty:
+                real_cand_name = find_dataset_dir(candidate_table_name, self.base_dir)
+                cand_df = pd.read_csv(Path(self.base_dir) / real_cand_name / "rows.csv", low_memory=False)
             
             # Prepare columns to join
             if isinstance(candidate_join_columns, str):

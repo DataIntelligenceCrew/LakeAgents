@@ -1,0 +1,124 @@
+# Agent Pipeline Configuration
+# Configuration for the multi-agent data augmentation pipeline
+
+# Data settings
+data:
+  data_source: "datalake"  # "local" 或 "datalake"
+  
+  base_dir: "dataset_agent3"
+  data_filename: "rows.csv"
+  
+  # Datalake configuration
+  datalake:
+    app_token: null  # optional, read from environment variable
+    
+    domains:  # list of Socrata domains to search
+      - "data.cityofnewyork.us"  # NYC
+      - "data.cityofchicago.org"  # Chicago
+  
+    max_tables: 5  # stop after finding maximum n related tables
+
+# Pipeline task settings
+task:
+  join_table_name: "shooting count"  # Name of the base/join table
+  join_column: ["BORO"]  # Join columns (can be single or composite)
+  target_column: "shooting count"  # Target column for prediction
+  task_type: "regression"  # Options: "regression" or "classification"
+  session:
+    session_id: "007"
+# Validation thresholds
+validation:
+  match_rate_threshold: 0.1  # Minimum match rate for join validation (0.0 - 1.0)
+  max_data_explosion_factor: 2.0  # Maximum allowed rows after join (relative to base table)
+  # If merged rows > base_rows * max_data_explosion_factor, reject the join
+
+# Sampling settings
+sampling:
+  sample_size: 1000  # Number of rows to sample for ML model training/evaluation
+  # Used in:
+  #   - compute_feature_importance (FI calculation)
+  #   - AugmentValidatorCallback (baseline and augmented metric calculation)
+
+# LLM Agent settings
+agents:
+  # Provider for all agents (can be overridden per agent)
+  default_provider: "openai"  # Options: "gemini", "openai"
+
+  temperature:
+    default: 0.5  # Default temperature for all agents
+    # Per-agent temperature overrides (optional)
+    overrides:
+      table_selection: null  # null means use default
+      join_column_selection: null
+      utility_gain: null
+  
+  # Model configurations
+  models:
+    # Gemini models
+    gemini:
+      table_selection: "gemini-2.5-flash"
+      join_column_selection: "gemini-2.5-flash-lite"
+      utility_gain: "gemini-2.5-flash-lite"
+    
+    # OpenAI models
+    openai:
+      table_selection: "openai/gpt-4o"
+      join_column_selection: "openai/gpt-4o-mini"
+      utility_gain: "openai/gpt-4o-mini"
+  prompts:
+    table_selection: prompt/table_selection_agent_prompt.txt
+    join_column_selection: prompt/join_column_selection_agent_prompt.txt
+    augment_column_selection: prompt/augment_column_selection_agent_prompt.txt
+  
+  # Per-agent provider overrides (optional)
+  provider_overrides:
+    table_selection: null  # null means use default_provider
+    join_column_selection: null
+    utility_gain: null
+  
+  # HTTP retry configuration
+  retry:
+    attempts: 5  # Number of retry attempts
+    exp_base: 7  # Exponential backoff base
+    initial_delay: 1  # Initial delay in seconds
+    http_status_codes: [429, 500, 503, 504]  # Status codes to retry on
+
+# Delay settings (for API rate limiting)
+delays:
+  between_table_evaluations: 5  # Seconds between table evaluations in Phase 2
+  between_column_evaluations: 2  # Seconds between column evaluations in Phase 3
+
+# ML Model settings (for feature importance and validation)
+ml_models:
+  regression:
+    model_type: "linear_regression"  # Options: "linear_regression"
+    metric: "r2_score"  # Evaluation metric
+  
+  classification:
+    model_type: "xgboost"  # Options: "xgboost"
+    metric: "f1_score"  # Evaluation metric
+    # XGBoost parameters (if applicable)
+    xgboost_params:
+      max_depth: 3
+      learning_rate: 0.1
+      n_estimators: 100
+
+# Output and logging
+output:
+  verbose: true  # Print detailed progress messages
+  print_results: true  # Print final results summary
+  save_results: false  # Save results to JSON file
+  results_file: "pipeline_results.json"  # Output file name (if save_results is true)
+
+# Advanced settings
+advanced:
+  # Integration Quality (IQ) calculation
+  use_inner_join: true  # Use inner join for IQ calculation (default: true)
+  
+  # Feature Importance (FI) calculation
+  drop_na_target: true  # Drop rows with missing target values
+  
+  # Utility Gain evaluation
+  require_positive_fi: false  # Require FI > 0 for column to be suitable (default: let LLM judge)
+  require_min_utility_gain: 0.0  # Minimum utility gain threshold (default: let LLM judge)
+

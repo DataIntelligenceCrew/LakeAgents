@@ -3,6 +3,7 @@ import re
 import os
 import pandas as pd
 import asyncio # Required for running the async entry point
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from google.adk.runners import InMemoryRunner
@@ -12,9 +13,95 @@ from join_column_selection_agent import build_join_column_choose_agent
 from callback import JoinValidatorCallback, AugmentValidatorCallback
 import fasttext
 from functools import partial
-from llm_agent_tools import find_dataset_dir
+from llm_agent_tools import find_dataset_dir, build_opendata_search_params, get_fasttext_sim
 from augment_column_selection_agent import build_utility_gain_agent
 from agent_config_loader import AgentPipelineConfig
+from analyze_user_intent_agent import build_analyze_user_intent_agent
+from datalake_client import SocrataDatalakeClient
+
+# Local cache for opendata dataset metadata (skip re-fetch if already read)
+OPENDATA_METADATA_CACHE_DIR = Path(__file__).resolve().parent / "opendata_metadata_cache"
+SESSION_CHECKED_DIR = Path(__file__).resolve().parent / "session_checked"
+
+def _session_checked_path(session_id: str) -> Path:
+    """Sanitize session_id for use as filename."""
+    safe = re.sub(r"[^\w\-]", "_", str(session_id).strip()) or "default"
+    return SESSION_CHECKED_DIR / f"{safe}.json"
+
+def _load_session_checked(session_id: Optional[str]) -> tuple:
+    """Load checked table for this session. Returns (checked_set, checked_table).
+    checked_set: set of IDs for exclude_tables. checked_table: list of full entries (dict with id, description, possible_join_column, etc.).
+    Old format (list of IDs only) -> checked_table=[], checked_set=those IDs."""
+    if not session_id:
+        return set(), []
+    path = _session_checked_path(session_id)
+    if not path.exists():
+        return set(), []
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        return set(), []
+    if isinstance(data, list) and data:
+        if isinstance(data[0], dict) and data[0].get("id") is not None:
+            checked_table = [e for e in data if e and isinstance(e, dict) and e.get("id")]
+            checked_set = {str(e.get("id")).strip() for e in checked_table}
+            return checked_set, checked_table
+        ids = [i for i in data if i is not None]
+        checked_set = {str(i).strip() for i in ids}
+        return checked_set, []
+    if isinstance(data, dict) and data.get("checked_tables"):
+        tbl = data["checked_tables"]
+        if tbl and isinstance(tbl[0], dict):
+            checked_table = [e for e in tbl if e and isinstance(e, dict) and e.get("id")]
+            checked_set = {str(e.get("id")).strip() for e in checked_table}
+            return checked_set, checked_table
+        checked_set = {str(i).strip() for i in tbl if i}
+        return checked_set, []
+    return set(), []
+
+def _save_session_checked(session_id: Optional[str], checked_table: list) -> None:
+    """Save checked table (list of full entries) for this session."""
+    if not session_id:
+        return
+    path = _session_checked_path(session_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(checked_table, f, indent=2, ensure_ascii=False)
+    except Exception:
+        pass
+
+def _metadata_cache_path(domain: str, dataset_id: str) -> Path:
+    safe_id = re.sub(r"[^\w\-]", "_", dataset_id)
+    return OPENDATA_METADATA_CACHE_DIR / domain.replace(".", "_") / f"{safe_id}.json"
+
+def _load_metadata_from_cache(domain: str, dataset_id: str) -> Optional[Dict[str, Any]]:
+    path = _metadata_cache_path(domain, dataset_id)
+    if not path.exists():
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+def _save_metadata_to_cache(domain: str, dataset_id: str, data: Dict[str, Any]) -> None:
+    path = _metadata_cache_path(domain, dataset_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception:
+        pass
+
+def _debug_log(payload: Dict[str, Any]) -> None:
+    try:
+        payload.setdefault("timestamp", int(time.time() * 1000))
+        with open("/localdisk3/ytang49/opendata/.cursor/debug.log", "a") as debug_file:
+            debug_file.write(json.dumps(payload) + "\n")
+    except Exception:
+        pass
 
 # Environment setup
 for key in ["GOOGLE_API_KEY", "OPENAI_API_KEY"]:
@@ -60,13 +147,13 @@ def extract_json(text: str) -> Dict[str, Any]:
             # If no JSON found, return empty structure
             return {"relevant_tables": []}
 
-
 async def run_orchestrator(
     join_table_name: Optional[str] = None,
     join_column: Optional[List[str]] = None,
     target_column: Optional[str] = None,
     task_type: Optional[str] = None,
-    user_intent: Optional[str] = None,  # NEW: User intent parameter
+    user_intent: Optional[str] = None,  
+    session_id: Optional[str] = None,
     config_path: Optional[str] = None,
     config: Optional[AgentPipelineConfig] = None
 ) -> Dict[str, Any]:
@@ -80,6 +167,7 @@ async def run_orchestrator(
         task_type: Task type ("regression" or "classification"). If None, uses config.
         user_intent: User's intent/prediction goal (e.g., "predict the shooting count in each borough"). 
                      If None, will be constructed from target_column.
+        session_id: Unique session identifier. If None, will be generated.
         config_path: Path to config file. If None, uses default.
         config: AgentPipelineConfig object. If provided, uses this instead of loading from file.
     
@@ -106,9 +194,11 @@ async def run_orchestrator(
     if user_intent is None:
         user_intent = f"predict the {target_column}"  # Default fallback
     
+    session_id = config.session_id
     BASE_DIR = config.base_dir
     
     # Build agents with config
+    analyze_intent_runner = InMemoryRunner(agent=build_analyze_user_intent_agent(config=config))
     table_runner = InMemoryRunner(agent=build_table_selection_agent(config=config))
     joincol_runner = InMemoryRunner(agent=build_join_column_choose_agent(config=config))
 
@@ -118,11 +208,12 @@ async def run_orchestrator(
         if item.is_dir() and (item / "metadata.json").exists() and item.name != join_table_name
     ]
 
-    # ---- Phase 1: Table Selection ----
+#---- Phase 1: Table Selection ----
+
     print("🚀 Running Table Selection Agent...")
     print(f"📝 User Intent: {user_intent}")
-    
-    table_prompt = f"""
+
+    analyze_intent_prompt = f"""
 User Intent: {user_intent}
 
 Task Information:
@@ -130,582 +221,261 @@ Task Information:
 - Task Type: {task_type}
 - Join Table: {join_table_name}
 - Join Columns: {join_column}
-- Candidate Tables ({len(candidate_names)}): {', '.join(candidate_names[:10])}{'...' if len(candidate_names) > 10 else ''}
 
-Please follow the workflow defined in your prompt to complete this task.
+Please analyze the user intent and return the result in JOSN format according to the prompt.
 """
-   
-    analyzed_intent = None  # Store the result from analyze_user_intent
-    current_prompt = table_prompt
-    max_iterations = 10  
-    iteration = 0
-    
-    current_dimension = None  # dimension name
-    dimension_specifications = {}  # store each dimension specification
-    dimension_complete = set()  # completed dimensions
 
-    while iteration < max_iterations:
-        iteration += 1
-        print(f"\n{'='*80}")
-        print(f"--- Iteration {iteration} ---")
-        print(f"{'='*80}\n")
-        
-        table_events = await table_runner.run_debug(current_prompt)
-        
-        # First, check for analyze_user_intent result
-        for event in table_events:
-            if hasattr(event, 'actions') and event.actions:
-                if hasattr(event.actions, 'tool_calls'):
-                    for tool_call in event.actions.tool_calls:
-                        tool_name = None
-                        if hasattr(tool_call, 'function_name'):
-                            tool_name = tool_call.function_name
-                        elif hasattr(tool_call, 'name'):
-                            tool_name = tool_call.name
-                        elif hasattr(tool_call, 'function'):
-                            tool_name = tool_call.function
-                        
-                        if tool_name == "analyze_user_intent":
-                            if hasattr(tool_call, 'result'):
-                                analyzed_intent = tool_call.result
-                                print(f"\n[DEBUG] Got analyzed_intent result")
-                                break
-        
-        # Extract confirmation request from events
-        pending_confirmation = False
-        confirmation_hint = None
-        confirmation_payload = None
-        tool_call_name = None
-        
-        # Debug: Print all tool calls to understand what's happening
-        print(f"\n[DEBUG] Checking {len(table_events)} events for tool calls...")
-        for event_idx, event in enumerate(table_events):
-            if hasattr(event, 'actions') and event.actions:
-                if hasattr(event.actions, 'tool_calls'):
-                    for tool_idx, tool_call in enumerate(event.actions.tool_calls):
-                        tool_name = None
-                        if hasattr(tool_call, 'function_name'):
-                            tool_name = tool_call.function_name
-                        elif hasattr(tool_call, 'name'):
-                            tool_name = tool_call.name
-                        elif hasattr(tool_call, 'function'):
-                            tool_name = tool_call.function
-                        
-                        if tool_name:
-                            print(f"[DEBUG] Found tool call: {tool_name}")
-                            if hasattr(tool_call, 'result'):
-                                result = tool_call.result
-                                if isinstance(result, dict):
-                                    print(f"[DEBUG] Result keys: {list(result.keys())}")
-                                    print(f"[DEBUG] pending_confirmation: {result.get('pending_confirmation')}")
-                                    print(f"[DEBUG] status: {result.get('status')}")
-        
-        # Check events for tool calls that returned pending_approval status or pending_confirmation
-        # IMPORTANT: Only process the FIRST pending confirmation to ensure one-by-one interaction
-        for event in table_events:
-            if hasattr(event, 'actions') and event.actions:
-                # Check tool calls
-                if hasattr(event.actions, 'tool_calls'):
-                    for tool_call in event.actions.tool_calls:
-                        # Get tool call name - try different attribute names
-                        if hasattr(tool_call, 'function_name'):
-                            tool_call_name = tool_call.function_name
-                        elif hasattr(tool_call, 'name'):
-                            tool_call_name = tool_call.name
-                        elif hasattr(tool_call, 'function'):
-                            tool_call_name = tool_call.function
-                        
-                        # Check if this is confirm_dimension_requirement call
-                        is_dimension_confirm = (tool_call_name == "confirm_dimension_requirement" or 
-                                              ("dimension" in str(tool_call_name).lower() and "confirm" in str(tool_call_name).lower()))
-                        
-                        # Check tool call result
-                        if hasattr(tool_call, 'result'):
-                            result = tool_call.result
-                            
-                            # Check for pending status: either "pending_approval" or "pending_confirmation"
-                            is_pending = False
-                            if isinstance(result, dict):
-                                is_pending = (result.get("status") == "pending_approval" or 
-                                            result.get("pending_confirmation") == True)
-                            
-                            # If it's a dimension confirm call, we need to check it even if not explicitly pending
-                            if is_dimension_confirm or is_pending:
-                                # Extract information from tool call arguments - try different attribute names
-                                args = {}
-                                if hasattr(tool_call, 'args'):
-                                    args = tool_call.args if isinstance(tool_call.args, dict) else {}
-                                elif hasattr(tool_call, 'arguments'):
-                                    args = tool_call.arguments if isinstance(tool_call.arguments, dict) else {}
-                                
-                                # For confirm_dimension_requirement, check if it needs user input
-                                if is_dimension_confirm:
-                                    # Get dimension_name from args or result
-                                    dimension_name = None
-                                    if args and args.get("dimension_name"):
-                                        dimension_name = args.get("dimension_name", "")
-                                    elif isinstance(result, dict) and result.get("dimension_name"):
-                                        dimension_name = result.get("dimension_name", "")
-                                    
-                                    if dimension_name:
-                                        # Check if this dimension is already complete
-                                        if dimension_name in dimension_complete:
-                                            # Skip - this dimension is already done, continue to next event
-                                            continue
-                                        
-                                        # Check if this dimension needs user input
-                                        # It needs user input if:
-                                        # 1. Result has pending_confirmation=True or status="pending_approval"
-                                        # 2. is_explicitly_mentioned is False (in args or result)
-                                        needs_user_input = False
-                                        
-                                        # Check result first
-                                        if isinstance(result, dict):
-                                            if result.get("pending_confirmation") == True or result.get("status") == "pending_approval":
-                                                needs_user_input = True
-                                            elif result.get("is_explicitly_mentioned") == False:
-                                                needs_user_input = True
-                                        
-                                        # Check args if not determined yet
-                                        if not needs_user_input:
-                                            if args.get("is_explicitly_mentioned") == False:
-                                                needs_user_input = True
-                                        
-                                        # If it's a confirm_dimension_requirement call and we don't know yet, assume it needs input
-                                        # (since the tool is specifically for asking user)
-                                        if not needs_user_input:
-                                            needs_user_input = True
-                                        
-                                        # Only process if it needs user input and we haven't found a pending confirmation yet
-                                        if needs_user_input and not pending_confirmation:
-                                            pending_confirmation = True
-                                            current_dimension = dimension_name  # Track current dimension
-                                            
-                                            # Get suggested_values from args or result
-                                            suggested_values = args.get("suggested_values", [])
-                                            if not suggested_values and isinstance(result, dict):
-                                                suggested_values = result.get("suggested_values", [])
-                                            
-                                            suggested_text = ""
-                                            if suggested_values:
-                                                suggested_text = f"\nSuggested options: {', '.join(suggested_values)}"
-                                            
-                                            # Check if we have previous specifications for this dimension
-                                            previous_specs = dimension_specifications.get(dimension_name, [])
-                                            previous_specs_text = ""
-                                            if previous_specs:
-                                                previous_specs_text = f"\n\nPrevious specifications for this dimension: {', '.join(previous_specs)}"
-                                            
-                                            # Get question from result or args
-                                            question = args.get("question", "")
-                                            if not question and isinstance(result, dict):
-                                                question = result.get("question", "")
-                                            if not question:
-                                                question = f"Do you want to specify a {dimension_name} dimension for table selection?"
-                                            
-                                            # Get reasoning from result or args
-                                            reasoning = args.get("reasoning", "")
-                                            if not reasoning and isinstance(result, dict):
-                                                reasoning = result.get("message", "")
-                                            
-                                            # Get dimension_type from args or result
-                                            dimension_type = args.get("dimension_type", "")
-                                            if not dimension_type and isinstance(result, dict):
-                                                dimension_type = result.get("dimension_type", "")
-                                            
-                                            confirmation_payload = {
-                                                "dimension_name": dimension_name,
-                                                "dimension_type": dimension_type,
-                                                "reasoning": reasoning,
-                                                "question": question,
-                                                "suggested_values": suggested_values,
-                                                "is_explicitly_mentioned": args.get("is_explicitly_mentioned", False) if args else (result.get("is_explicitly_mentioned", False) if isinstance(result, dict) else False),
-                                                "confirmation_type": "dimension"
-                                            }
-                                            confirmation_hint = f"""
-                            📋 Dimension Requirement Specification
+    # Run agent, call analyze_user_intent
+    # Run analyze_user_intent agent and extract result
+    analyze_intent_events = await analyze_intent_runner.run_debug(analyze_intent_prompt)
+    last_text = ""
+    for event in analyze_intent_events:
+        if getattr(event, "content", None) and getattr(event.content, "parts", None):
+            for part in event.content.parts:
+                t = getattr(part, "text", None)
+                if t:
+                    last_text = t
+    analyzed_intent = extract_json(last_text) if "domain_field" in last_text else None
 
-                            Dimension: {dimension_name}
-                            Type: {dimension_type}
+    dimension_specifications = {}
 
-                            Reasoning: {reasoning}
-
-                            Question: {question}
-                            {suggested_text}{previous_specs_text}
-
-                            Please specify your requirement for this dimension.
-                            Examples:
-                            - For Geographic: "Borough", "Zip Code", "Neighborhood", "California", "Los Angeles County", etc.
-                            - For Domain/Field: "Demographics", "Education", "Economy", etc.
-                            - For Temporal: "Historical trends", "2020-2023", "Seasonal patterns", etc.
-                            - For Population Group: "by Age Group", "by Income Level", "by Education", "18-25, 26-35", etc.
-                            
-                            You can:
-                            - Provide a specific value (e.g., "California", "by Age Group")
-                            - Type "done" to finish specifying this dimension
-                            - Type "skip" to skip this dimension entirely
-                            """
-                                            tool_call_name = "confirm_dimension_requirement"
-                                            print(f"[DEBUG] ✅ Detected pending confirmation for dimension: {dimension_name}")
-                                            # Break after finding the first one
-                                            break
-                                
-                                # Break outer loop if we found a pending confirmation
-                                if pending_confirmation:
-                                    break
-                # Break event loop if we found a pending confirmation
-                if pending_confirmation:
-                    break
-                
-                # Also check for confirmation hints in the agent's output/content
-                # Only check if we haven't found a confirmation from tool calls yet
-                if not pending_confirmation and hasattr(event, 'content'):
-                    content = str(event.content)
-                    # Look for dimension requirement hints
-                    if ("Dimension Requirement" in content or "Please specify" in content or ("Dimension:" in content and "Category:" not in content)):
-                        # Try to extract dimension info from content using regex
-                        import re
-                        dimension_match = re.search(r'Dimension:\s*([^\n]+)', content, re.IGNORECASE)
-                        type_match = re.search(r'Type:\s*([^\n]+)', content, re.IGNORECASE)
-                        reasoning_match = re.search(r'Reasoning:\s*([^\n]+)', content, re.IGNORECASE)
-                        question_match = re.search(r'Question:\s*([^\n]+)', content, re.IGNORECASE)
-                        suggested_match = re.search(r'Suggested options:\s*([^\n]+)', content, re.IGNORECASE)
-                        
-                        if dimension_match:
-                            pending_confirmation = True
-                            tool_call_name = "confirm_dimension_requirement"
-                            suggested_values = []
-                            if suggested_match:
-                                suggested_text = suggested_match.group(1).strip()
-                                suggested_values = [v.strip() for v in suggested_text.split(',')]
-                            
-                            confirmation_payload = {
-                                "dimension_name": dimension_match.group(1).strip(),
-                                "dimension_type": type_match.group(1).strip() if type_match else "",
-                                "reasoning": reasoning_match.group(1).strip() if reasoning_match else "",
-                                "question": question_match.group(1).strip() if question_match else "",
-                                "suggested_values": suggested_values,
-                                "confirmation_type": "dimension"
-                            }
-                            confirmation_hint = content
-                            break
-        
-        # Also check events for adk_request_confirmation calls
-        # These are special function calls that contain toolConfirmation data
-        # IMPORTANT: Only extract the FIRST confirmation to ensure one-by-one interaction
-        if not pending_confirmation and table_events:
-            import re
-            # Check all events for adk_request_confirmation
-            for event in table_events:
-                if hasattr(event, 'content'):
-                    content = str(event.content)
-                    # Check if this is an adk_request_confirmation event
-                    if "adk_request_confirmation" in content or "toolConfirmation" in content:
-                        # Extract the FIRST confirmation from the content
-                        # Pattern: look for the first occurrence of toolConfirmation
-                        # The structure is: 'toolConfirmation': { 'confirmed': False, 'hint': """...""", 'payload': {...} }
-                        # We need to find the first complete toolConfirmation block
-                        
-                        # First, find all toolConfirmation blocks
-                        tool_confirmation_pattern = r"'toolConfirmation':\s*\{([^}]+(?:\{[^}]*\}[^}]*)*)\}"
-                        all_confirmations = re.finditer(tool_confirmation_pattern, content, re.DOTALL | re.IGNORECASE)
-                        
-                        # Get the first one
-                        first_confirmation = next(all_confirmations, None)
-                        
-                        if first_confirmation and not pending_confirmation:
-                            confirmation_block = first_confirmation.group(1)
-                            
-                            # Extract payload section
-                            payload_match = re.search(r"'payload':\s*\{([^}]+(?:\{[^}]*\}[^}]*)*)\}", confirmation_block, re.DOTALL | re.IGNORECASE)
-                            payload_text = payload_match.group(1) if payload_match else ""
-                            
-                            # Extract hint
-                            hint_match = re.search(r"'hint':\s*\"\"\"(.*?)\"\"\"", confirmation_block, re.DOTALL | re.IGNORECASE)
-                            hint_text = hint_match.group(1).strip() if hint_match else ""
-                            
-                            # Check if this is a dimension requirement (has dimension_name)
-                            dimension_match = re.search(r"'dimension_name':\s*'([^']+)'", payload_text, re.IGNORECASE)
-                            
-                            if dimension_match:
-                                # This is a dimension requirement
-                                first_dimension = dimension_match.group(1)
-                                
-                                pending_confirmation = True
-                                tool_call_name = "confirm_dimension_requirement"
-                                confirmation_hint = hint_text if hint_text else f"Please specify your requirement for the '{first_dimension}' dimension."
-                                
-                                # Extract payload fields
-                                type_match = re.search(r"'dimension_type':\s*'([^']+)'", payload_text, re.IGNORECASE)
-                                reasoning_match = re.search(r"'reasoning':\s*'([^']+)'", payload_text, re.IGNORECASE)
-                                question_match = re.search(r"'question':\s*'([^']+)'", payload_text, re.IGNORECASE)
-                                suggested_match = re.search(r"'suggested_values':\s*\[(.*?)\]", payload_text, re.DOTALL | re.IGNORECASE)
-                                
-                                suggested_values = []
-                                if suggested_match:
-                                    suggested_text = suggested_match.group(1)
-                                    # Extract individual values from the list
-                                    value_matches = re.findall(r"'([^']+)'", suggested_text)
-                                    suggested_values = value_matches
-                                
-                                confirmation_payload = {
-                                    "dimension_name": first_dimension,
-                                    "dimension_type": type_match.group(1).strip() if type_match else "",
-                                    "reasoning": reasoning_match.group(1).strip() if reasoning_match else "",
-                                    "question": question_match.group(1).strip() if question_match else "",
-                                    "suggested_values": suggested_values,
-                                    "confirmation_type": "dimension"
-                                }
-                                
-                                # Only process the first one - break immediately
-                                break
-        
-        # If we found a pending confirmation, wait for user input BEFORE continuing
-        if pending_confirmation:
-            confirmation_type = confirmation_payload.get("confirmation_type", "dimension") if confirmation_payload else "dimension"
-            
-            if confirmation_hint:
-                print("\n" + "="*80)
-                print(confirmation_hint)
-                print("="*80)
-            else:
-                # If no hint extracted, show a generic message
-                print("\n" + "="*80)
-                print("📋 Dimension Requirement Specification")
-                if confirmation_payload and confirmation_payload.get("dimension_name"):
-                    print(f"Dimension: {confirmation_payload.get('dimension_name')}")
-                print("="*80)
-            
-            # Handle dimension requirement (needs specific value input)
-            if confirmation_type == "dimension":
-                # Wait for user input - user needs to provide specific value
-                while True:
-                    user_input = input("\nYour specification (or 'skip' to skip this dimension, 'done' to finish this dimension): ").strip()
-                    if user_input.lower() == "skip":
-                        # User doesn't want to specify this dimension
-                        user_specified_value = None
-                        user_wants_to_specify = False
-                        user_response_text = "User chose to skip this dimension. Use suggested values or proceed without this dimension."
-                        dimension_name = confirmation_payload.get("dimension_name", "")
-                        dimension_complete.add(dimension_name)  # 标记为完成
-                        break
-                    elif user_input.lower() == "done":
-                        # User wants to finish this dimension
-                        dimension_name = confirmation_payload.get("dimension_name", "")
-                        dimension_complete.add(dimension_name)  # 标记为完成
-                        user_response_text = f"User has finished specifying the {dimension_name} dimension. Proceed to next dimension."
-                        break
-                    elif user_input:
-                        # User provided a specific value
-                        user_specified_value = user_input
-                        user_wants_to_specify = True
-                        dimension_name = confirmation_payload.get("dimension_name", "")
-                        
-                        # 记录到维度规格中（支持多值）
-                        if dimension_name not in dimension_specifications:
-                            dimension_specifications[dimension_name] = []
-                        dimension_specifications[dimension_name].append(user_input)
-                        
-                        user_response_text = f"User specified: {user_input} for {dimension_name} dimension."
-                        break
-                    else:
-                        print("⚠️  Please enter a specification, 'skip', or 'done'")
-                
-                # Record the dimension specification
-                dimension_name = confirmation_payload.get("dimension_name", "")
-                
-                if user_input.lower() == "skip":
-                    print(f"\n⏭️  Dimension '{dimension_name}': skipped (using suggested values)")
-                elif user_input.lower() == "done":
-                   
-                    specs = dimension_specifications.get(dimension_name, [])
-                    if specs:
-                        print(f"\n✅ Dimension '{dimension_name}' completed with specifications: {', '.join(specs)}")
-                    else:
-                        print(f"\n✅ Dimension '{dimension_name}' completed")
-                else:
-                    specs = dimension_specifications.get(dimension_name, [])
-                    print(f"\n📝 Dimension '{dimension_name}' specification: {user_input}")
-                    if len(specs) > 1:
-                        print(f"   (All specifications so far: {', '.join(specs)})")
-                
-              
-                is_dimension_complete = dimension_name in dimension_complete
-                
-                # Build prompt to continue
-                if is_dimension_complete:
-               
-                    completed_dimensions = ', '.join(dimension_complete) if dimension_complete else "None"
-                    all_dimension_specs = "\n".join([
-                        f"- {dim}: {', '.join(specs)}" 
-                        for dim, specs in dimension_specifications.items() 
-                        if specs
-                    ])
-                    
-                    # Check if all dimensions are complete
-                    # Normalize dimension names for comparison (case-insensitive)
-                    normalized_complete = {dim.lower().replace("/", "").replace(" ", "") for dim in dimension_complete}
-                    expected_dimensions = {"geographic", "domainfield", "temporal", "populationgroup"}
-                    if normalized_complete.issuperset(expected_dimensions) or len(dimension_complete) >= 4:
-                        # All dimensions complete, proceed to table selection
-                        current_prompt = f"""
-All dimensions have been confirmed:
-
-All dimension specifications:
-{all_dimension_specs if all_dimension_specs else "None"}
-
-IMPORTANT: 
-- All dimensions are now complete.
-- Proceed to STEP 3: Select Tables Based on Confirmed Dimensions
-- Call read_metadata(dataset_name=None) to get ALL candidate tables
-- For each table, check if it matches the confirmed dimensions based on table description
-- Match tables to the confirmed dimensions: {all_dimension_specs}
-- Return the most relevant tables with reasoning explaining which dimensions each table matches
-"""
-                    else:
-                        # Not all dimensions complete, continue with next dimension
-                        current_prompt = f"""
-The user has completed specifying the {dimension_name} dimension.
-
-All completed dimensions: {completed_dimensions}
-All dimension specifications:
-{all_dimension_specs if all_dimension_specs else "None yet"}
-
-IMPORTANT: 
-- The {dimension_name} dimension is now complete. 
-- Please proceed to the NEXT dimension that hasn't been completed yet.
-- Process dimensions in this order: 1. Geographic, 2. Domain/Field, 3. Temporal, 4. Population Group
-- Only ask about dimensions that haven't been completed yet.
-"""
-                else:
-                   
-                    current_specs = dimension_specifications.get(dimension_name, [])
-                    specs_text = f" (All specifications so far: {', '.join(current_specs)})" if current_specs else ""
-                    
-                    current_prompt = f"""
-The user has provided a specification for the {dimension_name} dimension:
-- User Input: {user_input}
-- Interpretation: {user_response_text}
-{specs_text}
-
-IMPORTANT: 
-- You are still working on the {dimension_name} dimension.
-- Based on the user's answer, you can ask a MORE SPECIFIC follow-up question if needed.
-- For example:
-  * If user said "California", you can ask: "Do you have a preference for specific counties or cities in California?"
-  * If user said "by Age Group", you can ask: "Which age groups are you most interested in?"
-  * If user said "Los Angeles County", you can ask: "Do you need data for specific cities or neighborhoods within Los Angeles County?"
-- Call confirm_dimension_requirement again with a more specific question for the SAME dimension ({dimension_name}).
-- Only move to the next dimension when you have gathered sufficient information, or when user says "done".
-- If you think you have enough information, you can ask: "Is there anything else you'd like to specify for {dimension_name}? (or type 'done' to finish)"
-"""
-            
+    for dim_key, dim_display_name in [
+        ("domain_field", "Domain/Field"),
+        ("geographic", "Geographic"),
+        ("temporal", "Temporal"),
+        ("population_group", "Population Group"),
+    ]:
+        dim_info = analyzed_intent.get(dim_key) if analyzed_intent else None
+        if not isinstance(dim_info, dict):
             continue
-        
-        # Check if there is a final result (relevant_tables)
-        table_json_str = "{}"
-        for event in reversed(table_events):
-            if hasattr(event, 'actions') and event.actions.state_delta:
-                if "relevant_tables" in event.actions.state_delta:
-                    table_json_str = event.actions.state_delta["relevant_tables"]
-                    break
-        
-        # If found the result, exit the loop
-        if table_json_str != "{}":
-            table_data = extract_json(table_json_str)
-            if table_data.get("relevant_tables"):
-                print("\n✅ Agent has completed table selection")
-                break
-        
-        # If there is no pending confirmation, and no result, the agent may be waiting
-        # Or need to continue running
-        # May need to check the last output of the agent, to see if it needs to continue
-        # Here simplified: if no progress for a certain number of iterations, exit the loop
-        if iteration >= 10:
-            print("⚠️  Reached maximum iterations, exit the interactive loop")
-            break
+        is_explicitly_mentioned = dim_info.get("is_explicitly_mentioned") is True
+        explicitly_mentioned_value = dim_info.get("explicitly_mentioned_value")
 
-    # Extract the final result
-    table_json_str = "{}"
-    for event in reversed(table_events):
-        if hasattr(event, 'actions') and event.actions.state_delta:
-            if "relevant_tables" in event.actions.state_delta:
-                table_json_str = event.actions.state_delta["relevant_tables"]
-                break
-    
-    table_data = extract_json(table_json_str)
-    relevant_list = table_data.get("relevant_tables", [])
-
-    # Print dimension specifications summary
-    print(f"\n📊 Confirmed Dimensions:")
-    for dim, specs in dimension_specifications.items():
-        if specs:
-            print(f"  - {dim}: {', '.join(specs)}")
-    
-    print(f"\n📋 Table Selection Results: {len(relevant_list)} tables found")
-    if len(relevant_list) == 0:
-        print("   ⚠️  No relevant tables found. Check table selection agent output.")
-        print(f"   Debug: table_data = {table_data}")
-    else:
-        for i, table_info in enumerate(relevant_list, 1):
-            print(f"   {i}. {table_info.get('table_name', 'Unknown')}")
-            if 'reasoning' in table_info:
-                print(f"      Reasoning: {table_info['reasoning']}")
-
-    real_join_table_name = find_dataset_dir(join_table_name, BASE_DIR)
-    join_df = pd.read_csv(Path(BASE_DIR) / real_join_table_name / config.data_filename, low_memory=False)
-    callback = JoinValidatorCallback(join_table_df=join_df, base_dir=BASE_DIR, config=config)
-
-    # ---- Phase 2: Join Column selection ----
-    final_results = []
-    for table_info in relevant_list:
-        cand_name = table_info["table_name"]
-        print(f"🔍 Verifying Candidate: {cand_name}")
-        
-        jc_prompt = f"""
-        TASK: Verify if '{cand_name}' can join with '{join_table_name}'.
-        
-        REQUIRED PARAMETERS:
-        - dataset_name: "{cand_name}"
-        - join_table_name: "{join_table_name}"
-        - join_column: {join_column}
-        - base_dir: "{BASE_DIR}"
-
-        INSTRUCTION:
-        1. You MUST call 'compute_statistics' with the parameters above.
-        2. Based on the tool output, determine the join_type and confidence.
-        3. Return ONLY the JSON schema requested. Do not ask for more information.
-        """
-        table_events = await table_runner.run_debug(table_prompt)
-        await asyncio.sleep(config.delay_between_tables)
-
-        jc_events = await joincol_runner.run_debug(jc_prompt)
-        
-        jc_json_str = "{}"
-        for event in reversed(jc_events):
-            if hasattr(event, 'actions') and event.actions.state_delta:
-                if "join_column_choice" in event.actions.state_delta:
-                    jc_json_str = event.actions.state_delta["join_column_choice"]
-                    break
-                    
-        jc_json = extract_json(jc_json_str)
-
-
-        if jc_json.get("join_type") != "no_join_found":
-
-            # Call back to verify the join
-            callback.verify(jc_json, global_join_col=join_column)
-            if callback.is_valid:
-                print(f"✅ Physical Verification Passed ({callback.match_rate:.2%} match)")
-                final_results.append({
-                    "candidate_table": cand_name,
-                    "selected_columns": jc_json.get("selected_columns", []),
-                    "confidence": jc_json.get("confidence", 0.0),
-                    "reason": jc_json.get("reason", table_info.get("reasoning", ""))
-                })
-
+        if is_explicitly_mentioned:
+            raw = explicitly_mentioned_value
+            if isinstance(raw, list):
+                value_str = ", ".join(str(x) for x in raw) if raw else ""
             else:
-                print(f"❌ Physical Verification Failed ({callback.reason})")
+                value_str = str(raw) if raw else ""
+            print(f"\nDimension '{dim_display_name}' is set to: {value_str}")
+            print("Reply 'done' to confirm, or type the correct value.")
+            user_input = input("Your reply: ").strip()
+            if user_input.lower() == "done":
+                confirmed_value = explicitly_mentioned_value
+            else:
+                confirmed_value = user_input
+            dimension_specifications[dim_display_name] = [confirmed_value] if not isinstance(confirmed_value, list) else (confirmed_value if isinstance(confirmed_value, list) else [confirmed_value])
+        else:
+            suggested = dim_info.get("suggested_values") or []
+            sug_str = f" Suggested: {', '.join(str(x) for x in suggested)}." if suggested else ""
+            print(f"\nDimension '{dim_display_name}' was not specified in your intent.")
+            print(f"Enter a value{sug_str} or type 'skip' to skip.")
+            user_input = input("Your reply: ").strip()
+            if user_input.lower() != "skip" and user_input:
+                dimension_specifications[dim_display_name] = [user_input]
+            else:
+                dimension_specifications[dim_display_name] = ['all'] 
+    print("="*40, "Dimension Specifications", "="*40)
+    print(dimension_specifications)
+
+    # Call Opendata API when data_source is datalake
+    opendata_metadata = None
+    data_source = config.config.get("data", {}).get("data_source", "local")
+    if data_source == "datalake":
+        join_column = ", ".join(join_column) if isinstance(join_column, list) else join_column
+        target_column = str(target_column).strip() if target_column else None
+        search_domains, search_q = build_opendata_search_params(dimension_specifications, join_column, target_column)
+        print("="*80)        
+        print(f"Search Domains: {search_domains}")
+        print(f"Search Query: {search_q}")
+        print("="*80)        
+        datalake_config = config.config.get("data", {}).get("datalake", {})
+        client = SocrataDatalakeClient(datalake_config)
+        max_tables = datalake_config.get("max_tables") or 10
+        domain_for_fetch = (search_domains[0] if search_domains else None) or (datalake_config.get("domains") or [None])[0]
+        join_columns_list = config.join_column if isinstance(config.join_column, list) else [config.join_column]
+        join_columns_set = {str(j).strip().lower() for j in join_columns_list if j}
+        index_path = Path(__file__).resolve().parent / "opendata_table_index.json"
+        exclude_base = [join_table_name] if join_table_name else []
+        checked_set, checked_table = _load_session_checked(session_id)
+
+        # Load existing index (cumulative)
+        existing_index = []
+        if index_path.exists():
+            try:
+                with open(index_path, "r", encoding="utf-8") as f:
+                    existing_index = json.load(f)
+                if not isinstance(existing_index, list):
+                    existing_index = []
+            except Exception:
+                existing_index = []
+        existing_id_set = {str(e.get("id")).strip() for e in existing_index if e and e.get("id")}
+
+        new_entries = []
+        candidate_ids_for_run = []
+        api_fetch_limit = 10000
+
+        if domain_for_fetch:
+            # exclude_tables = exclude_base + list(checked_set)
+            exclude_tables = exclude_base
+            opendata_metadata = client.read_metadata(
+                search_domains=search_domains,
+                search_q=search_q if search_q.strip() else None,
+                exclude_tables=exclude_tables,
+                limit=api_fetch_limit,
+                offset=0,
+            )
+            batch = list((opendata_metadata.get("metadata_by_dataset") or {}).keys())
+            print(f"[Opendata] One-time fetch: {len(batch)} tables (API limit={api_fetch_limit}, user max_tables={max_tables})")
+
+            for ds_id in batch:
+                if len(candidate_ids_for_run) >= max_tables:
+                    break
+                ds_id_str = str(ds_id).strip()
+                if ds_id_str in checked_set:
+                    continue
+                if ds_id_str in existing_id_set:
+                    candidate_ids_for_run.append(ds_id_str)
+                    if session_id:
+                        for entry in existing_index:
+                            if entry and str(entry.get("id")).strip() == ds_id_str:
+                                cols_name = entry.get("columns_name") or []
+                                possible = [c for c in cols_name if c and str(c).strip().lower() in join_columns_set]
+                                session_entry = dict(entry)
+                                session_entry["possible_join_column"] = possible
+                                checked_table.append(session_entry)
+                                break
+                        checked_set.add(ds_id_str)
+                        _save_session_checked(session_id, checked_table)
+                    continue
+                full_meta = _load_metadata_from_cache(domain_for_fetch, ds_id)
+                if full_meta is None:
+                    full_meta = client.get_dataset_metadata(ds_id, domain_for_fetch)
+                    if "error" not in full_meta:
+                        _save_metadata_to_cache(domain_for_fetch, ds_id, full_meta)
+                if full_meta and "error" not in full_meta:
+                    res = full_meta.get("resource") or {}
+                    meta_id = full_meta.get("id") or res.get("id")
+                    meta_desc = full_meta.get("description") or res.get("description") or ""
+                    meta_attr = full_meta.get("attribution") or res.get("attribution")
+                    cols_name = list(res.get("columns_name") or [])
+                    cols_desc = [str((c.get("description") or "")).strip() for c in full_meta.get("columns") if isinstance(c, dict)]
+                    if not cols_name:
+                        for col in full_meta.get("columns") or []:
+                            if isinstance(col, dict) and col.get("name"):
+                                cols_name.append(col["name"])
+                    possible = [c for c in cols_name if c and str(c).strip().lower() in join_columns_set]
+                    entry = {"id": meta_id, "description": meta_desc, "attribution": meta_attr}
+                    entry["columns_name"] = res.get("columns_name") or cols_name
+                    entry["columns_description"] = cols_desc 
+                    raw_class = full_meta.get("classification") or {}
+                    if not raw_class and (full_meta.get("category") is not None or full_meta.get("tags")):
+                        raw_class = {
+                            "categories": [],
+                            "tags": list(full_meta.get("tags") or []),
+                            "domain_category": str(full_meta.get("category") or "").strip(),
+                            "domain_tags": [],
+                        }
+
+                    entry["classification"] = {
+                        "categories": raw_class.get("categories") if isinstance(raw_class, dict) else [],
+                        "tags": raw_class.get("tags") if isinstance(raw_class, dict) else [],
+                        "domain_category": raw_class.get("domain_category") or "",
+                        "domain_tags": raw_class.get("domain_tags") or [],
+                    }   
+
+                    entry["domain"] = (full_meta.get("metadata") or {}).get("domain") or domain_for_fetch
+                    new_entries.append(entry)
+                    existing_id_set.add(str(meta_id).strip())
+                    candidate_ids_for_run.append(ds_id_str)
+                    if session_id:
+                        session_entry = dict(entry)
+                        session_entry["possible_join_column"] = possible
+                        session_entry["possible_join_column_is_true"] = bool(possible)
+                        checked_table.append(session_entry)
+                        checked_set.add(ds_id_str)
+                        _save_session_checked(session_id, checked_table)
+
+        merged_index = existing_index + new_entries
+        with open(index_path, "w", encoding="utf-8") as f:
+            json.dump(merged_index, f, indent=2, ensure_ascii=False)
+        print(f"[Index] cumulative: {len(existing_index)} existing + {len(new_entries)} new = {len(merged_index)} total, {len(candidate_ids_for_run)} for this run (limit={max_tables})")
+
+        table_selection_prompt = f"""Candidate table IDs from Opendata search (call read_table_index with these IDs to load their index):
+candidate_ids = {candidate_ids_for_run}
+
+User Intent: {user_intent}
+
+Task Information:
+- Target Column: {target_column}
+- Task Type: {task_type}
+- Join Table: {join_table_name}
+- Join Column(s): {join_column}
+- Confirmed dimension specifications: {json.dumps(dimension_specifications, ensure_ascii=False)}
+
+Call read_table_index(candidate_ids={candidate_ids_for_run}) to get index entries, then select relevant tables according to your prompt and return JSON with key "relevant_tables"."""
+
+        print("\n📋 Running Table Selection Agent (datalake)...")
+        table_selection_events = await table_runner.run_debug(table_selection_prompt)
+        last_table_text = ""
+        for event in table_selection_events:
+            if getattr(event, "content", None) and getattr(event.content, "parts", None):
+                for part in event.content.parts:
+                    t = getattr(part, "text", None)
+                    if t:
+                        last_table_text = t
+        table_data = extract_json(last_table_text) if last_table_text.strip() else {}
+        relevant_list = table_data.get("relevant_tables", [])
+        print(f"[Table Selection] {len(relevant_list)} tables selected")
+        for i, tbl in enumerate(relevant_list[:10], 1):
+            name = tbl.get("table_name", "?")
+            print(f"   {i}. {name}")
+        if len(relevant_list) > 10:
+            print(f"   ... and {len(relevant_list) - 10} more")
+
+        # Use join_column_selection_agent to verify joinability (replaces embedding similarity)
+        final_selected_tables = []
+        real_join_table_name = find_dataset_dir(join_table_name, BASE_DIR)
+        join_df = pd.read_csv(Path(BASE_DIR) / real_join_table_name / config.data_filename, low_memory=False)
+        callback = JoinValidatorCallback(join_table_df=join_df, base_dir=BASE_DIR, config=config)
+        for tbl in relevant_list:
+            cand_name = tbl.get("table_name")
+            if not cand_name:
+                continue
+            print(f"\n🔍 [Join Agent] Verifying: {cand_name}")
+            jc_prompt = f"""TASK: Verify if '{cand_name}' can join with '{join_table_name}'.
+REQUIRED: Call compute_statistics with dataset_name="{cand_name}", join_table_name="{join_table_name}", join_column={join_column}, base_dir="{BASE_DIR}", opendata_domain="{domain_for_fetch}".
+Return JSON with join_type and selected_columns. Use join_type="no_join_found" if no suitable columns."""
+            try:
+                jc_events = await joincol_runner.run_debug(jc_prompt)
+            except Exception as e:
+                print(f"   ⚠️  Agent error: {e}")
+                continue
+            jc_json_str = "{}"
+            for event in reversed(jc_events):
+                if hasattr(event, "actions") and event.actions and getattr(event.actions, "state_delta", None):
+                    sd = getattr(event.actions, "state_delta", None)
+                    if isinstance(sd, dict) and "join_column_choice" in sd:
+                        jc_json_str = sd["join_column_choice"]
+                        break
+            jc_json = extract_json(jc_json_str) if isinstance(jc_json_str, str) else (jc_json_str or {})
+            if jc_json.get("join_type") == "no_join_found":
+                print(f"   ❌ No join found")
+                continue
+            if "candidate_table_name" not in jc_json:
+                jc_json["candidate_table_name"] = cand_name
+            callback.verify(jc_json, global_join_col=join_column, opendata_domain=domain_for_fetch)
+            if callback.is_valid:
+                print(f"   ✅ Verified (match {callback.match_rate:.2%})")
+                tbl_with_join = dict(tbl)
+                tbl_with_join["candidate_table"] = cand_name
+                tbl_with_join["selected_columns"] = jc_json.get("selected_columns", [])
+                final_selected_tables.append(tbl_with_join)
+            else:
+                print(f"   ❌ Verification failed: {callback.reason}")
+        relevant_list = final_selected_tables
+        print(f"\n[Join Agent] Final selected: {[t.get('table_name') for t in relevant_list]}")
+        join_columns_list = config.join_column if isinstance(config.join_column, list) else [config.join_column]
 
 # ---- Phase 3: Augment Column Selection ----
     print(f"\n📊 Starting Augment Column Selection...")
@@ -715,15 +485,31 @@ IMPORTANT:
     augment_results = []
     
     # Process each table that passed Phase 2
-    for result in final_results:
-        cand_name = result["candidate_table"]
-        selected_join_cols = result["selected_columns"]  # Join columns from Phase 2
+    for result in relevant_list:
+        cand_name = result.get("candidate_table")
+        if not cand_name:
+            continue
+        selected_join_cols = result.get("selected_columns", [])  # Join columns from Phase 2
         
         print(f"\n🔍 Evaluating columns in '{cand_name}' for augmenting '{target_column}'...")
         
         # Load candidate table to get all available columns
-        real_cand_name = find_dataset_dir(cand_name, BASE_DIR)
-        cand_df = pd.read_csv(Path(BASE_DIR) / real_cand_name / config.data_filename, low_memory=False)
+        cand_df = None
+        if data_source == "datalake" and domain_for_fetch:
+            try:
+                rows = client.read_data(cand_name, domain_for_fetch, max_rows=config.sample_size * 2)
+                cand_df = pd.DataFrame(rows) if rows else None
+            except Exception as e:
+                print(f"   ⚠️ API fetch failed for {cand_name}: {e}")
+        if cand_df is None or cand_df.empty:
+            try:
+                real_cand_name = find_dataset_dir(cand_name, BASE_DIR)
+                cand_df = pd.read_csv(Path(BASE_DIR) / real_cand_name / config.data_filename, low_memory=False)
+            except Exception as e:
+                print(f"   ⚠️ Local load failed for {cand_name}: {e}")
+                continue
+        if cand_df.empty or len(cand_df.columns) == 0:
+            continue
         
         # Get candidate columns to evaluate (exclude join columns)
         candidate_columns = [
@@ -747,13 +533,14 @@ IMPORTANT:
                 Compute utility gain and evaluate suitability with these parameters:
                 - base_table_name: "{join_table_name}"
                 - candidate_table_name: "{cand_name}"
-                - base_join_columns: {join_column}
+                - base_join_columns: {config.join_column}
                 - candidate_join_columns: {selected_join_cols}
                 - candidate_column: "{col}"
                 - target_column: "{target_column}"
                 - task_type: "{task_type}"
                 - base_dir: "{BASE_DIR}"
                 - sample_size: {config.sample_size}
+                - opendata_domain: "{domain_for_fetch or ''}"
                 
                 Call compute_integration_quality, compute_feature_importance, and compute_utility_gain_from_params.
                 Based on IQ, FI, and Utility Gain values, determine if this column is suitable for augmentation.
@@ -764,9 +551,9 @@ IMPORTANT:
                 
                 ug_json_str = "{}"
                 for event in reversed(ug_events):
-                    if hasattr(event, 'actions') and event.actions.state_delta:
-                        if "utility_gain_result" in event.actions.state_delta:
-                            ug_json_str = event.actions.state_delta["utility_gain_result"]
+                    if hasattr(event, 'actions') and getattr(event.actions, "state_delta", None):
+                        if "utility_gain_result" in getattr(event.actions, "state_delta", None):
+                            ug_json_str = getattr(event.actions, "state_delta", None)["utility_gain_result"]
                             break
                 
                 ug_result = extract_json(ug_json_str)
@@ -821,7 +608,7 @@ IMPORTANT:
         base_table_df=join_df,
         target_column=target_column,
         task_type=task_type,
-        join_columns=join_column,
+        join_columns=join_columns_list,
         base_dir=BASE_DIR,
         config=config
     )
@@ -845,7 +632,8 @@ IMPORTANT:
         validation_result = augment_callback.verify(
             candidate_table_name=cand_name,
             selected_columns=selected_column_names,
-            candidate_join_columns=selected_join_cols
+            candidate_join_columns=selected_join_cols,
+            opendata_domain=domain_for_fetch if data_source == "datalake" else None,
         )
         
         # Add validation result to result
@@ -875,10 +663,10 @@ IMPORTANT:
 
     return {
         "join_table": join_table_name,
-        "join_column": join_column,
+        "join_column": join_columns_list,
         "target_column": target_column,
         "task_type": task_type,
-        "joinable_tables": final_results,
+        "joinable_tables": relevant_list,
         "augment_results": augment_results
     }
 
@@ -898,7 +686,8 @@ if __name__ == "__main__":
     parser.add_argument('--task-type', type=str, default=None,
                        choices=['regression', 'classification'],
                        help='Task type')
-    
+    parser.add_argument('--session-id', type=str, default=None,
+                       help='Session ID for this query task (for per-session checked dataset)')    
     args = parser.parse_args()
     
     try:
@@ -909,6 +698,7 @@ if __name__ == "__main__":
         output = asyncio.run(run_orchestrator(
             config=config,
             user_intent=args.user_intent,  # Pass user_intent from command line
+            session_id=args.session_id,
             join_table_name=args.join_table,
             target_column=args.target_column,
             task_type=args.task_type

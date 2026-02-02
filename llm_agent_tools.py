@@ -18,6 +18,56 @@ warnings.filterwarnings('ignore')
 from typing import Dict, Any, List
 from google.adk.tools.tool_context import ToolContext
 
+# Opendata search: where -> domains, domain/field + when + who -> q
+_opendata_search_domains: Optional[List[str]] = None
+_opendata_search_q: Optional[str] = None
+
+GEOGRAPHIC_TO_DOMAIN = {
+    "nyc": "data.cityofnewyork.us",
+    "new york": "data.cityofnewyork.us",
+    "new york city": "data.cityofnewyork.us",
+    "chicago": "data.cityofchicago.org",
+}
+
+
+def build_opendata_search_params(dimension_specifications: Dict[str, list], join_column: Optional[List[str]] = None, target_column: Optional[str] = None) -> tuple:
+    """Build (search_domains, search_q) from dimension_specifications. where -> domains; domain/field, when, who -> q."""
+    domains = []
+    where_specs = dimension_specifications.get("Geographic", []) or []
+    for s in where_specs:
+        key = (s or "").lower().strip()
+        if key and key in GEOGRAPHIC_TO_DOMAIN and GEOGRAPHIC_TO_DOMAIN[key] not in domains:
+            domains.append(GEOGRAPHIC_TO_DOMAIN[key])
+    if not domains:
+        config = load_config()
+        domains = config.get('data', {}).get('datalake', {}).get('domains', []) or []
+
+    SKIP_WORDS = {"done", "skip", "all"}
+    dim_order = ["Domain/Field", "Temporal", "Population Group"]
+    keywords = []
+    for dim_name in dim_order:
+        vals = dimension_specifications.get(dim_name) or []
+        for v in vals:
+            s = (v if isinstance(v, str) else str(v)).strip()
+            if s and s.lower() not in SKIP_WORDS:
+                keywords.append(s)
+    for j in (join_column if isinstance(join_column, list) else [join_column]):
+        if j and str(j).strip().lower() not in SKIP_WORDS:
+            keywords.append(str(j).strip())
+    if target_column and str(target_column).strip().lower() not in SKIP_WORDS:
+        keywords.append(str(target_column).strip())
+    search_q = " ".join(keywords)
+
+    return (domains, search_q)
+
+
+def set_opendata_search(domains: Optional[List[str]] = None, q: Optional[str] = None) -> None:
+    global _opendata_search_domains, _opendata_search_q
+    _opendata_search_domains = domains
+    _opendata_search_q = q
+
+
+
 def analyze_user_intent(
     user_intent: str,
     target_column: str,
@@ -70,26 +120,124 @@ def analyze_user_intent(
         "expected_output_structure": {
             "domain_field": {
                 "is_explicitly_mentioned": "Boolean: True if domain/field is mentioned in user_intent, False otherwise",
-                "explicitly_mentioned_value": "List[str] or None: Domains mentioned if any, otherwise None",
-                "suggested_values": "List[str]: Suggested domains if not mentioned"
+                "explicitly_mentioned_value": "List[str] or None: Domains mentioned if any, otherwise None"
             },
             "geographic": {
                 "is_explicitly_mentioned": "Boolean: True if geographic level is mentioned, False otherwise",
-                "explicitly_mentioned_value": "str or None: Geographic level mentioned if any, otherwise None",
-                "suggested_values": "List[str]: Suggested geographic levels if not mentioned"
+                "explicitly_mentioned_value": "str or None: Geographic level mentioned if any, otherwise None"
             },
             "temporal": {
                 "is_explicitly_mentioned": "Boolean: True if time period is mentioned, False otherwise",
-                "explicitly_mentioned_value": "str or None: Time period mentioned if any, otherwise None",
-                "suggested_values": "List[str]: Suggested temporal dimensions if not mentioned"
+                "explicitly_mentioned_value": "str or None: Time period mentioned if any, otherwise None"
             },
             "population_group": {
                 "is_explicitly_mentioned": "Boolean: True if population groups are mentioned, False otherwise",
-                "explicitly_mentioned_value": "List[str] or None: Population groups mentioned if any, otherwise None",
-                "suggested_values": "List[str]: Suggested population groups if not mentioned"
+                "explicitly_mentioned_value": "List[str] or None: Population groups mentioned if any, otherwise None"
             }
         }
     }
+
+def _analyze_user_response_with_llm(
+    user_response: str,
+    dimension_name: str,
+    previous_specifications: List[str] = None
+) -> Dict[str, Any]:
+    """
+    Use LLM to analyze user response and determine if dimension should be marked as complete.
+    
+    Args:
+        user_response: User's text response
+        dimension_name: Name of the dimension being asked about
+        previous_specifications: Previous specifications for this dimension (if any)
+        
+    Returns:
+        Dictionary with:
+        - dimension_should_be_complete: bool
+        - reason: str (explanation)
+        - interpreted_value: str (what the user actually wants, if any)
+    """
+    try:
+        import os
+        from openai import OpenAI
+        
+        # Use OpenAI API directly for quick analysis
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            # Fallback to keyword-based detection if API key not available
+            raise ValueError("OPENAI_API_KEY not set")
+        
+        client = OpenAI(api_key=api_key)
+        
+        previous_specs_text = ""
+        if previous_specifications:
+            previous_specs_text = f"\nPrevious specifications for this dimension: {', '.join(previous_specifications)}"
+        
+        analysis_prompt = f"""Analyze the user's response to a question about the "{dimension_name}" dimension.
+
+User's response: "{user_response}"
+{previous_specs_text}
+
+Determine if the user's response indicates:
+1. They want to mark this dimension as complete (e.g., "no preference", "all", "any", "doesn't matter", "skip", "done", just saying thanks/acknowledgment)
+2. They provided a specific value/requirement
+3. They want to continue specifying (need more information)
+
+Respond in JSON format:
+{{
+    "dimension_should_be_complete": true/false,
+    "reason": "brief explanation",
+    "interpreted_value": "the actual value/requirement if provided, or null if just acknowledgment/completion"
+}}
+
+Examples:
+- "no preference" → {{"dimension_should_be_complete": true, "reason": "User indicated no preference", "interpreted_value": null}}
+- "all" or "include all" → {{"dimension_should_be_complete": true, "reason": "User wants all options included", "interpreted_value": "all"}}
+- "thanks" or "thank you" (short response) → {{"dimension_should_be_complete": true, "reason": "User acknowledged without providing new specification", "interpreted_value": null}}
+- "California" → {{"dimension_should_be_complete": false, "reason": "User provided specific value", "interpreted_value": "California"}}
+- "by age group" → {{"dimension_should_be_complete": false, "reason": "User provided specific requirement", "interpreted_value": "by age group"}}
+"""
+        
+        # Call LLM
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that analyzes user responses. Always respond with valid JSON."},
+                {"role": "user", "content": analysis_prompt}
+            ],
+            temperature=0.3,
+            max_tokens=200
+        )
+        
+        response_text = response.choices[0].message.content
+        
+        # Extract JSON from response
+        import re
+        
+        # Try to find JSON in the response
+        json_match = re.search(r'\{[^{}]*"dimension_should_be_complete"[^{}]*\}', response_text, re.DOTALL)
+        if json_match:
+            result = json.loads(json_match.group(0))
+            return result
+        
+        # Fallback: try to parse the entire response as JSON
+        try:
+            result = json.loads(response_text)
+            return result
+        except:
+            # If parsing fails, return default (conservative: don't auto-complete)
+            return {
+                "dimension_should_be_complete": False,
+                "reason": "Failed to parse LLM response",
+                "interpreted_value": user_response
+            }
+            
+    except Exception as e:
+        # If LLM call fails, return default (conservative: don't auto-complete)
+        return {
+            "dimension_should_be_complete": False,
+            "reason": f"LLM analysis failed: {str(e)}",
+            "interpreted_value": user_response
+        }
 
 def confirm_dimension_requirement(
     dimension_name: str,
@@ -119,15 +267,27 @@ def confirm_dimension_requirement(
     """
 
     if is_explicitly_mentioned:
-        # If explicitly mentioned, just return the value
-        return {
-            "dimension_name": dimension_name,
-            "dimension_type": dimension_type,
-            "is_explicitly_mentioned": True,
-            "confirmed_value": explicitly_mentioned_value,
-            "message": f"Dimension '{dimension_name}' was explicitly mentioned: {explicitly_mentioned_value}"
-        }
-    
+        if not tool_context.tool_confirmation:
+            v = explicitly_mentioned_value
+            if isinstance(v, list):
+                v = ", ".join(str(x) for x in v) if v else ""
+            else:
+                v = str(v) if v else ""
+            tool_context.request_confirmation(
+                hint=f"Dimension '{dimension_name}' is set to: {v}. Reply 'done' to confirm or type the correct value.",
+                payload={"dimension_name": dimension_name, "explicitly_mentioned_value": explicitly_mentioned_value}
+            )
+            return {"dimension_name": dimension_name, "pending_confirmation": True, "message": "Waiting for user to confirm or correct."}
+        # user responded
+        resp = None
+        if hasattr(tool_context.tool_confirmation, "confirmed"):
+            resp = getattr(tool_context.tool_confirmation, "user_response", None) or getattr(tool_context.tool_confirmation, "payload", {}).get("user_response")
+        if isinstance(tool_context.tool_confirmation, dict):
+            resp = tool_context.tool_confirmation.get("user_response")
+        resp = (resp or "").strip().lower()
+        val = explicitly_mentioned_value if resp == "done" else (resp if resp else explicitly_mentioned_value)
+        return {"dimension_name": dimension_name, "dimension_type": dimension_type, "is_explicitly_mentioned": True, "confirmed_value": val, "dimension_should_be_complete": True}
+
     # If not explicitly mentioned, ask user
     if not tool_context.tool_confirmation:
         # First call - request user confirmation
@@ -163,6 +323,7 @@ You can:
 - Provide a specific value (e.g., "California", "by Age Group")
 - Type "done" to finish specifying this dimension
 - Type "skip" to skip this dimension entirely
+- Say "no preference" or "all" to include all options
 """
         
         tool_context.request_confirmation(
@@ -183,17 +344,50 @@ You can:
             "pending_confirmation": True,
             "question": question,
             "suggested_values": suggested_values or [],
+            "dimension_should_be_complete": False,  # Not complete yet
             "message": f"Waiting for user confirmation on {dimension_name} dimension"
         }
     
     # Second call - user has responded
     is_confirmed = tool_context.tool_confirmation
+
+    # Get user's text response
+    user_response = None
+    if hasattr(tool_context, 'get_user_response'):
+        user_response = tool_context.get_user_response()
+    elif hasattr(tool_context, 'user_response'):
+        user_response = tool_context.user_response
+    elif isinstance(tool_context.tool_confirmation, dict):
+        user_response = tool_context.tool_confirmation.get('user_response')
     
+    # Use LLM to analyze user response and determine if dimension should be marked as complete
+    dimension_should_be_complete = False
+    auto_complete_reason = None
+    interpreted_value = None
+    
+    if is_confirmed and user_response:
+        # Get previous specifications for this dimension (if available)
+        # Note: We can't access dimension_specifications from here, so we'll pass None
+        # The orchestrator can pass this if needed in the future
+        previous_specs = None  # Could be passed as parameter if needed
+        
+        # Use LLM to analyze the user response
+        llm_analysis = _analyze_user_response_with_llm(
+            user_response=str(user_response),
+            dimension_name=dimension_name,
+            previous_specifications=previous_specs
+        )
+        
+        dimension_should_be_complete = llm_analysis.get("dimension_should_be_complete", False)
+        auto_complete_reason = llm_analysis.get("reason", None)
+        interpreted_value = llm_analysis.get("interpreted_value", None)
+        
+        # If LLM interpreted a value, use it; otherwise use the original response
+        if interpreted_value:
+            user_response = interpreted_value
+
     if is_confirmed:
         # User wants to specify this dimension
-        # The user's response might contain the specific value they want
-        user_response = tool_context.get_user_response() if hasattr(tool_context, 'get_user_response') else None
-        
         return {
             "dimension_name": dimension_name,
             "dimension_type": dimension_type,
@@ -201,7 +395,10 @@ You can:
             "user_wants_to_specify": True,
             "user_specified_value": user_response if user_response else None,
             "suggested_values": suggested_values or [],
-            "message": f"User wants to specify {dimension_name} dimension"
+            "dimension_should_be_complete": dimension_should_be_complete,
+            "auto_complete_reason": auto_complete_reason,
+            "message": f"User wants to specify {dimension_name} dimension" + 
+                      (f" ({auto_complete_reason})" if auto_complete_reason else "")
         }
     else:
         # User doesn't want to specify this dimension
@@ -210,7 +407,9 @@ You can:
             "dimension_type": dimension_type,
             "is_explicitly_mentioned": False,
             "user_wants_to_specify": False,
-            "message": f"User does not want to specify {dimension_name} dimension - will use suggested values or skip"
+            "dimension_should_be_complete": True,  # User rejected, mark as complete (skipped)
+            "auto_complete_reason": "User chose not to specify",
+            "message": f"User does not want to specify {dimension_name} dimension - will not apply any restrictions to this dimension"
         }
         
 def generate_table_selection_plan(
@@ -392,51 +591,129 @@ def find_dataset_dir(dataset_name: str, base_dir: str = None) -> str:
         f"Available datasets: {sorted(name_map.values())}"
     )
 
+def read_table_index(
+    candidate_ids: List[str],
+    index_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Load the Opendata table index and return only entries whose id is in candidate_ids.
+    Use this when you have a list of candidate table IDs (e.g. from Opendata search) and need
+    to read their index entries (id, description, attribution, possible_join_column, classification, domain)
+    for ranking or selection.
 
-def read_metadata(dataset_name: str = None, base_dir: str = None) -> Dict[str, Any]:
-    if base_dir is None:
-        base_dir = _get_default_base_dir()
+    Args:
+        candidate_ids: List of dataset/table IDs to look up (e.g. from metadata_by_dataset.keys()).
+        index_path: Optional path to opendata_table_index.json. If None, uses default next to this module.
 
-    base_path = Path(base_dir).resolve()
-    
-    if not base_path.exists():
-        raise FileNotFoundError(f"Path does not exist: {base_path}")
-    
-    valid_dirs = {d.name.lower().strip(): d.name for d in base_path.iterdir() if d.is_dir()}
+    Returns:
+        Dict with keys: index_entries (list of matching index entries), count (number of matches),
+        requested_count (len(candidate_ids)). Missing IDs in the index are simply omitted.
+    """
+    if index_path is None:
+        index_path = str(Path(__file__).resolve().parent / "opendata_table_index.json")
+    path = Path(index_path)
+    if not path.exists():
+        return {
+            "index_entries": [],
+            "count": 0,
+            "requested_count": len(candidate_ids),
+            "error": f"Index file not found: {index_path}",
+        }
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            full_index = json.load(f)
+    except Exception as e:
+        return {
+            "index_entries": [],
+            "count": 0,
+            "requested_count": len(candidate_ids),
+            "error": str(e),
+        }
+    if not isinstance(full_index, list):
+        return {
+            "index_entries": [],
+            "count": 0,
+            "requested_count": len(candidate_ids),
+            "error": "Index is not a list",
+        }
+    id_set = {str(i).strip() for i in candidate_ids if i is not None}
+    entries = [e for e in full_index if isinstance(e, dict) and e.get("id") and str(e.get("id")).strip() in id_set]
+    return {
+        "index_entries": entries,
+        "count": len(entries),
+        "requested_count": len(candidate_ids),
+    }
 
-    if dataset_name:
-        import re
-        clean_input = dataset_name.lower().strip()
-        clean_input = re.sub(r'\s+\d+$', '', clean_input).strip()
+
+def read_metadata(dataset_name: str = None, base_dir: str = None, exclude_tables: List[str] = None) -> Dict[str, Any]:
+    config = load_config()
+    data_source = config.get('data', {}).get('data_source', 'local')
+    print(f"[read_metadata] data_source={data_source}") 
+    if data_source == 'datalake':
+        print("[read_metadata] Using opendata API")  
+        from datalake_client import SocrataDatalakeClient
+        datalake_config = config.get('data', {}).get('datalake', {})
+        client = SocrataDatalakeClient(datalake_config)
+        search_domains = _opendata_search_domains if _opendata_search_domains is not None else datalake_config.get('domains', [])
+        search_q = _opendata_search_q or ""
+        return client.read_metadata(
+            dataset_name,
+            exclude_tables,
+            search_domains=search_domains,
+            search_q=search_q,
+        )
+    else:
+        if base_dir is None:
+            base_dir = _get_default_base_dir()
+
+        base_path = Path(base_dir).resolve()
         
-    
-        if clean_input in valid_dirs:
-            dataset_name = valid_dirs[clean_input]
-        elif dataset_name.lower().strip() in valid_dirs:
-            dataset_name = valid_dirs[dataset_name.lower().strip()]
-    
-    out: Dict[str, Any] = {}
-    errors: Dict[str, str] = {}
-    
-    for ds in base_path.iterdir():
-        if not ds.is_dir(): continue
-    
-        if dataset_name and ds.name != dataset_name: continue
+        if not base_path.exists():
+            raise FileNotFoundError(f"Path does not exist: {base_path}")
         
-        mf = ds / "metadata.json"
-        if not mf.exists(): continue
-        try:
-            with mf.open("r", encoding="utf-8") as f:
-                meta = json.load(f)
-            resource = meta.get("resource", {})
-            out[ds.name] = {
-                "table_description": resource.get("description", "")
-            }
-        except Exception as e:
-            errors[ds.name] = str(e)
+        # Normalize exclude_tables for case-insensitive matching
+        exclude_set = set()
+        if exclude_tables:
+            exclude_set = {name.lower().strip() for name in exclude_tables}
+        
+        valid_dirs = {d.name.lower().strip(): d.name for d in base_path.iterdir() if d.is_dir()}
+
+        if dataset_name:
+            import re
+            clean_input = dataset_name.lower().strip()
+            clean_input = re.sub(r'\s+\d+$', '', clean_input).strip()
             
-    return {"metadata_by_dataset": out, "errors": errors}
-model = FastText.load_model("fasttext.bin")
+        
+            if clean_input in valid_dirs:
+                dataset_name = valid_dirs[clean_input]
+            elif dataset_name.lower().strip() in valid_dirs:
+                dataset_name = valid_dirs[dataset_name.lower().strip()]
+        
+        out: Dict[str, Any] = {}
+        errors: Dict[str, str] = {}
+        
+        for ds in base_path.iterdir():
+            if not ds.is_dir(): continue
+        
+            if dataset_name and ds.name != dataset_name: continue
+            
+            # HARDCODE: Exclude join table(s)
+            if exclude_set and ds.name.lower().strip() in exclude_set:
+                continue
+            
+            mf = ds / "metadata.json"
+            if not mf.exists(): continue
+            try:
+                with mf.open("r", encoding="utf-8") as f:
+                    meta = json.load(f)
+                resource = meta.get("resource", {})
+                out[ds.name] = {
+                    "table_description": resource.get("description", "")
+                }
+            except Exception as e:
+                errors[ds.name] = str(e)
+                
+        return {"metadata_by_dataset": out, "errors": errors}
 
 def get_fasttext_sim(model, text1, text2):
     
@@ -450,7 +727,8 @@ def compute_statistics(
     join_column: List[str],
     base_dir: str = None,
     data_filename: str = "rows.csv",
-    max_rows: int = 1000
+    max_rows: int = 1000,
+    opendata_domain: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
     Compute statistics for each column in candidate_df compared with a known join column.
@@ -483,186 +761,215 @@ def compute_statistics(
     if base_dir is None:
         base_dir = _get_default_base_dir()
 
-    real_candidate_name = find_dataset_dir(dataset_name, base_dir)
-    real_join_table_name = find_dataset_dir(join_table_name, base_dir)
-    
-    candidate_path = Path(base_dir) / real_candidate_name / data_filename
-    join_path = Path(base_dir) / real_join_table_name / data_filename
+    try:
+        # Load FastText model (lazy loading - only when needed)
+        global _fasttext_model
+        if '_fasttext_model' not in globals():
+            try:
+                _fasttext_model = FastText.load_model("fasttext.bin")
+            except Exception as e:
+                # If model file doesn't exist, create a dummy model or skip embedding similarity
+                print(f"Warning: Could not load FastText model: {e}")
+                _fasttext_model = None
 
-    candidate_df = pd.read_csv(candidate_path, low_memory=False)
-    join_column_table = pd.read_csv(join_path, low_memory=False)
+        real_join_table_name = find_dataset_dir(join_table_name, base_dir)
+        join_path = Path(base_dir) / real_join_table_name / data_filename
+        join_column_table = pd.read_csv(join_path, low_memory=False)
 
+        if opendata_domain:
+            from datalake_client import SocrataDatalakeClient
+            cfg = load_config()
+            client = SocrataDatalakeClient(cfg.get("data", {}).get("datalake", {}))
+            rows = client.read_data(dataset_name, opendata_domain, max_rows=max_rows)
+            candidate_df = pd.DataFrame(rows) if rows else pd.DataFrame()
+            real_candidate_name = dataset_name
+        else:
+            real_candidate_name = find_dataset_dir(dataset_name, base_dir)
+            candidate_path = Path(base_dir) / real_candidate_name / data_filename
+            candidate_df = pd.read_csv(candidate_path, low_memory=False)
 
-    # Sort by all columns and take first max_rows
-    candidate_df_sample = candidate_df.sort_values(by=list(candidate_df.columns)).head(max_rows).copy()
-    join_column_table_sample = join_column_table.sort_values(by=list(join_column_table.columns)).head(max_rows).copy()
-    
-    # Verify join column(s) exist
-    if isinstance(join_column, list):
-        missing = [c for c in join_column if c not in join_column_table_sample.columns]
-        if missing:
-            raise ValueError(f"Join column(s) {missing} not found in join table")
-    else:
-        if join_column not in join_column_table_sample.columns:
-            raise ValueError(f"Join column '{join_column}' not found in join table")
+        if candidate_df.empty or len(candidate_df.columns) == 0:
+            return []
+     
+        try:
+            candidate_df_sample = candidate_df.sort_values(by=list(candidate_df.columns)).head(max_rows).copy()
+        except (TypeError, ValueError):
+            candidate_df_sample = candidate_df.head(max_rows).copy()
 
-    # Read metadata to get column descriptions
-    dataset_path = Path(base_dir) / real_candidate_name
-    metadata_file = dataset_path / "metadata.json"
-    
-    column_metadata = {}
-    
-    if metadata_file.exists():
-        with metadata_file.open("r", encoding="utf-8") as f:
-            metadata = json.load(f)
+        try:
+            join_column_table_sample = join_column_table.sort_values(by=list(join_column_table.columns)).head(max_rows).copy()
+        except (TypeError, ValueError):
+            join_column_table_sample = join_column_table.head(max_rows).copy()
         
-        if "resource" in metadata:
-            resource = metadata["resource"]
-            column_names = resource.get("columns_name", [])
-            descriptions = resource.get("columns_description", [])
+        # Verify join column(s) exist
+        if isinstance(join_column, list):
+            missing = [c for c in join_column if c not in join_column_table_sample.columns]
+            if missing:
+                raise ValueError(f"Join column(s) {missing} not found in join table")
+        else:
+            if join_column not in join_column_table_sample.columns:
+                raise ValueError(f"Join column '{join_column}' not found in join table")
+
+        # Read metadata to get column descriptions
+        dataset_path = Path(base_dir) / real_candidate_name
+        metadata_file = dataset_path / "metadata.json"
+        
+        column_metadata = {}
+        
+        if metadata_file.exists():
+            with metadata_file.open("r", encoding="utf-8") as f:
+                metadata = json.load(f)
             
-            for i, col_name in enumerate(column_names):
-                column_metadata[col_name] = {
-                    "name": col_name,
-                    "description": descriptions[i] if i < len(descriptions) else ""
-                }
-    
-    # Get join column metadata
-    if isinstance(join_column, list):
-        join_col_info = [
-            column_metadata.get(c, {"name": c, "description": ""})
-            for c in join_column
-        ]
-    else:
-        join_col_info = column_metadata.get(join_column, {"name": join_column, "description": ""})
+            if "resource" in metadata:
+                resource = metadata["resource"]
+                column_names = resource.get("columns_name", [])
+                descriptions = resource.get("columns_description", [])
+                
+                for i, col_name in enumerate(column_names):
+                    column_metadata[col_name] = {
+                        "name": col_name,
+                        "description": descriptions[i] if i < len(descriptions) else ""
+                    }
+        
+        # Get join column metadata
+        if isinstance(join_column, list):
+            join_col_info = [
+                column_metadata.get(c, {"name": c, "description": ""})
+                for c in join_column
+            ]
+        else:
+            join_col_info = column_metadata.get(join_column, {"name": join_column, "description": ""})
 
-    # Extract value set for join column
-    if isinstance(join_column, list):
-        join_names = []
-        join_descs = []
-        for c in join_column:
-            info = column_metadata.get(c, {"name": c, "description": ""})
-            join_names.append(info.get("name", c))
-            d = info.get("description", "")
-            if d:
-                join_descs.append(f"{c}: {d}")
-        join_col_info = {
-            "name": "||".join(join_names),
-            "description": " | ".join(join_descs)
-        }
-    else:
-        join_col_info = column_metadata.get(join_column, {"name": join_column, "description": ""})
-    # Extract value set for join column
-    if isinstance(join_column, list):
-        join_col_values = (
-            join_column_table_sample[join_column]
-            .dropna()
-            .astype(str)
-            .agg("||".join, axis=1)
-            .str.lower()
-            .str.strip()
-        )
-    else:
-        join_col_values = (
-            join_column_table_sample[join_column]
-            .dropna()
-            .astype(str)
-            .str.lower()
-            .str.strip()
-        )
+        # Extract value set for join column
+        if isinstance(join_column, list):
+            join_names = []
+            join_descs = []
+            for c in join_column:
+                info = column_metadata.get(c, {"name": c, "description": ""})
+                join_names.append(info.get("name", c))
+                d = info.get("description", "")
+                if d:
+                    join_descs.append(f"{c}: {d}")
+            join_col_info = {
+                "name": "||".join(join_names),
+                "description": " | ".join(join_descs)
+            }
+        else:
+            join_col_info = column_metadata.get(join_column, {"name": join_column, "description": ""})
+        # Extract value set for join column
+        if isinstance(join_column, list):
+            join_col_values = (
+                join_column_table_sample[join_column]
+                .dropna()
+                .astype(str)
+                .agg("||".join, axis=1)
+                .str.lower()
+                .str.strip()
+            )
+        else:
+            join_col_values = (
+                join_column_table_sample[join_column]
+                .dropna()
+                .astype(str)
+                .str.lower()
+                .str.strip()
+            )
 
-    join_col_set = set(join_col_values)
+        join_col_set = set(join_col_values)
 
-    main_keys = join_column if isinstance(join_column, list) else [join_column]
-    candidate_all_cols = list(candidate_df.columns)
-    
-    mapping_results = {}
-    total_sim = 0
-    for m_key in main_keys:
-        best_match = None
-        max_sim = -1.0
-        for c_col in candidate_all_cols:
-            sim = get_fasttext_sim(model, m_key, c_col)
-            if sim > max_sim:
-                max_sim = sim
-                best_match = c_col
-        mapping_results[m_key] = {"match": best_match, "score": max_sim}
-        total_sim += max_sim
-    
-    avg_emb_score = total_sim / len(main_keys)
-    embedding_similarity = float(round(avg_emb_score, 4))
-    
-    # Uniqueness ratio and missing rate for join column
-    # total_rows_join = len(join_column_table_sample)
-    # unique_count_join = join_column_table_sample[join_column].nunique()
-    # uniqueness_ratio_join = unique_count_join / total_rows_join if total_rows_join > 0 else 0.0
-    # missing_count_join = join_column_table_sample[join_column].isna().sum()
-    # missing_rate_join = missing_count_join / total_rows_join if total_rows_join > 0 else 0.0
-    
-    # Compute statistics for each column in candidate_df
-    final_results = [] 
-    total_rows_candidate = len(candidate_df_sample)
-    
-    for candidate_col in candidate_df_sample.columns:
-        # Get candidate column metadata
-        candidate_col_info = column_metadata.get(candidate_col, {"name": candidate_col, "description": ""})
+        main_keys = join_column if isinstance(join_column, list) else [join_column]
+        candidate_all_cols = list(candidate_df.columns)
         
-        # Extract value set for candidate column
-        candidate_col_values = candidate_df_sample[candidate_col].dropna().astype(str).str.lower().str.strip()
-        candidate_col_set = set(candidate_col_values)
+        mapping_results = {}
+        total_sim = 0
+        for m_key in main_keys:
+            best_match = None
+            max_sim = -1.0
+            for c_col in candidate_all_cols:
+                if _fasttext_model is not None:
+                    sim = get_fasttext_sim(_fasttext_model, m_key, c_col)
+                else:
+                    # Fallback: use simple string similarity if model not available
+                    sim = 0.0  # or implement a simple string similarity
+                if sim > max_sim:
+                    max_sim = sim
+                    best_match = c_col
+            mapping_results[m_key] = {"match": best_match, "score": max_sim}
+            total_sim += max_sim
         
-        # Jaccard similarity
-        intersection = candidate_col_set & join_col_set
-        union = candidate_col_set | join_col_set
-        jaccard_similarity = len(intersection) / len(union) if len(union) > 0 else 0.0
+        avg_emb_score = total_sim / len(main_keys)
+        embedding_similarity = float(round(avg_emb_score, 4))
         
-        # Set containment
-        containment1 = len(intersection) / len(join_col_set) if len(join_col_set) > 0 else 0.0
-        containment2 = len(intersection) / len(candidate_col_set) if len(candidate_col_set) > 0 else 0.0
+        # Compute statistics for each column in candidate_df
+        final_results = [] 
+        total_rows_candidate = len(candidate_df_sample)
         
-        # Uniqueness and missing
-        unique_count = candidate_df_sample[candidate_col].nunique()
-        uniqueness_ratio = unique_count / total_rows_candidate if total_rows_candidate > 0 else 0.0
-        missing_rate = candidate_df_sample[candidate_col].isna().sum() / total_rows_candidate if total_rows_candidate > 0 else 0.0
+        for candidate_col in candidate_df_sample.columns:
+            # Get candidate column metadata
+            candidate_col_info = column_metadata.get(candidate_col, {"name": candidate_col, "description": ""})
+            
+            # Extract value set for candidate column
+            candidate_col_values = candidate_df_sample[candidate_col].dropna().astype(str).str.lower().str.strip()
+            raw = candidate_df_sample[candidate_col].dropna()
+            candidate_col_set = set(str(v).lower().strip() for v in raw)
+            
+            # Jaccard similarity
+            intersection = candidate_col_set & join_col_set
+            union = candidate_col_set | join_col_set
+            jaccard_similarity = len(intersection) / len(union) if len(union) > 0 else 0.0
+            
+            # Set containment
+            containment1 = len(intersection) / len(join_col_set) if len(join_col_set) > 0 else 0.0
+            containment2 = len(intersection) / len(candidate_col_set) if len(candidate_col_set) > 0 else 0.0
+            
+            # Uniqueness and missing
+            unique_count = candidate_df_sample[candidate_col].astype(str).nunique()
+            uniqueness_ratio = unique_count / total_rows_candidate if total_rows_candidate > 0 else 0.0
+            missing_rate = candidate_df_sample[candidate_col].isna().sum() / total_rows_candidate if total_rows_candidate > 0 else 0.0
+            
+            
+            col_stats = {
+                "candidate_column": candidate_col,
+                "join_column": join_column,
+                "jaccard_similarity": jaccard_similarity,
+                "containment1": containment1,
+                "containment2": containment2,
+                "uniqueness_ratio_candidate": uniqueness_ratio,
+                "missing_rate_candidate": missing_rate,
+                "candidate_column_name": candidate_col_info["name"],
+                "candidate_column_description": candidate_col_info["description"],
+                "join_column_name": join_col_info["name"],
+                "join_column_description": join_col_info["description"],
+                "embedding_similarity": embedding_similarity
+            }
+            
+            final_results.append(col_stats)
         
         
-        col_stats = {
-            "candidate_column": candidate_col,
-            "join_column": join_column,
-            "jaccard_similarity": jaccard_similarity,
-            "containment1": containment1,
-            "containment2": containment2,
-            "uniqueness_ratio_candidate": uniqueness_ratio,
-            "missing_rate_candidate": missing_rate,
-            "candidate_column_name": candidate_col_info["name"],
-            "candidate_column_description": candidate_col_info["description"],
-            "join_column_name": join_col_info["name"],
-            "join_column_description": join_col_info["description"],
-            "embedding_similarity": embedding_similarity
-        }
+        sorted_results = sorted(
+            final_results,
+            key=lambda r: max(r["containment1"], r["containment2"], r["jaccard_similarity"]),
+            reverse=True
+        )[:5]
+        for r in sorted_results:
+            r.pop("jaccard_similarity", None)
+            r.pop("containment1", None)
+            r.pop("containment2", None)
         
-        final_results.append(col_stats)
-    
-    
-    sorted_results = sorted(
-        final_results,
-        key=lambda r: max(r["containment1"], r["containment2"], r["jaccard_similarity"]),
-        reverse=True
-    )[:5]
-    for r in sorted_results:
-        r.pop("jaccard_similarity", None)
-        r.pop("containment1", None)
-        r.pop("containment2", None)
-    
-    return sorted_results
+        return sorted_results
 
+    except Exception as e:
+        print(f"[compute_statistics] Error: {e}")
+        return []    
 def compute_integration_quality(
     base_table_name: str,
     candidate_table_name: str,
     base_join_columns: List[str],
     candidate_join_columns: List[str] = None,
     base_dir: str = None,
-    data_filename: str = "rows.csv"
+    data_filename: str = "rows.csv",
+    opendata_domain: Optional[str] = None,   
+    max_rows: int = 1000,
 ) -> float:
     """
     Compute Integration Quality (IQ): proportion of instances in the base table 
@@ -681,17 +988,26 @@ def compute_integration_quality(
     """
     if base_dir is None:
         base_dir = _get_default_base_dir()
-    
-    # Find real directory names
+
+    # Load base table (always local - join table)
     real_base_name = find_dataset_dir(base_table_name, base_dir)
-    real_candidate_name = find_dataset_dir(candidate_table_name, base_dir)
-    
-    # Load tables
     base_path = Path(base_dir) / real_base_name / data_filename
-    candidate_path = Path(base_dir) / real_candidate_name / data_filename
-    
     base_df = pd.read_csv(base_path, low_memory=False)
-    candidate_df = pd.read_csv(candidate_path, low_memory=False)
+
+    # Load candidate table (API if opendata_domain, else local)
+    if opendata_domain:
+        from datalake_client import SocrataDatalakeClient
+        cfg = load_config()
+        api_client = SocrataDatalakeClient(cfg.get("data", {}).get("datalake", {}))
+        rows = api_client.read_data(candidate_table_name, opendata_domain, max_rows=max_rows)
+        candidate_df = pd.DataFrame(rows) if rows else pd.DataFrame()
+    else:
+        real_candidate_name = find_dataset_dir(candidate_table_name, base_dir)
+        candidate_path = Path(base_dir) / real_candidate_name / data_filename
+        candidate_df = pd.read_csv(candidate_path, low_memory=False)
+
+    if candidate_df.empty or len(candidate_df.columns) == 0:
+        return 0.0
     
     # Use same join columns if candidate_join_columns not specified
     if candidate_join_columns is None:
@@ -705,16 +1021,26 @@ def compute_integration_quality(
     missing_candidate = [col for col in candidate_join_columns if col not in candidate_df.columns]
     if missing_candidate:
         raise ValueError(f"Join columns {missing_candidate} not found in candidate table")
-    
+
+    # Before merge - normalize for case-insensitive matching (same as JoinValidatorCallback)
+    base_df_copy = base_df.copy()
+    cand_df_copy = candidate_df.copy()
+    for col in base_join_columns:
+        if col in base_df_copy.columns:
+            base_df_copy[col] = base_df_copy[col].astype(str).str.upper().str.strip()
+    for col in candidate_join_columns:
+        if col in cand_df_copy.columns:
+            cand_df_copy[col] = cand_df_copy[col].astype(str).str.upper().str.strip()
+            
     # Perform join
     merged = pd.merge(
-        base_df,
-        candidate_df,
+        base_df_copy,
+        cand_df_copy,
         left_on=base_join_columns,
         right_on=candidate_join_columns,
         how='inner'
     )
-    
+        
     # Calculate IQ: proportion of base table rows successfully augmented
     total_base_rows = len(base_df)
     if total_base_rows == 0:
@@ -735,6 +1061,7 @@ def compute_feature_importance(
     candidate_join_columns: Optional[List[str]] = None,
     base_dir: str = None,
     data_filename: str = "rows.csv",
+    opendata_domain: Optional[str] = None,
     sample_size: int = 1000
 ) -> Dict[str, Any]:
     """
@@ -762,16 +1089,25 @@ def compute_feature_importance(
         base_dir = _get_default_base_dir()
     
     try:
-        # Find real directory names
+        # Load base table (always local - join table)
         real_base_name = find_dataset_dir(base_table_name, base_dir)
-        real_candidate_name = find_dataset_dir(candidate_table_name, base_dir)
-        
-        # Load tables
         base_path = Path(base_dir) / real_base_name / data_filename
-        candidate_path = Path(base_dir) / real_candidate_name / data_filename
-        
         base_df = pd.read_csv(base_path, low_memory=False)
-        candidate_df = pd.read_csv(candidate_path, low_memory=False)
+
+        # Load candidate table (API if opendata_domain, else local)
+        if opendata_domain:
+            from datalake_client import SocrataDatalakeClient
+            cfg = load_config()
+            api_client = SocrataDatalakeClient(cfg.get("data", {}).get("datalake", {}))
+            rows = api_client.read_data(candidate_table_name, opendata_domain, max_rows=sample_size * 2)
+            candidate_df = pd.DataFrame(rows) if rows else pd.DataFrame()
+        else:
+            real_candidate_name = find_dataset_dir(candidate_table_name, base_dir)
+            candidate_path = Path(base_dir) / real_candidate_name / data_filename
+            candidate_df = pd.read_csv(candidate_path, low_memory=False)
+
+        if candidate_df.empty or len(candidate_df.columns) == 0:
+            return {"error": "Candidate table empty", "feature_importance": 0.0}
         
         # Verify target column exists
         if target_column not in base_df.columns:
@@ -806,10 +1142,19 @@ def compute_feature_importance(
                 "feature_importance": 0.0
             }
         
-        # Perform join (inner join)
+        # Before merge - normalize for case-insensitive matching (same as JoinValidatorCallback)
+        base_df_copy = base_df.copy()
+        cand_df_copy = candidate_df.copy()
+        for col in base_join_columns:
+            if col in base_df_copy.columns:
+                base_df_copy[col] = base_df_copy[col].astype(str).str.upper().str.strip()
+        for col in candidate_join_columns:
+            if col in cand_df_copy.columns:
+                cand_df_copy[col] = cand_df_copy[col].astype(str).str.upper().str.strip()
+
         merged = pd.merge(
-            base_df,
-            candidate_df[[*candidate_join_columns, candidate_column]],
+            base_df_copy,
+            cand_df_copy,
             left_on=base_join_columns,
             right_on=candidate_join_columns,
             how='inner'
@@ -949,7 +1294,8 @@ def compute_utility_gain_from_params(
     candidate_join_columns: Optional[List[str]] = None,
     base_dir: str = None,
     data_filename: str = "rows.csv",
-    sample_size: int = 1000
+    sample_size: int = 1000,
+    opendata_domain: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Compute Utility Gain by first calculating IQ and FI, then multiplying them.
@@ -967,7 +1313,9 @@ def compute_utility_gain_from_params(
             base_join_columns=base_join_columns,
             candidate_join_columns=candidate_join_columns,
             base_dir=base_dir,
-            data_filename=data_filename
+            data_filename=data_filename,
+            opendata_domain=opendata_domain,
+            max_rows=5000,
         )
         
         # compute_integration_quality returns float, not dict
@@ -1001,7 +1349,8 @@ def compute_utility_gain_from_params(
         candidate_join_columns=candidate_join_columns,
         base_dir=base_dir,
         data_filename=data_filename,
-        sample_size=sample_size
+        sample_size=sample_size,
+        opendata_domain=opendata_domain,
     )
     
     # Check if fi_result is dict and has error

@@ -80,10 +80,16 @@ def build_join_column_choose_agent(provider: Optional[str] = None, config: Optio
     
     instruction = load_agent_instruction(prompt_file)
 
+    generate_content_config = None
+    if config is not None and hasattr(config, 'get_temperature'):
+        temperature = config.get_temperature("join_column_selection")
+        generate_content_config = types.GenerateContentConfig(temperature=temperature)
+
     return Agent(
         name="JoinColumnChooseAgent",
         model=llm,
         instruction=instruction,
         tools=[compute_statistics_tool],
         output_key="join_column_choice",
+        generate_content_config=generate_content_config,
     )

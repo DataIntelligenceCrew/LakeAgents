@@ -6,7 +6,7 @@ from google.adk.models.google_llm import Gemini
 from google.adk.tools import FunctionTool
 from google.genai import types
 from google.adk.models.lite_llm import LiteLlm
-from llm_agent_tools import read_metadata, analyze_user_intent, generate_table_selection_plan, confirm_table_category,confirm_dimension_requirement
+from llm_agent_tools import read_metadata, analyze_user_intent, confirm_table_category,confirm_dimension_requirement, read_table_index
 from pathlib import Path
 
 def load_agent_instruction(prompt_file: str = "prompt/table_selection_agent_prompt.txt") -> str:
@@ -53,6 +53,7 @@ def build_table_selection_agent(provider: Optional[str] = None, config: Optional
         provider = config.get_provider("table_selection")
         retry_config = config.get_retry_config()
         model_name = config.get_model_name("table_selection", provider)
+        join_table_name = config.join_table_name  # Get join_table_name from config
     else:
         # Fallback to defaults
         if provider is None:
@@ -64,11 +65,18 @@ def build_table_selection_agent(provider: Optional[str] = None, config: Optional
             http_status_codes=[429, 500, 503, 504],
         )
         model_name = "openai/gpt-4o-mini" if provider == "openai" else "gemini-2.5-flash"
+        join_table_name = None  # Will be set later if needed
 
-    read_metadata_tool = FunctionTool(func=read_metadata)
-    analyze_intent_tool = FunctionTool(func=analyze_user_intent)
-    confirm_dimension_tool = FunctionTool(func=confirm_dimension_requirement)
-    confirm_category_tool = FunctionTool(func=confirm_table_category)
+    # Create a wrapper function that hardcodes the exclusion of join_table
+    def read_metadata_with_exclusion(dataset_name: str = None, base_dir: str = None) -> dict[str, any]:
+        exclude_tables = [join_table_name] if join_table_name else []
+        return read_metadata(dataset_name=dataset_name, base_dir=base_dir, exclude_tables=exclude_tables)
+    
+    # read_metadata_tool = FunctionTool(func=read_metadata_with_exclusion)
+    read_table_index_tool = FunctionTool(func=read_table_index)
+    # analyze_intent_tool = FunctionTool(func=analyze_user_intent)
+    # confirm_dimension_tool = FunctionTool(func=confirm_dimension_requirement)
+    # confirm_category_tool = FunctionTool(func=confirm_table_category)
 
     if provider == "openai":
         llm = LiteLlm(model=model_name)
@@ -84,11 +92,17 @@ def build_table_selection_agent(provider: Optional[str] = None, config: Optional
         prompt_file = config.config.get('agents', {}).get('prompt', {}).get('table_selection', prompt_file)
     
     instruction = load_agent_instruction(prompt_file)
-        
+    
+    generate_content_config = None
+    if config is not None and hasattr(config, 'get_temperature'):
+        temperature = config.get_temperature("table_selection")
+        generate_content_config = types.GenerateContentConfig(temperature=temperature)
+    
     return Agent(
         name="TableSelectionAgent",
         model=llm,
         instruction=instruction,
-        tools=[analyze_intent_tool, confirm_dimension_tool, read_metadata_tool, confirm_category_tool],
+        tools=[read_table_index_tool],
         output_key="relevant_tables",
+        generate_content_config=generate_content_config,
     )
