@@ -433,6 +433,7 @@ Call read_table_index(candidate_ids={candidate_ids_for_run}) to get index entrie
         if len(relevant_list) > 10:
             print(f"   ... and {len(relevant_list) - 10} more")
 
+#---- Phase 2: Join Column Selection ----
         # Use join_column_selection_agent to verify joinability (replaces embedding similarity)
         final_selected_tables = []
         real_join_table_name = find_dataset_dir(join_table_name, BASE_DIR)

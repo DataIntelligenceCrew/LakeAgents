@@ -10,13 +10,15 @@ data:
   
   # Datalake configuration
   datalake:
-    app_token: null  # optional, read from environment variable
-    
+    app_token: "vt2fzS6gFN3bRkHjwMUrv3fMo"  # optional, read from environment variable
+    api_key_id: "cik0si0kif42o484vdyybadud"      
+    api_key_secret: "4616ol65kqq61lsyyfd2th3nvwma5i8szxpvpopiz6lt6dggsh"  
+
     domains:  # list of Socrata domains to search
       - "data.cityofnewyork.us"  # NYC
       - "data.cityofchicago.org"  # Chicago
-  
-    max_tables: 5  # stop after finding maximum n related tables
+    
+    max_tables: 50  # stop after finding maximum n related tables
 
 # Pipeline task settings
 task:
@@ -25,7 +27,7 @@ task:
   target_column: "shooting count"  # Target column for prediction
   task_type: "regression"  # Options: "regression" or "classification"
   session:
-    session_id: "007"
+    session_id: "008"
 # Validation thresholds
 validation:
   match_rate_threshold: 0.1  # Minimum match rate for join validation (0.0 - 1.0)

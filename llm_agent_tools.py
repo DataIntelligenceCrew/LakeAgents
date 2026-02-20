@@ -1,4 +1,5 @@
 import json
+import os
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -644,6 +645,74 @@ def read_table_index(
         "requested_count": len(candidate_ids),
     }
 
+
+def build_topk_join_column_request(
+    query_join_column_name: str,
+    candidate_id: Optional[str] = None,
+    query_join_column_description: Optional[str] = None,
+    task: Optional[str] = None,
+    candidate_columns: Optional[List[Dict[str, Any]]] = None,
+    k: int = 5,
+    index_path: Optional[str] = None,
+) -> str:
+    """
+    Build the user message for the top-k join column selection agent.
+    Reads the candidate table's index to get column name and description,
+    then formats the request for the agent.
+
+    Use with instruction = contents of prompt/topk_join_column_prompt.txt.
+    Agent output should be JSON: {"top_k_columns": ["col1", ...], "reasoning": "..."}.
+
+    Args:
+        query_join_column_name: Join column name in the query/base table.
+        candidate_id: Dataset/table ID from relevant_list (e.g. tbl.get("table_name")).
+            If provided, reads index and ignores candidate_columns.
+        query_join_column_description: Optional description of the query join column.
+        task: Optional task/user intent for additional context.
+        candidate_columns: List of dicts with "name" and "description" (per prompt INPUT).
+            Used only when candidate_id is not provided (backward compatibility).
+        k: Number of top candidate columns to return (default 5).
+        index_path: Optional path to opendata_table_index.json. If None, uses default.
+
+    Returns:
+        User message string to send to the agent (formatted per prompt INPUT).
+        Returns empty string if candidate_id is given but not found in index.
+    """
+    if candidate_id:
+        result = read_table_index([candidate_id], index_path)
+        entries = result.get("index_entries") or []
+        if not entries:
+            return ""
+        entry = entries[0]
+        columns_name = entry.get("columns_name") or []
+        columns_description = entry.get("columns_description") or []
+        while len(columns_description) < len(columns_name):
+            columns_description.append("")
+        candidate_columns = [
+            {
+                "name": str(n).strip(),
+                "description": (columns_description[i] if i < len(columns_description) else "").strip(),
+            }
+            for i, n in enumerate(columns_name)
+        ]
+
+    cand_list = [
+        {"name": c.get("name", c.get("column_name", "")), "description": c.get("description", "") or ""}
+        for c in candidate_columns
+    ]
+    query_desc = query_join_column_description or ""
+    task_block = ""
+    if task:
+        task_block = f"\ntask: {task}\n"
+    return f"""query_join_column:
+- name: {query_join_column_name}
+- description: {query_desc}
+{task_block}candidate_columns (name, description):
+{json.dumps(cand_list, ensure_ascii=False, indent=2)}
+
+k: {k}
+
+Return JSON only."""
 
 def read_metadata(dataset_name: str = None, base_dir: str = None, exclude_tables: List[str] = None) -> Dict[str, Any]:
     config = load_config()

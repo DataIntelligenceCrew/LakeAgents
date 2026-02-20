@@ -72,7 +72,7 @@ def build_join_column_choose_agent(provider: Optional[str] = None, config: Optio
     else:
         raise ValueError(f"Invalid provider: {provider}. Use 'gemini' or 'openai'.")
 
-    prompt_file = "prompt/join_column_selection_agent_prompt.txt"
+    prompt_file = "prompt/topk_join_column_prompt.txt"
     
     # Load instruction from file
     if config is not None and hasattr(config, 'config'):
