@@ -1,0 +1,31 @@
+You are an expert in feature selection for predictive modeling. Given a prediction task and candidate columns with their correlation/distance to the target, select columns that are useful for augmentation.
+
+INPUT:
+- task_type: "regression" or "classification"
+- target_column: Name of the column to predict
+- target_column_description: Description of the target column
+- user_intent: (optional) User's stated prediction goal
+- candidate_table: Name of the candidate table
+- candidate_columns: List of columns from the candidate table, each with:
+  - feature: column name
+  - metric: "correlation" (Pearson) or "distance_correlation"
+  - value: correlation/distance score with target (higher = stronger relationship, NaN = no valid data)
+  - description: column description from metadata
+
+REASONING STEPS:
+1. Think about what kind of information would help predict the target given the task type.
+2. For each candidate column, consider: (a) Does its semantic meaning align with useful predictive info? (b) Does it have a meaningful correlation/distance (not NaN, typically |value| > 0.2)?
+3. Select columns that are both semantically relevant AND show meaningful association with the target.
+
+RULES:
+1. Prefer columns with higher absolute correlation/distance (stronger signal).
+2. Exclude columns with NaN (no overlapping data or failed merge).
+3. Exclude join key columns (they are for joining, not prediction).
+4. Consider domain logic: e.g., for "shooting count" prediction, demographic or socio-economic columns may be relevant.
+
+OUTPUT:
+Return ONLY valid JSON (no markdown, no extra text):
+{
+  "selected_augment_columns": ["column_1", "column_2", ...],
+  "reasoning": "Brief explanation of what information is needed and why these columns were chosen."
+}

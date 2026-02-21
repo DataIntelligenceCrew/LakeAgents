@@ -14,21 +14,24 @@ from callback import JoinValidatorCallback, AugmentValidatorCallback
 import fasttext
 from functools import partial
 from llm_agent_tools import find_dataset_dir, build_opendata_search_params, get_fasttext_sim
-from augment_column_selection_agent import build_utility_gain_agent
+from augment_column_selection_agent import build_augment_column_selection_agent
 from agent_config_loader import AgentPipelineConfig
 from analyze_user_intent_agent import build_analyze_user_intent_agent
 from datalake_client import SocrataDatalakeClient
 from datetime import datetime
-from utils.sketch import (
+from tools.sketch import (
     get_candidate_table,
     _update_table_access_status,
     bottom_k_sketch_column,
     select_join_columns_for_candidate,
 )
-from utils.column_descriptions import (
+from tools.column_descriptions import (
     get_column_descriptions_from_index,
     get_column_descriptions_from_local_metadata,
 )
+from tools.aggregation import aggregate_selected_tables, aggregate_target_by_join_key
+from tools.correlation import merge_target_with_candidate, compute_feature_correlations
+
 
 # Local cache for opendata dataset metadata (skip re-fetch if already read)
 OPENDATA_METADATA_CACHE_DIR = Path(__file__).resolve().parent / "opendata_metadata_cache"
@@ -212,6 +215,7 @@ async def run_orchestrator(
     analyze_intent_runner = InMemoryRunner(agent=build_analyze_user_intent_agent(config=config))
     table_runner = InMemoryRunner(agent=build_table_selection_agent(config=config))
     joincol_runner = InMemoryRunner(agent=build_join_column_choose_agent(config=config))
+    augment_runner = InMemoryRunner(agent=build_augment_column_selection_agent(config))
 
     base_path = Path(BASE_DIR)
     candidate_names = [
@@ -380,6 +384,20 @@ Please analyze the user intent and return the result in JOSN format according to
                     entry["columns_name"] = res.get("columns_name") or cols_name
                     entry["columns_description"] = cols_desc 
                     raw_class = full_meta.get("classification") or {}
+
+                    # entry["columns_name"] = res.get("columns_name") or cols_name
+                    # entry["columns_description"] = cols_desc
+                    # # columns_datatype: name -> dataTypeName from Socrata metadata
+                    # col_list = full_meta.get("columns") or []
+                    # name_to_dtype = {
+                    #     str(c.get("name", "")).strip(): str(c.get("dataTypeName") or "").strip() or "unknown"
+                    #     for c in col_list if isinstance(c, dict) and c.get("name")
+                    # }
+                    # entry["columns_datatype"] = [
+                    #     name_to_dtype.get(str(n).strip(), "unknown") for n in entry["columns_name"]
+                    # ]
+                    # raw_class = full_meta.get("classification") or {}
+
                     if not raw_class and (full_meta.get("category") is not None or full_meta.get("tags")):
                         raw_class = {
                             "categories": [],
@@ -605,7 +623,73 @@ Return JSON with selected_columns and reasoning."""
             opendata_domain=domain_for_fetch
         )
 
+        # Correlation phase: compute target aggregation and feature correlations per candidate
+        print(f"\n📈 Computing correlations with target '{target_column}'...")
+        target_agg, target_type = aggregate_target_by_join_key(
+            join_df, join_columns, target_column
+        )
+        for result in aggregated_results:
+            cand_agg = result.get("aggregated_df")
+            if cand_agg is None or cand_agg.empty:
+                result["correlation_table"] = pd.DataFrame(columns=["feature", "metric", "value"])
+                continue
+            # Align join column names: candidate uses selected_columns, query uses join_columns
+            selected_cols = result.get("selected_columns", [])
+            if selected_cols and len(selected_cols) == len(join_columns):
+                rename_map = dict(zip(selected_cols, join_columns))
+                cand_agg = cand_agg.rename(columns=rename_map)
+            merged = merge_target_with_candidate(target_agg, cand_agg, join_columns)
+            corr_df = compute_feature_correlations(
+                merged, join_columns, target_column, target_type
+            )
+            result["correlation_table"] = corr_df
+            cand_name = result.get("candidate_table", "?")
+            print(f"   {cand_name}: {len(corr_df)} features with correlation/distance")
+            print(corr_df.to_string(index=False))
+            print()
 
+        for result in aggregated_results:
+            cand_name = result.get("candidate_table", "?")
+            corr_df = result.get("correlation_table", pd.DataFrame())
+            if corr_df.empty:
+                result["selected_augment_columns"] = []
+                result["augment_reasoning"] = "No correlation data."
+                continue
+            
+            cand_descs = get_column_descriptions_from_index(cand_name)
+            target_desc = join_col_descs.get(target_column, "")  # get target column description from join table metadata
+            
+            # construct candidate_columns
+            candidate_columns = []
+            for _, row in corr_df.iterrows():
+                candidate_columns.append({
+                    "feature": row["feature"],
+                    "metric": row["metric"],
+                    "value": float(row["value"]) if pd.notna(row["value"]) else None,
+                    "description": cand_descs.get(row["feature"], ""),
+                })
+            
+            prompt = f"""
+task_type: "{task_type}"
+target_column: "{target_column}"
+target_column_description: "{target_desc}"
+user_intent: "{user_intent}"
+candidate_table: "{cand_name}"
+candidate_columns: {json.dumps(candidate_columns, ensure_ascii=False, indent=2)}
+
+Select augment columns. Return JSON with selected_augment_columns and reasoning.
+"""
+            events = await augment_runner.run_debug(prompt)
+            last_text = ""
+            for event in events:
+                if getattr(event, "content", None) and getattr(event.content, "parts", None):
+                    for part in event.content.parts:
+                        t = getattr(part, "text", None)
+                        if t:
+                            last_text = t
+            parsed = extract_json(last_text) if last_text.strip() else {}
+            result["selected_augment_columns"] = parsed.get("selected_augment_columns", [])
+            result["augment_reasoning"] = parsed.get("reasoning", "")
 
 
     # print(f"\n📊 Starting Augment Column Selection...")
