@@ -27,7 +27,7 @@ task:
   target_column: "shooting count"  # Target column for prediction
   task_type: "regression"  # Options: "regression" or "classification"
   session:
-    session_id: "008"
+    session_id: "0015"
 # Validation thresholds
 validation:
   match_rate_threshold: 0.1  # Minimum match rate for join validation (0.0 - 1.0)
@@ -64,7 +64,7 @@ agents:
     
     # OpenAI models
     openai:
-      table_selection: "openai/gpt-4o"
+      table_selection: "openai/gpt-4o-mini"
       join_column_selection: "openai/gpt-4o-mini"
       utility_gain: "openai/gpt-4o-mini"
   prompts:

@@ -89,7 +89,7 @@ def build_join_column_choose_agent(provider: Optional[str] = None, config: Optio
         name="JoinColumnChooseAgent",
         model=llm,
         instruction=instruction,
-        tools=[compute_statistics_tool],
+        tools=[],
         output_key="join_column_choice",
         generate_content_config=generate_content_config,
     )

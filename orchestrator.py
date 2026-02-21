@@ -18,6 +18,17 @@ from augment_column_selection_agent import build_utility_gain_agent
 from agent_config_loader import AgentPipelineConfig
 from analyze_user_intent_agent import build_analyze_user_intent_agent
 from datalake_client import SocrataDatalakeClient
+from datetime import datetime
+from utils.sketch import (
+    get_candidate_table,
+    _update_table_access_status,
+    bottom_k_sketch_column,
+    select_join_columns_for_candidate,
+)
+from utils.column_descriptions import (
+    get_column_descriptions_from_index,
+    get_column_descriptions_from_local_metadata,
+)
 
 # Local cache for opendata dataset metadata (skip re-fetch if already read)
 OPENDATA_METADATA_CACHE_DIR = Path(__file__).resolve().parent / "opendata_metadata_cache"
@@ -433,243 +444,361 @@ Call read_table_index(candidate_ids={candidate_ids_for_run}) to get index entrie
         if len(relevant_list) > 10:
             print(f"   ... and {len(relevant_list) - 10} more")
 
-#---- Phase 2: Join Column Selection ----
-        # Use join_column_selection_agent to verify joinability (replaces embedding similarity)
+        #---- Phase 2: Join Column Selection ----
+
+        run_start_time = datetime.now()
+        run_record = {
+            "table_id": [],
+            "status": [],
+            "reason": [],
+        }
+        topk_jaccard = {}  # table_id -> list of selected column names
         final_selected_tables = []
+
+        # Load join table and create join column sketch (support composite key)
         real_join_table_name = find_dataset_dir(join_table_name, BASE_DIR)
         join_df = pd.read_csv(Path(BASE_DIR) / real_join_table_name / config.data_filename, low_memory=False)
-        callback = JoinValidatorCallback(join_table_df=join_df, base_dir=BASE_DIR, config=config)
+        join_columns = config.join_column if isinstance(config.join_column, list) else [config.join_column]
+        
+        # Create sketch for each join column
+        if len(join_columns) == 1:
+            join_sketch = bottom_k_sketch_column(join_df[join_columns[0]])
+        else:
+            join_sketch = {jc: bottom_k_sketch_column(join_df[jc]) for jc in join_columns if jc in join_df.columns}
+
+        # Join column descriptions
+        join_col_descs = get_column_descriptions_from_local_metadata(BASE_DIR, real_join_table_name)
+
+        topk_join = config.config.get("task", {}).get("topk_join_columns", 5) or 5
+
         for tbl in relevant_list:
             cand_name = tbl.get("table_name")
             if not cand_name:
                 continue
-            print(f"\n🔍 [Join Agent] Verifying: {cand_name}")
-            jc_prompt = f"""TASK: Verify if '{cand_name}' can join with '{join_table_name}'.
-REQUIRED: Call compute_statistics with dataset_name="{cand_name}", join_table_name="{join_table_name}", join_column={join_column}, base_dir="{BASE_DIR}", opendata_domain="{domain_for_fetch}".
-Return JSON with join_type and selected_columns. Use join_type="no_join_found" if no suitable columns."""
-            try:
-                jc_events = await joincol_runner.run_debug(jc_prompt)
-            except Exception as e:
-                print(f"   ⚠️  Agent error: {e}")
-                continue
-            jc_json_str = "{}"
-            for event in reversed(jc_events):
-                if hasattr(event, "actions") and event.actions and getattr(event.actions, "state_delta", None):
-                    sd = getattr(event.actions, "state_delta", None)
-                    if isinstance(sd, dict) and "join_column_choice" in sd:
-                        jc_json_str = sd["join_column_choice"]
-                        break
-            jc_json = extract_json(jc_json_str) if isinstance(jc_json_str, str) else (jc_json_str or {})
-            if jc_json.get("join_type") == "no_join_found":
-                print(f"   ❌ No join found")
-                continue
-            if "candidate_table_name" not in jc_json:
-                jc_json["candidate_table_name"] = cand_name
-            callback.verify(jc_json, global_join_col=join_column, opendata_domain=domain_for_fetch)
-            if callback.is_valid:
-                print(f"   ✅ Verified (match {callback.match_rate:.2%})")
-                tbl_with_join = dict(tbl)
-                tbl_with_join["candidate_table"] = cand_name
-                tbl_with_join["selected_columns"] = jc_json.get("selected_columns", [])
-                final_selected_tables.append(tbl_with_join)
+            run_record["table_id"].append(cand_name)
+
+            df, status = get_candidate_table(table_id=cand_name, opendata_domain=domain_for_fetch)
+            if status["success"]:
+                run_record["status"].append("success")
+                run_record["reason"].append(None)
+                cols_with_jaccard = select_join_columns_for_candidate(
+                    join_sketch, df, k_columns=topk_join, min_jaccard=0.5
+                )
+                cand_col_descs = get_column_descriptions_from_index(cand_name)
+
+                # Handle composite key vs single key
+                if isinstance(cols_with_jaccard, dict):
+                    # Composite key: {join_col: [(cand_col, jaccard), ...], ...}
+                    join_info = [
+                        {
+                            "join_column": jc,
+                            "description": join_col_descs.get(jc, ""),
+                            "top_candidates": [
+                                {"name": col, "jaccard": round(j, 4), "description": cand_col_descs.get(col, "")}
+                                for col, j in cols_with_jaccard.get(jc, [])
+                            ]
+                        }
+                        for jc in join_columns
+                    ]
+                    jc_prompt = f"""Select the best matching columns for composite join key from candidate table {cand_name}.
+
+Composite join key from query table:
+{json.dumps(join_info, ensure_ascii=False, indent=2)}
+
+For each join_column, select the single best candidate column from top_candidates.
+
+Return JSON:
+{{
+  "selected_columns": {{"join_col1": "cand_col1", "join_col2": "cand_col2"}},
+  "reasoning": "..."
+}}"""
+                    has_candidates = any(len(info["top_candidates"]) > 0 for info in join_info)
+                else:
+                    # Single key: [(col, jaccard), ...]
+                    candidates_for_llm = [
+                        {"name": col, "jaccard": round(j, 4), "description": cand_col_descs.get(col, "")}
+                        for col, j in cols_with_jaccard
+                    ]
+                    jc_prompt = f"""Select the join column for candidate table {cand_name}.
+
+query_join_column: {join_columns[0]}
+query_join_column_description: {join_col_descs.get(join_columns[0], "")}
+candidate_columns: {json.dumps(candidates_for_llm, ensure_ascii=False)}
+
+Return JSON with selected_columns and reasoning."""
+                    has_candidates = len(cols_with_jaccard) > 0
+
+                if has_candidates:
+                    try:
+                        jc_events = await joincol_runner.run_debug(jc_prompt)
+                        last_text = ""
+                        for event in reversed(jc_events):
+                            if getattr(event, "content", None) and getattr(event.content, "parts", None):
+                                for part in event.content.parts:
+                                    t = getattr(part, "text", None)
+                                    if t:
+                                        last_text = t
+                                        break
+                            if last_text:
+                                break
+                        jc_json = extract_json(last_text.strip()) if last_text else {}
+                        
+                        # Parse selected_columns based on composite vs single
+                        if isinstance(cols_with_jaccard, dict):
+                            # Composite: {"BORO": "Borough", "YEAR": "report_year"}
+                            selected_dict = jc_json.get("selected_columns", {})
+                            selected_cols = list(selected_dict.values()) if isinstance(selected_dict, dict) else []
+                        else:
+                            # Single: ["Borough"]
+                            selected_cols = jc_json.get("selected_columns", []) or []
+                            if not isinstance(selected_cols, list):
+                                selected_cols = [selected_cols] if selected_cols else []
+                    except Exception as e:
+                        print(f"   ⚠️  Join Agent error: {e}")
+                        # Fallback to top jaccard
+                        if isinstance(cols_with_jaccard, dict):
+                            selected_cols = [cols_with_jaccard[jc][0][0] for jc in join_columns if cols_with_jaccard.get(jc)]
+                        else:
+                            selected_cols = [cols_with_jaccard[0][0]] if cols_with_jaccard else []
+                else:
+                    selected_cols = []
+
+                # Store topk_jaccard for record
+                if isinstance(cols_with_jaccard, dict):
+                    topk_jaccard[cand_name] = {jc: [c for c, _ in cols_with_jaccard[jc]] for jc in cols_with_jaccard}
+                else:
+                    topk_jaccard[cand_name] = [c for c, _ in cols_with_jaccard]
+                if selected_cols:
+                    tbl_with_join = dict(tbl)
+                    tbl_with_join["candidate_table"] = cand_name
+                    tbl_with_join["selected_columns"] = selected_cols
+                    tbl_with_join["join_col_descs"] = join_col_descs
+                    tbl_with_join["cand_col_descs"] = cand_col_descs
+                    final_selected_tables.append(tbl_with_join)
+                    print(f"   ✅ {cand_name}: LLM selected {selected_cols}")
             else:
-                print(f"   ❌ Verification failed: {callback.reason}")
+                run_record["status"].append("failed")
+                run_record["reason"].append(status["reason"])
+                topk_jaccard[cand_name] = []
+
+        run_record["topk_jaccard"] = topk_jaccard
         relevant_list = final_selected_tables
-        print(f"\n[Join Agent] Final selected: {[t.get('table_name') for t in relevant_list]}")
         join_columns_list = config.join_column if isinstance(config.join_column, list) else [config.join_column]
 
+        data_dir = Path(__file__).resolve().parent / "data"
+        data_dir.mkdir(parents=True, exist_ok=True)
+        safe_sid = re.sub(r"[^\w\-]", "_", str(session_id or "default").strip()) or "default"
+        filename = run_start_time.strftime("%Y-%m-%d_%H-%M-%S") + f"_{safe_sid}.json"
+        filepath = data_dir / filename
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(run_record, f, indent=2, ensure_ascii=False)
+        print(f"[Run Record] Saved to {filepath}")
+
+
 # ---- Phase 3: Augment Column Selection ----
-    print(f"\n📊 Starting Augment Column Selection...")
-    print(f"   Target: {target_column} ({task_type})")
-    
-    utility_runner = InMemoryRunner(agent=build_utility_gain_agent(config=config))
-    augment_results = []
-    
-    # Process each table that passed Phase 2
-    for result in relevant_list:
-        cand_name = result.get("candidate_table")
-        if not cand_name:
-            continue
-        selected_join_cols = result.get("selected_columns", [])  # Join columns from Phase 2
-        
-        print(f"\n🔍 Evaluating columns in '{cand_name}' for augmenting '{target_column}'...")
-        
-        # Load candidate table to get all available columns
-        cand_df = None
-        if data_source == "datalake" and domain_for_fetch:
-            try:
-                rows = client.read_data(cand_name, domain_for_fetch, max_rows=config.sample_size * 2)
-                cand_df = pd.DataFrame(rows) if rows else None
-            except Exception as e:
-                print(f"   ⚠️ API fetch failed for {cand_name}: {e}")
-        if cand_df is None or cand_df.empty:
-            try:
-                real_cand_name = find_dataset_dir(cand_name, BASE_DIR)
-                cand_df = pd.read_csv(Path(BASE_DIR) / real_cand_name / config.data_filename, low_memory=False)
-            except Exception as e:
-                print(f"   ⚠️ Local load failed for {cand_name}: {e}")
-                continue
-        if cand_df.empty or len(cand_df.columns) == 0:
-            continue
-        
-        # Get candidate columns to evaluate (exclude join columns)
-        candidate_columns = [
-            col for col in cand_df.columns 
-            if col not in selected_join_cols
-        ]
-        
-        if len(candidate_columns) == 0:
-            print(f"   ⚠️  No columns available for augmentation (all are join columns)")
-            continue
-        
-        print(f"   Checking {len(candidate_columns)} candidate columns...")
-        
-        column_results = []
-        
-        for col in candidate_columns:
-            try:
-                print(f"      Checking: {col}")
-                
-                ug_prompt = f"""
-                Compute utility gain and evaluate suitability with these parameters:
-                - base_table_name: "{join_table_name}"
-                - candidate_table_name: "{cand_name}"
-                - base_join_columns: {config.join_column}
-                - candidate_join_columns: {selected_join_cols}
-                - candidate_column: "{col}"
-                - target_column: "{target_column}"
-                - task_type: "{task_type}"
-                - base_dir: "{BASE_DIR}"
-                - sample_size: {config.sample_size}
-                - opendata_domain: "{domain_for_fetch or ''}"
-                
-                Call compute_integration_quality, compute_feature_importance, and compute_utility_gain_from_params.
-                Based on IQ, FI, and Utility Gain values, determine if this column is suitable for augmentation.
-                Return the JSON result with iq, fi, utility_gain, is_suitable, and reason.
-                """
-                
-                ug_events = await utility_runner.run_debug(ug_prompt)
-                
-                ug_json_str = "{}"
-                for event in reversed(ug_events):
-                    if hasattr(event, 'actions') and getattr(event.actions, "state_delta", None):
-                        if "utility_gain_result" in getattr(event.actions, "state_delta", None):
-                            ug_json_str = getattr(event.actions, "state_delta", None)["utility_gain_result"]
-                            break
-                
-                ug_result = extract_json(ug_json_str)
-                
-                # Handle string JSON
-                if isinstance(ug_result, str):
-                    ug_result = extract_json(ug_result)
-                
-                # Check if result is a dictionary before using 'in' operator
-                if not isinstance(ug_result, dict):
-                    print(f"         ❌ Error: Unexpected result type {type(ug_result)}: {ug_result}")
-                    continue
-                
-                if "error" in ug_result:
-                    print(f"         ❌ Error: {ug_result.get('error', 'Unknown error')}")
-                    continue
-                
-                column_results.append({
-                    "column": col,
-                    "iq": ug_result.get("iq", 0.0),
-                    "fi": ug_result.get("fi", 0.0),
-                    "utility_gain": ug_result.get("utility_gain", 0.0),
-                    "is_suitable": ug_result.get("is_suitable", False),
-                    "reason": ug_result.get("reason", "")
-                })
-                
-                status = "✓" if ug_result.get("is_suitable", False) else "✗"
-                print(f"         {status} UG: {ug_result.get('utility_gain', 0.0):.4f} - {ug_result.get('reason', '')}")
-                
-                await asyncio.sleep(config.delay_between_columns)
-                
-            except Exception as e:
-                print(f"         ❌ Error evaluating {col}: {e}")
-                continue
-        
-        # Filter to only suitable columns and sort by utility_gain
-        suitable_columns = [r for r in column_results if r.get("is_suitable", False)]
-        suitable_columns.sort(key=lambda x: x["utility_gain"], reverse=True)
-        
-        augment_results.append({
-            "candidate_table": cand_name,
-            "join_columns": selected_join_cols,
-            "all_evaluated_columns": column_results,
-            "suitable_columns": suitable_columns,
-            "total_evaluated": len(column_results),
-            "total_suitable": len(suitable_columns)
-        })
-        
-        print(f"   ✅ Found {len(suitable_columns)} suitable columns out of {len(column_results)} evaluated")
-    
-    augment_callback = AugmentValidatorCallback(
-        base_table_df=join_df,
-        target_column=target_column,
-        task_type=task_type,
-        join_columns=join_columns_list,
-        base_dir=BASE_DIR,
-        config=config
-    )
 
-    # Validate each candidate table's suitable columns
-    for result in augment_results:
-        cand_name = result["candidate_table"]
-        suitable_cols = result["suitable_columns"]
-        selected_join_cols = result["join_columns"]
-        
-        if len(suitable_cols) == 0:
-            print(f"   ⚠️  No suitable columns found in '{cand_name}'")
-            continue
-        
-        # Extract suitable columns names
-        selected_column_names = [col["column"] for col in suitable_cols]
-        
-        print(f"\n🔬 Validating augmentation for '{cand_name}' with {len(selected_column_names)} columns...")
-        
-        # Validate: merge selected columns and run task
-        validation_result = augment_callback.verify(
-            candidate_table_name=cand_name,
-            selected_columns=selected_column_names,
-            candidate_join_columns=selected_join_cols,
-            opendata_domain=domain_for_fetch if data_source == "datalake" else None,
+        # Aggregation phase
+        print(f"\n📊 Aggregating candidate tables by join key...")
+        aggregated_results = aggregate_selected_tables(
+            final_selected_tables,
+            base_dir=BASE_DIR,
+            opendata_domain=domain_for_fetch
         )
+
+
+
+
+    # print(f"\n📊 Starting Augment Column Selection...")
+    # print(f"   Target: {target_column} ({task_type})")
+    
+    # utility_runner = InMemoryRunner(agent=build_utility_gain_agent(config=config))
+    # augment_results = []
+    
+    # # Process each table that passed Phase 2
+    # for result in relevant_list:
+    #     cand_name = result.get("candidate_table")
+    #     if not cand_name:
+    #         continue
+    #     selected_join_cols = result.get("selected_columns", [])  # Join columns from Phase 2
         
-        # Add validation result to result
-        result["validation"] = validation_result
+    #     print(f"\n🔍 Evaluating columns in '{cand_name}' for augmenting '{target_column}'...")
         
-        if "error" in validation_result:
-            print(f"   ❌ Validation failed: {validation_result['error']}")
-        else:
-            baseline = validation_result.get("baseline_metric")
-            augmented = validation_result.get("augmented_metric", validation_result.get("metric"))
-            improvement = validation_result.get("improvement")
-            improvement_pct = validation_result.get("improvement_percent")
-            base_count = validation_result.get("base_features_count", 0)
-            augment_count = validation_result.get("augment_features_count", 0)
-            total_count = validation_result.get("total_features_count", 0)
+    #     # Load candidate table to get all available columns
+    #     cand_df = None
+    #     if data_source == "datalake" and domain_for_fetch:
+    #         try:
+    #             rows = client.read_data(cand_name, domain_for_fetch, max_rows=config.sample_size * 2)
+    #             cand_df = pd.DataFrame(rows) if rows else None
+    #         except Exception as e:
+    #             print(f"   ⚠️ API fetch failed for {cand_name}: {e}")
+    #     if cand_df is None or cand_df.empty:
+    #         try:
+    #             real_cand_name = find_dataset_dir(cand_name, BASE_DIR)
+    #             cand_df = pd.read_csv(Path(BASE_DIR) / real_cand_name / config.data_filename, low_memory=False)
+    #         except Exception as e:
+    #             print(f"   ⚠️ Local load failed for {cand_name}: {e}")
+    #             continue
+    #     if cand_df.empty or len(cand_df.columns) == 0:
+    #         continue
+        
+    #     # Get candidate columns to evaluate (exclude join columns)
+    #     candidate_columns = [
+    #         col for col in cand_df.columns 
+    #         if col not in selected_join_cols
+    #     ]
+        
+    #     if len(candidate_columns) == 0:
+    #         print(f"   ⚠️  No columns available for augmentation (all are join columns)")
+    #         continue
+        
+    #     print(f"   Checking {len(candidate_columns)} candidate columns...")
+        
+    #     column_results = []
+        
+    #     for col in candidate_columns:
+    #         try:
+    #             print(f"      Checking: {col}")
+                
+    #             ug_prompt = f"""
+    #             Compute utility gain and evaluate suitability with these parameters:
+    #             - base_table_name: "{join_table_name}"
+    #             - candidate_table_name: "{cand_name}"
+    #             - base_join_columns: {config.join_column}
+    #             - candidate_join_columns: {selected_join_cols}
+    #             - candidate_column: "{col}"
+    #             - target_column: "{target_column}"
+    #             - task_type: "{task_type}"
+    #             - base_dir: "{BASE_DIR}"
+    #             - sample_size: {config.sample_size}
+    #             - opendata_domain: "{domain_for_fetch or ''}"
+                
+    #             Call compute_integration_quality, compute_feature_importance, and compute_utility_gain_from_params.
+    #             Based on IQ, FI, and Utility Gain values, determine if this column is suitable for augmentation.
+    #             Return the JSON result with iq, fi, utility_gain, is_suitable, and reason.
+    #             """
+                
+    #             ug_events = await utility_runner.run_debug(ug_prompt)
+                
+    #             ug_json_str = "{}"
+    #             for event in reversed(ug_events):
+    #                 if hasattr(event, 'actions') and getattr(event.actions, "state_delta", None):
+    #                     if "utility_gain_result" in getattr(event.actions, "state_delta", None):
+    #                         ug_json_str = getattr(event.actions, "state_delta", None)["utility_gain_result"]
+    #                         break
+                
+    #             ug_result = extract_json(ug_json_str)
+                
+    #             # Handle string JSON
+    #             if isinstance(ug_result, str):
+    #                 ug_result = extract_json(ug_result)
+                
+    #             # Check if result is a dictionary before using 'in' operator
+    #             if not isinstance(ug_result, dict):
+    #                 print(f"         ❌ Error: Unexpected result type {type(ug_result)}: {ug_result}")
+    #                 continue
+                
+    #             if "error" in ug_result:
+    #                 print(f"         ❌ Error: {ug_result.get('error', 'Unknown error')}")
+    #                 continue
+                
+    #             column_results.append({
+    #                 "column": col,
+    #                 "iq": ug_result.get("iq", 0.0),
+    #                 "fi": ug_result.get("fi", 0.0),
+    #                 "utility_gain": ug_result.get("utility_gain", 0.0),
+    #                 "is_suitable": ug_result.get("is_suitable", False),
+    #                 "reason": ug_result.get("reason", "")
+    #             })
+                
+    #             status = "✓" if ug_result.get("is_suitable", False) else "✗"
+    #             print(f"         {status} UG: {ug_result.get('utility_gain', 0.0):.4f} - {ug_result.get('reason', '')}")
+                
+    #             await asyncio.sleep(config.delay_between_columns)
+                
+    #         except Exception as e:
+    #             print(f"         ❌ Error evaluating {col}: {e}")
+    #             continue
+        
+    #     # Filter to only suitable columns and sort by utility_gain
+    #     suitable_columns = [r for r in column_results if r.get("is_suitable", False)]
+    #     suitable_columns.sort(key=lambda x: x["utility_gain"], reverse=True)
+        
+    #     augment_results.append({
+    #         "candidate_table": cand_name,
+    #         "join_columns": selected_join_cols,
+    #         "all_evaluated_columns": column_results,
+    #         "suitable_columns": suitable_columns,
+    #         "total_evaluated": len(column_results),
+    #         "total_suitable": len(suitable_columns)
+    #     })
+        
+    #     print(f"   ✅ Found {len(suitable_columns)} suitable columns out of {len(column_results)} evaluated")
+    
+    # augment_callback = AugmentValidatorCallback(
+    #     base_table_df=join_df,
+    #     target_column=target_column,
+    #     task_type=task_type,
+    #     join_columns=join_columns_list,
+    #     base_dir=BASE_DIR,
+    #     config=config
+    # )
+
+    # # Validate each candidate table's suitable columns
+    # for result in augment_results:
+    #     cand_name = result["candidate_table"]
+    #     suitable_cols = result["suitable_columns"]
+    #     selected_join_cols = result["join_columns"]
+        
+    #     if len(suitable_cols) == 0:
+    #         print(f"   ⚠️  No suitable columns found in '{cand_name}'")
+    #         continue
+        
+    #     # Extract suitable columns names
+    #     selected_column_names = [col["column"] for col in suitable_cols]
+        
+    #     print(f"\n🔬 Validating augmentation for '{cand_name}' with {len(selected_column_names)} columns...")
+        
+    #     # Validate: merge selected columns and run task
+    #     validation_result = augment_callback.verify(
+    #         candidate_table_name=cand_name,
+    #         selected_columns=selected_column_names,
+    #         candidate_join_columns=selected_join_cols,
+    #         opendata_domain=domain_for_fetch if data_source == "datalake" else None,
+    #     )
+        
+    #     # Add validation result to result
+    #     result["validation"] = validation_result
+        
+    #     if "error" in validation_result:
+    #         print(f"   ❌ Validation failed: {validation_result['error']}")
+    #     else:
+    #         baseline = validation_result.get("baseline_metric")
+    #         augmented = validation_result.get("augmented_metric", validation_result.get("metric"))
+    #         improvement = validation_result.get("improvement")
+    #         improvement_pct = validation_result.get("improvement_percent")
+    #         base_count = validation_result.get("base_features_count", 0)
+    #         augment_count = validation_result.get("augment_features_count", 0)
+    #         total_count = validation_result.get("total_features_count", 0)
             
-            print(f"   ✅ Validation passed")
-            if baseline is not None:
-                print(f"      Baseline: {baseline:.4f} → Augmented: {augmented:.4f}")
-                if improvement is not None:
-                    sign = "+" if improvement >= 0 else ""
-                    print(f"      Improvement: {sign}{improvement:.4f} ({sign}{improvement_pct:.2f}%)")
-            else:
-                print(f"      Augmented metric: {augmented:.4f}")
-            print(f"      Features: {base_count} base + {augment_count} augment = {total_count} total")
+    #         print(f"   ✅ Validation passed")
+    #         if baseline is not None:
+    #             print(f"      Baseline: {baseline:.4f} → Augmented: {augmented:.4f}")
+    #             if improvement is not None:
+    #                 sign = "+" if improvement >= 0 else ""
+    #                 print(f"      Improvement: {sign}{improvement:.4f} ({sign}{improvement_pct:.2f}%)")
+    #         else:
+    #             print(f"      Augmented metric: {augmented:.4f}")
+    #         print(f"      Features: {base_count} base + {augment_count} augment = {total_count} total")
 
 
-    return {
-        "join_table": join_table_name,
-        "join_column": join_columns_list,
-        "target_column": target_column,
-        "task_type": task_type,
-        "joinable_tables": relevant_list,
-        "augment_results": augment_results
-    }
+    # return {
+    #     "join_table": join_table_name,
+    #     "join_column": join_columns_list,
+    #     "target_column": target_column,
+    #     "task_type": task_type,
+    #     "joinable_tables": relevant_list,
+    #     "augment_results": augment_results
+    # }
 
 
 if __name__ == "__main__":
