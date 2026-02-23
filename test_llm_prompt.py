@@ -573,8 +573,8 @@ def analyze_dataset(dataset_path, client):
     
     # Parse JSON
     try:
-    json_str = extract_json(response)
-    result = json.loads(json_str)
+        json_str = extract_json(response)
+        result = json.loads(json_str)
     except json.JSONDecodeError as e:
         print(f"✗ Error: Failed to parse JSON from LLM response: {e}")
         print(f"  Response preview: {response[:200] if response else 'None'}...")

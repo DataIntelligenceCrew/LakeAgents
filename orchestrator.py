@@ -381,22 +381,22 @@ Please analyze the user intent and return the result in JOSN format according to
                                 cols_name.append(col["name"])
                     possible = [c for c in cols_name if c and str(c).strip().lower() in join_columns_set]
                     entry = {"id": meta_id, "description": meta_desc, "attribution": meta_attr}
-                    entry["columns_name"] = res.get("columns_name") or cols_name
-                    entry["columns_description"] = cols_desc 
-                    raw_class = full_meta.get("classification") or {}
-
                     # entry["columns_name"] = res.get("columns_name") or cols_name
-                    # entry["columns_description"] = cols_desc
-                    # # columns_datatype: name -> dataTypeName from Socrata metadata
-                    # col_list = full_meta.get("columns") or []
-                    # name_to_dtype = {
-                    #     str(c.get("name", "")).strip(): str(c.get("dataTypeName") or "").strip() or "unknown"
-                    #     for c in col_list if isinstance(c, dict) and c.get("name")
-                    # }
-                    # entry["columns_datatype"] = [
-                    #     name_to_dtype.get(str(n).strip(), "unknown") for n in entry["columns_name"]
-                    # ]
+                    # entry["columns_description"] = cols_desc 
                     # raw_class = full_meta.get("classification") or {}
+
+                    entry["columns_name"] = res.get("columns_name") or cols_name
+                    entry["columns_description"] = cols_desc
+                    # columns_datatype: name -> dataTypeName from Socrata metadata
+                    col_list = full_meta.get("columns") or []
+                    name_to_dtype = {
+                        str(c.get("name", "")).strip(): str(c.get("dataTypeName") or "").strip() or "unknown"
+                        for c in col_list if isinstance(c, dict) and c.get("name")
+                    }
+                    entry["columns_datatype"] = [
+                        name_to_dtype.get(str(n).strip(), "unknown") for n in entry["columns_name"]
+                    ]
+                    raw_class = full_meta.get("classification") or {}
 
                     if not raw_class and (full_meta.get("category") is not None or full_meta.get("tags")):
                         raw_class = {
@@ -615,6 +615,23 @@ Return JSON with selected_columns and reasoning."""
 
 # ---- Phase 3: Augment Column Selection ----
 
+        from llm_agent_tools import _train_and_evaluate
+
+        baseline_metric = None
+        baseline_features = [c for c in join_df.columns 
+                            if c != target_column and c not in join_columns]
+        if len(baseline_features) == 0:
+            baseline_features = [c for c in join_df.columns if c != target_column]
+        if len(baseline_features) > 0:
+            baseline_df = join_df[baseline_features + [target_column]].dropna(subset=[target_column])
+          
+            try:
+                baseline_metric = _train_and_evaluate(baseline_df, target_column, task_type)
+                metric_name = "r2_score" if task_type == "regression" else "f1_score"
+                print(f"\n📊 Baseline ({metric_name}): {baseline_metric:.4f}")
+            except Exception as e:
+                print(f"\n📊 Baseline failed: {e}")
+                
         # Aggregation phase
         print(f"\n📊 Aggregating candidate tables by join key...")
         aggregated_results = aggregate_selected_tables(
@@ -626,7 +643,8 @@ Return JSON with selected_columns and reasoning."""
         # Correlation phase: compute target aggregation and feature correlations per candidate
         print(f"\n📈 Computing correlations with target '{target_column}'...")
         target_agg, target_type = aggregate_target_by_join_key(
-            join_df, join_columns, target_column
+            join_df, join_columns, target_column,
+            base_dir=BASE_DIR, join_table_folder=real_join_table_name,
         )
         for result in aggregated_results:
             cand_agg = result.get("aggregated_df")
@@ -659,16 +677,35 @@ Return JSON with selected_columns and reasoning."""
             cand_descs = get_column_descriptions_from_index(cand_name)
             target_desc = join_col_descs.get(target_column, "")  # get target column description from join table metadata
             
+            cand_agg = result.get("aggregated_df")
+
             # construct candidate_columns
             candidate_columns = []
             for _, row in corr_df.iterrows():
-                candidate_columns.append({
+                entry = {
                     "feature": row["feature"],
                     "metric": row["metric"],
                     "value": float(row["value"]) if pd.notna(row["value"]) else None,
                     "description": cand_descs.get(row["feature"], ""),
-                })
-            
+                    "feature_type": row.get("feature_type", "unknown"),
+                }
+                feat_type = row.get("feature_type", "unknown")
+                if feat_type == "text" and cand_agg is not None:
+                    summary_col = f"{row['feature']}_summary"
+                    if summary_col in cand_agg.columns:
+                        parts = []
+                        for _, r in cand_agg.iterrows():
+                            jk = " | ".join(str(r[c]) for c in join_columns if c in cand_agg.columns)
+                            s = r.get(summary_col, "")
+                            if pd.notna(s) and str(s).strip():
+                                parts.append(f"{jk}: {s}")
+                        entry["summary"] = "\n".join(parts) if parts else ""
+                    else:
+                        entry["summary"] = ""
+                else:
+                    entry["summary"] = ""
+                candidate_columns.append(entry)
+
             prompt = f"""
 task_type: "{task_type}"
 target_column: "{target_column}"
@@ -679,7 +716,7 @@ candidate_columns: {json.dumps(candidate_columns, ensure_ascii=False, indent=2)}
 
 Select augment columns. Return JSON with selected_augment_columns and reasoning.
 """
-            events = await augment_runner.run_debug(prompt)
+            events = await augment_runner.run_debug(prompt, quiet=True)
             last_text = ""
             for event in events:
                 if getattr(event, "content", None) and getattr(event.content, "parts", None):
@@ -691,198 +728,57 @@ Select augment columns. Return JSON with selected_augment_columns and reasoning.
             result["selected_augment_columns"] = parsed.get("selected_augment_columns", [])
             result["augment_reasoning"] = parsed.get("reasoning", "")
 
+        # ---- Build augmented table and evaluate metrics ----
+        augmented_df = join_df.copy()
+        for result in aggregated_results:
+            aug_cols = result.get("selected_augment_columns", [])
+            if not aug_cols:
+                continue
+            cand_agg = result.get("aggregated_df")
+            if cand_agg is None or cand_agg.empty:
+                continue
+            selected_cols = result.get("selected_columns", [])
+            if selected_cols and len(selected_cols) == len(join_columns):
+                rename_map = dict(zip(selected_cols, join_columns))
+                cand_agg = cand_agg.rename(columns=rename_map)
+            cols_to_add = [c for c in aug_cols if c in cand_agg.columns]
+            if not cols_to_add:
+                continue
+            to_merge = cand_agg[join_columns + cols_to_add].drop_duplicates(subset=join_columns)
+            augmented_df = augmented_df.merge(to_merge, on=join_columns, how="left")
 
-    # print(f"\n📊 Starting Augment Column Selection...")
-    # print(f"   Target: {target_column} ({task_type})")
-    
-    # utility_runner = InMemoryRunner(agent=build_utility_gain_agent(config=config))
-    # augment_results = []
-    
-    # # Process each table that passed Phase 2
-    # for result in relevant_list:
-    #     cand_name = result.get("candidate_table")
-    #     if not cand_name:
-    #         continue
-    #     selected_join_cols = result.get("selected_columns", [])  # Join columns from Phase 2
-        
-    #     print(f"\n🔍 Evaluating columns in '{cand_name}' for augmenting '{target_column}'...")
-        
-    #     # Load candidate table to get all available columns
-    #     cand_df = None
-    #     if data_source == "datalake" and domain_for_fetch:
-    #         try:
-    #             rows = client.read_data(cand_name, domain_for_fetch, max_rows=config.sample_size * 2)
-    #             cand_df = pd.DataFrame(rows) if rows else None
-    #         except Exception as e:
-    #             print(f"   ⚠️ API fetch failed for {cand_name}: {e}")
-    #     if cand_df is None or cand_df.empty:
-    #         try:
-    #             real_cand_name = find_dataset_dir(cand_name, BASE_DIR)
-    #             cand_df = pd.read_csv(Path(BASE_DIR) / real_cand_name / config.data_filename, low_memory=False)
-    #         except Exception as e:
-    #             print(f"   ⚠️ Local load failed for {cand_name}: {e}")
-    #             continue
-    #     if cand_df.empty or len(cand_df.columns) == 0:
-    #         continue
-        
-    #     # Get candidate columns to evaluate (exclude join columns)
-    #     candidate_columns = [
-    #         col for col in cand_df.columns 
-    #         if col not in selected_join_cols
-    #     ]
-        
-    #     if len(candidate_columns) == 0:
-    #         print(f"   ⚠️  No columns available for augmentation (all are join columns)")
-    #         continue
-        
-    #     print(f"   Checking {len(candidate_columns)} candidate columns...")
-        
-    #     column_results = []
-        
-    #     for col in candidate_columns:
-    #         try:
-    #             print(f"      Checking: {col}")
-                
-    #             ug_prompt = f"""
-    #             Compute utility gain and evaluate suitability with these parameters:
-    #             - base_table_name: "{join_table_name}"
-    #             - candidate_table_name: "{cand_name}"
-    #             - base_join_columns: {config.join_column}
-    #             - candidate_join_columns: {selected_join_cols}
-    #             - candidate_column: "{col}"
-    #             - target_column: "{target_column}"
-    #             - task_type: "{task_type}"
-    #             - base_dir: "{BASE_DIR}"
-    #             - sample_size: {config.sample_size}
-    #             - opendata_domain: "{domain_for_fetch or ''}"
-                
-    #             Call compute_integration_quality, compute_feature_importance, and compute_utility_gain_from_params.
-    #             Based on IQ, FI, and Utility Gain values, determine if this column is suitable for augmentation.
-    #             Return the JSON result with iq, fi, utility_gain, is_suitable, and reason.
-    #             """
-                
-    #             ug_events = await utility_runner.run_debug(ug_prompt)
-                
-    #             ug_json_str = "{}"
-    #             for event in reversed(ug_events):
-    #                 if hasattr(event, 'actions') and getattr(event.actions, "state_delta", None):
-    #                     if "utility_gain_result" in getattr(event.actions, "state_delta", None):
-    #                         ug_json_str = getattr(event.actions, "state_delta", None)["utility_gain_result"]
-    #                         break
-                
-    #             ug_result = extract_json(ug_json_str)
-                
-    #             # Handle string JSON
-    #             if isinstance(ug_result, str):
-    #                 ug_result = extract_json(ug_result)
-                
-    #             # Check if result is a dictionary before using 'in' operator
-    #             if not isinstance(ug_result, dict):
-    #                 print(f"         ❌ Error: Unexpected result type {type(ug_result)}: {ug_result}")
-    #                 continue
-                
-    #             if "error" in ug_result:
-    #                 print(f"         ❌ Error: {ug_result.get('error', 'Unknown error')}")
-    #                 continue
-                
-    #             column_results.append({
-    #                 "column": col,
-    #                 "iq": ug_result.get("iq", 0.0),
-    #                 "fi": ug_result.get("fi", 0.0),
-    #                 "utility_gain": ug_result.get("utility_gain", 0.0),
-    #                 "is_suitable": ug_result.get("is_suitable", False),
-    #                 "reason": ug_result.get("reason", "")
-    #             })
-                
-    #             status = "✓" if ug_result.get("is_suitable", False) else "✗"
-    #             print(f"         {status} UG: {ug_result.get('utility_gain', 0.0):.4f} - {ug_result.get('reason', '')}")
-                
-    #             await asyncio.sleep(config.delay_between_columns)
-                
-    #         except Exception as e:
-    #             print(f"         ❌ Error evaluating {col}: {e}")
-    #             continue
-        
-    #     # Filter to only suitable columns and sort by utility_gain
-    #     suitable_columns = [r for r in column_results if r.get("is_suitable", False)]
-    #     suitable_columns.sort(key=lambda x: x["utility_gain"], reverse=True)
-        
-    #     augment_results.append({
-    #         "candidate_table": cand_name,
-    #         "join_columns": selected_join_cols,
-    #         "all_evaluated_columns": column_results,
-    #         "suitable_columns": suitable_columns,
-    #         "total_evaluated": len(column_results),
-    #         "total_suitable": len(suitable_columns)
-    #     })
-        
-    #     print(f"   ✅ Found {len(suitable_columns)} suitable columns out of {len(column_results)} evaluated")
-    
-    # augment_callback = AugmentValidatorCallback(
-    #     base_table_df=join_df,
-    #     target_column=target_column,
-    #     task_type=task_type,
-    #     join_columns=join_columns_list,
-    #     base_dir=BASE_DIR,
-    #     config=config
-    # )
+        # Evaluate augmented metric
+        augmented_metric = None
+        aug_features = [c for c in augmented_df.columns if c != target_column and c not in join_columns]
+        if len(aug_features) > 0:
+            aug_df = augmented_df[aug_features + [target_column]].dropna(subset=[target_column])
+            if len(aug_df) >= 10:
+                try:
+                    augmented_metric = _train_and_evaluate(aug_df, target_column, task_type)
+                    metric_name = "r2_score" if task_type == "regression" else "f1_score"
+                    print(f"\n📊 Augmented ({metric_name}): {augmented_metric:.4f}")
+                    if baseline_metric is not None:
+                        improvement = augmented_metric - baseline_metric
+                        pct = (improvement / abs(baseline_metric) * 100) if baseline_metric != 0 else 0
+                        print(f"   Improvement: {improvement:+.4f} ({pct:+.1f}%)")
+                except Exception as e:
+                    print(f"\n📊 Augmented metric failed: {e}")
 
-    # # Validate each candidate table's suitable columns
-    # for result in augment_results:
-    #     cand_name = result["candidate_table"]
-    #     suitable_cols = result["suitable_columns"]
-    #     selected_join_cols = result["join_columns"]
-        
-    #     if len(suitable_cols) == 0:
-    #         print(f"   ⚠️  No suitable columns found in '{cand_name}'")
-    #         continue
-        
-    #     # Extract suitable columns names
-    #     selected_column_names = [col["column"] for col in suitable_cols]
-        
-    #     print(f"\n🔬 Validating augmentation for '{cand_name}' with {len(selected_column_names)} columns...")
-        
-    #     # Validate: merge selected columns and run task
-    #     validation_result = augment_callback.verify(
-    #         candidate_table_name=cand_name,
-    #         selected_columns=selected_column_names,
-    #         candidate_join_columns=selected_join_cols,
-    #         opendata_domain=domain_for_fetch if data_source == "datalake" else None,
-    #     )
-        
-    #     # Add validation result to result
-    #     result["validation"] = validation_result
-        
-    #     if "error" in validation_result:
-    #         print(f"   ❌ Validation failed: {validation_result['error']}")
-    #     else:
-    #         baseline = validation_result.get("baseline_metric")
-    #         augmented = validation_result.get("augmented_metric", validation_result.get("metric"))
-    #         improvement = validation_result.get("improvement")
-    #         improvement_pct = validation_result.get("improvement_percent")
-    #         base_count = validation_result.get("base_features_count", 0)
-    #         augment_count = validation_result.get("augment_features_count", 0)
-    #         total_count = validation_result.get("total_features_count", 0)
-            
-    #         print(f"   ✅ Validation passed")
-    #         if baseline is not None:
-    #             print(f"      Baseline: {baseline:.4f} → Augmented: {augmented:.4f}")
-    #             if improvement is not None:
-    #                 sign = "+" if improvement >= 0 else ""
-    #                 print(f"      Improvement: {sign}{improvement:.4f} ({sign}{improvement_pct:.2f}%)")
-    #         else:
-    #             print(f"      Augmented metric: {augmented:.4f}")
-    #         print(f"      Features: {base_count} base + {augment_count} augment = {total_count} total")
-
-
-    # return {
-    #     "join_table": join_table_name,
-    #     "join_column": join_columns_list,
-    #     "target_column": target_column,
-    #     "task_type": task_type,
-    #     "joinable_tables": relevant_list,
-    #     "augment_results": augment_results
-    # }
+        augment_output = [
+            {
+                "candidate_table": r.get("candidate_table", "?"),
+                "selected_augment_columns": r.get("selected_augment_columns", []),
+                "reasoning": r.get("augment_reasoning", ""),
+            }
+            for r in aggregated_results
+        ]
+        metric_name = "r2_score" if task_type == "regression" else "f1_score"
+        return {
+            "augment_results": augment_output,
+            "baseline_metric": baseline_metric,
+            "augmented_metric": augmented_metric,
+            "metric_name": metric_name,
+        }
 
 
 if __name__ == "__main__":
@@ -919,6 +815,18 @@ if __name__ == "__main__":
         ))
         
         print("\n--- Final Results ---")
+        if output:
+            metric_name = output.get("metric_name", "r2_score")
+            baseline = output.get("baseline_metric")
+            augmented = output.get("augmented_metric")
+            baseline_str = f"{baseline:.4f}" if baseline is not None else "N/A"
+            augmented_str = f"{augmented:.4f}" if augmented is not None else "N/A"
+            print(f"📊 Baseline ({metric_name}): {baseline_str}")
+            print(f"📊 Augmented ({metric_name}): {augmented_str}")
+            if baseline is not None and augmented is not None:
+                improvement = augmented - baseline
+                pct = (improvement / abs(baseline) * 100) if baseline != 0 else 0
+                print(f"   Improvement: {improvement:+.4f} ({pct:+.1f}%)")
         if config.save_results:
             # Save results to file
             output_file = Path(config.results_file)
@@ -926,8 +834,13 @@ if __name__ == "__main__":
                 json.dump(output, f, indent=2)
             print(f"Results saved to {output_file}")
         
-        if config.print_results:
-            print(json.dumps(output, indent=2))
+        if config.print_results and output:
+            for item in output.get("augment_results", []):
+                payload = {
+                    "selected_augment_columns": item["selected_augment_columns"],
+                    "reasoning": item["reasoning"]
+                }
+                print("\nAugmentColumnSelectionAgent >", json.dumps(payload, indent=2, ensure_ascii=False))
     except Exception as e:
         print(f"Workflow failed: {e}")
         import traceback

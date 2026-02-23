@@ -11,11 +11,15 @@ INPUT:
   - metric: "correlation" (Pearson) or "distance_correlation"
   - value: correlation/distance score with target (higher = stronger relationship, NaN = no valid data)
   - description: column description from metadata
+  - feature_type: "numerical", "categorical", or "text"
+  - summary: (text columns only) LLM summary of the text content per join key (e.g. "BRONX: ... | BROOKLYN: ..."); use this to understand what the column contains when deciding relevance.
 
 REASONING STEPS:
-1. Think about what kind of information would help predict the target given the task type.
-2. For each candidate column, consider: (a) Does its semantic meaning align with useful predictive info? (b) Does it have a meaningful correlation/distance (not NaN, typically |value| > 0.2)?
-3. Select columns that are both semantically relevant AND show meaningful association with the target.
+1. Do not rely solely on metric and value; consider all available text information (description, summary, feature_type) when evaluating relevance.
+2. Think about what kind of information would help predict the target given the task type.
+3. For each candidate column, consider: (a) Does its semantic meaning align with useful predictive info? (b) Does it have a meaningful correlation/distance (not NaN, typically |value| > 0.2)?
+4. For text columns, read the summary to understand the content and whether it is relevant to the target.
+5. Select columns that are both semantically relevant AND show meaningful association with the target.
 
 RULES:
 1. Prefer columns with higher absolute correlation/distance (stronger signal).
