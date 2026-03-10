@@ -132,8 +132,19 @@ def preprocess_data(df, target_column,task_type):
         print(f"    Warning: Target column '{target_column}' not found in data")
         return None, None, None, None
     
+    # #region agent log
+    import json as _json; _ts = __import__('time').time_ns() // 1000000
+    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_J2","timestamp":_ts,"location":"Classification_regression.py:135","message":"df at function entry","data":{"shape":[int(x) for x in df.shape],"columns":list(df.columns),"dtypes":{col:str(dtype) for col,dtype in df.dtypes.items()},"target_column":target_column,"task_type":task_type},"hypothesisId":"J,M"}) + '\n')
+    # #endregion
+    
     X = df.drop(columns=[target_column])
     y = df[target_column]
+    
+    # #region agent log
+    import json as _json; _ts = __import__('time').time_ns() // 1000000
+    _y_sample = [str(v) if not pd.api.types.is_numeric_dtype(y) else (float(v) if hasattr(v,'item') else v) for v in (y[:5] if len(y)>0 else [])]
+    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_L1","timestamp":_ts,"location":"Classification_regression.py:145","message":"X,y after separation","data":{"X_shape":[int(x) for x in X.shape],"X_dtypes":{col:str(dtype) for col,dtype in X.dtypes.items()},"y_dtype":str(y.dtype),"y_sample":_y_sample,"y_stats":{"mean":float(y.mean()) if hasattr(y,'mean') and pd.api.types.is_numeric_dtype(y) else None,"min":float(y.min()) if hasattr(y,'min') and pd.api.types.is_numeric_dtype(y) else None,"max":float(y.max()) if hasattr(y,'max') and pd.api.types.is_numeric_dtype(y) else None}},"hypothesisId":"L"}) + '\n')
+    # #endregion
 
     all_nan_cols = X.columns[X.isna().all()].tolist()
     if all_nan_cols:
@@ -169,11 +180,19 @@ def preprocess_data(df, target_column,task_type):
         return None, None, None, None
     
     # Encode categorical variables in features
-    categorical_columns = X.select_dtypes(include=['object']).columns
+    object_columns = X.select_dtypes(include=['object']).columns
+    for col in object_columns:
+        numeric_vals = pd.to_numeric(X[col], errors='coerce')
+        if numeric_vals.notna().mean() > 0.5:
+            X[col] = numeric_vals.fillna(numeric_vals.mean())
+        else:
+            le = LabelEncoder()
+            X[col] = le.fit_transform(X[col].fillna('Unknown').astype(str))
     
-    for col in categorical_columns:
-        le = LabelEncoder()
-        X[col] = le.fit_transform(X[col].astype(str))
+    # #region agent log
+    import json as _json; _ts = __import__('time').time_ns() // 1000000
+    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_K2","timestamp":_ts,"location":"Classification_regression.py:177","message":"after encoding object columns","data":{"X_dtypes":{col:str(dtype) for col,dtype in X.dtypes.items()}},"hypothesisId":"K,N"}) + '\n')
+
     
     # Encode target variable
     # For classification: always encode to ensure 0-based consecutive integers
@@ -219,6 +238,12 @@ def preprocess_data(df, target_column,task_type):
         # For regression, try to convert to float, handle non-numeric values
         y_encoded = pd.to_numeric(y, errors='coerce')  # convert to float, handle non-numeric values
         
+        # #region agent log
+        import json as _json; _ts = __import__('time').time_ns() // 1000000
+        _y_enc_sample = [float(v) if hasattr(v,'item') else v for v in (y_encoded[:5] if len(y_encoded)>0 else [])]
+        with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_L2","timestamp":_ts,"location":"Classification_regression.py:235","message":"y_encoded for regression","data":{"y_encoded_dtype":str(y_encoded.dtype),"y_encoded_sample":_y_enc_sample,"y_encoded_stats":{"mean":float(y_encoded.mean()),"min":float(y_encoded.min()),"max":float(y_encoded.max()),"nan_count":int(pd.isna(y_encoded).sum())}},"hypothesisId":"L"}) + '\n')
+        # #endregion
+        
         # Remove rows where target is NaN
         valid_mask = ~pd.isna(y_encoded)
         y_encoded = y_encoded[valid_mask]
@@ -236,6 +261,12 @@ def preprocess_data(df, target_column,task_type):
     if len(numerical_columns) > 0:
         X[numerical_columns] = scaler.fit_transform(X[numerical_columns])
     
+    # #region agent log
+    import json as _json; _ts = __import__('time').time_ns() // 1000000
+    _y_final_sample = [float(v) if hasattr(v,'item') else (int(v) if isinstance(v,(np.integer,np.int64)) else v) for v in (y_encoded[:5] if len(y_encoded)>0 else [])]
+    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_K3","timestamp":_ts,"location":"Classification_regression.py:259","message":"final X,y before return","data":{"X_shape":[int(x) for x in X.shape],"X_columns":list(X.columns),"X_dtypes":{col:str(dtype) for col,dtype in X.dtypes.items()},"y_dtype":str(y_encoded.dtype),"y_shape":[len(y_encoded)],"y_sample":_y_final_sample,"numerical_columns":list(numerical_columns)},"hypothesisId":"K"}) + '\n')
+    # #endregion
+    
     return X, y_encoded, target_encoder, scaler
 
 def run_classification_task(X, y, target_encoder):
@@ -246,11 +277,11 @@ def run_classification_task(X, y, target_encoder):
     # Split data with stratification
     try:
         X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.2, random_state=42, stratify=y
+            X, y, test_size=0.3, random_state=42, stratify=y
         )
     except ValueError:
         X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.2, random_state=42
+            X, y, test_size=0.3, random_state=42
         )
 
     
@@ -288,7 +319,7 @@ def run_classification_task(X, y, target_encoder):
 def run_regression_task(X, y):
     """Run regression task using Linear Regression"""
     # Split data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
     
     # Train model
     model = LinearRegression()
@@ -505,11 +536,30 @@ def run_incremental_ml_tasks(verified_tables):
 
         if X is not None and len(X) > 0:
             print(f"    Running {task_type} task...")
+            
+            # #region agent log
+            import json as _json; _ts = __import__('time').time_ns() // 1000000
+            with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_O1","timestamp":_ts,"location":"Classification_regression.py:536","message":"before running task","data":{"task_type":task_type,"X_shape":[int(x) for x in X.shape],"y_shape":[len(y)],"y_unique_count":int(len(np.unique(y)))},"hypothesisId":"O,P"}) + '\n')
+            # #endregion
+            
             if task_type == 'classification':
-                metrics = run_classification_task(X, y, target_encoder)
-                baseline_metric_value = metrics['f1_score']
-                metric_name = 'f1_score'
-                classification_count += 1
+                try:
+                    metrics = run_classification_task(X, y, target_encoder)
+                    baseline_metric_value = metrics['f1_score']
+                    metric_name = 'f1_score'
+                    classification_count += 1
+                    
+                    # #region agent log
+                    import json as _json; _ts = __import__('time').time_ns() // 1000000
+                    _metrics_serializable = {k: (float(v) if hasattr(v,'item') else v) for k,v in metrics.items()}
+                    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_P1","timestamp":_ts,"location":"Classification_regression.py:548","message":"classification metrics computed","data":{"metrics":_metrics_serializable,"baseline_metric_value":float(baseline_metric_value)},"hypothesisId":"P,Q"}) + '\n')
+                    # #endregion
+                except Exception as e:
+                    # #region agent log
+                    import json as _json; _ts = __import__('time').time_ns() // 1000000
+                    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_P2","timestamp":_ts,"location":"Classification_regression.py:556","message":"classification task failed","data":{"error":str(e),"error_type":type(e).__name__},"hypothesisId":"P"}) + '\n')
+                    # #endregion
+                    raise
             elif task_type == 'regression':
                 metrics = run_regression_task(X, y)
                 baseline_metric_value = metrics['r2_score']
@@ -533,11 +583,22 @@ def run_incremental_ml_tasks(verified_tables):
             }
             table_results['incremental_results'].append(step_result)
             
+            # #region agent log
+            import json as _json; _ts = __import__('time').time_ns() // 1000000
+            _metrics_for_json = {k: (float(v) if hasattr(v,'item') else v) for k,v in metrics.items()}
+            with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_Q1","timestamp":_ts,"location":"Classification_regression.py:564","message":"before saving to table_results","data":{"metrics":_metrics_for_json,"baseline_metric_value":float(baseline_metric_value) if baseline_metric_value is not None else None,"metric_name":metric_name},"hypothesisId":"Q"}) + '\n')
+            # #endregion
+            
             print(f"    Metrics:")
             for metric, value in metrics.items():
                 print(f"      {metric}: {value:.4f}")
             print(f"    Baseline {metric_name}: {baseline_metric_value:.4f}")
         else:
+            # #region agent log
+            import json as _json; _ts = __import__('time').time_ns() // 1000000
+            with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_O2","timestamp":_ts,"location":"Classification_regression.py:577","message":"preprocess returned None or empty","data":{"X_is_none":X is None,"X_len":len(X) if X is not None else 0,"baseline_df_shape":[int(x) for x in baseline_df.shape]},"hypothesisId":"O"}) + '\n')
+            # #endregion
+            
             reason = f"Failed to preprocess baseline data (target subtable: {target_subtable_name}, rows: {len(baseline_df)}, cols: {len(baseline_df.columns)})"
             print(f"    ❌ {reason}")
             failed_tables[table_name] = reason

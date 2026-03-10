@@ -123,9 +123,16 @@ def get_column_datatypes_from_local_metadata(
             data = json.load(f)
     except Exception:
         return {}
+
     res = data.get("resource") or {}
     names = res.get("columns_name") or []
     dtypes = res.get("columns_datatype") or []
+
+   
+    if not names and 'columns' in data:
+        names = [c.get('name', '') for c in data['columns'] if isinstance(c, dict)]
+        dtypes = [c.get('dataTypeName', 'unknown') for c in data['columns'] if isinstance(c, dict)]
+
     return {str(n): str(dtypes[i]) if i < len(dtypes) else "unknown" for i, n in enumerate(names)}
 
 

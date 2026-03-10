@@ -52,11 +52,7 @@ def build_opendata_search_params(dimension_specifications: Dict[str, list], join
             s = (v if isinstance(v, str) else str(v)).strip()
             if s and s.lower() not in SKIP_WORDS:
                 keywords.append(s)
-    for j in (join_column if isinstance(join_column, list) else [join_column]):
-        if j and str(j).strip().lower() not in SKIP_WORDS:
-            keywords.append(str(j).strip())
-    if target_column and str(target_column).strip().lower() not in SKIP_WORDS:
-        keywords.append(str(target_column).strip())
+
     search_q = " ".join(keywords)
 
     return (domains, search_q)
@@ -595,6 +591,9 @@ def find_dataset_dir(dataset_name: str, base_dir: str = None) -> str:
 def read_table_index(
     candidate_ids: List[str],
     index_path: Optional[str] = None,
+    max_entries: Optional[int] = None,
+    max_chars_per_field: Optional[int] = None,
+    max_list_items: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Load the Opendata table index and return only entries whose id is in candidate_ids.
@@ -605,6 +604,9 @@ def read_table_index(
     Args:
         candidate_ids: List of dataset/table IDs to look up (e.g. from metadata_by_dataset.keys()).
         index_path: Optional path to opendata_table_index.json. If None, uses default next to this module.
+        max_entries: Optional. If set, limit the number of index entries returned (for prompt truncation).
+        max_chars_per_field: Optional. If set, truncate string/list fields longer than this (for prompt truncation).
+        max_list_items: Optional. If set, limit list fields (columns_name, columns_description, etc.) to first N items.
 
     Returns:
         Dict with keys: index_entries (list of matching index entries), count (number of matches),
@@ -639,6 +641,37 @@ def read_table_index(
         }
     id_set = {str(i).strip() for i in candidate_ids if i is not None}
     entries = [e for e in full_index if isinstance(e, dict) and e.get("id") and str(e.get("id")).strip() in id_set]
+
+    # Prompt truncation: limit entries, field lengths, and list sizes when requested
+    if max_entries is not None:
+        entries = entries[:max_entries]
+    if max_chars_per_field is not None or max_list_items is not None:
+        truncated = []
+        for e in entries:
+            ne = {}
+            for k, v in e.items():
+                if isinstance(v, str):
+                    if max_chars_per_field is not None and len(v) > max_chars_per_field:
+                        ne[k] = v[:max_chars_per_field] + "...[truncated]"
+                    else:
+                        ne[k] = v
+                elif isinstance(v, list):
+                    lst = v
+                    if max_list_items is not None and k in ("columns_name", "columns_description", "columns_datatype"):
+                        lst = lst[:max_list_items]
+                    if max_chars_per_field is not None:
+                        nv = []
+                        for x in lst:
+                            sx = str(x) if not isinstance(x, str) else x
+                            nv.append(sx[:max_chars_per_field] + "..." if len(sx) > max_chars_per_field else x)
+                        ne[k] = nv
+                    else:
+                        ne[k] = lst
+                else:
+                    ne[k] = v
+            truncated.append(ne)
+        entries = truncated
+
     return {
         "index_entries": entries,
         "count": len(entries),
@@ -665,7 +698,7 @@ def build_topk_join_column_request(
 
     Args:
         query_join_column_name: Join column name in the query/base table.
-        candidate_id: Dataset/table ID from relevant_list (e.g. tbl.get("table_name")).
+        candidate_id: Dataset/table ID from relevant_list (e.g. tbl.get("table_id")).
             If provided, reads index and ignores candidate_columns.
         query_join_column_description: Optional description of the query join column.
         task: Optional task/user intent for additional context.
@@ -1298,11 +1331,48 @@ def _train_and_evaluate(
     - Regression: Linear Regression, metric = R2 score
     - Classification: XGBoost, metric = F1 score (weighted)
     """
+    df = df.dropna(subset=[target_col])
     X = df.drop(columns=[target_col])
     y = df[target_col]
     
-    # Handle missing values in features
+    # Handle _vector columns: fill NaN with mean vector
+    vector_cols = [c for c in X.columns if c.endswith('_vector')]
+    for vec_col in vector_cols:
+        # Collect all non-NaN vectors
+        valid_vecs = []
+        for v in X[vec_col]:
+            if isinstance(v, (list, np.ndarray)) and len(v) > 0:
+                valid_vecs.append(np.array(v))
+        
+        if len(valid_vecs) > 0:
+            # Calculate mean vector
+            mean_vec = np.nanmean(valid_vecs, axis=0).tolist()
+        else:
+            mean_vec = [0.0]    
+        
+        # Fill NaN or invalid values with mean vector
+        X[vec_col] = X[vec_col].apply(
+            lambda v: v if isinstance(v, (list, np.ndarray)) and len(v) == len(mean_vec) else mean_vec
+        )
+
+    # Expand _vector columns to scalar columns
+    for vec_col in vector_cols:
+        vectors = X[vec_col].tolist()
+        vec_dim = len(vectors[0]) if vectors else 0
+        base_name = vec_col.replace('_vector', '')
+        
+        for i in range(vec_dim):
+            X[f'{base_name}_dim{i}'] = [v[i] for v in vectors]
+        
+        X = X.drop(columns=[vec_col])
+
+    # Delete _categories columns
+    X = X.drop(columns=[c for c in X.columns if c.endswith('_categories')], errors='ignore')
+
+    # Handle missing values in remaining scalar features
     for col in X.columns:
+        if col.endswith('_vector'):
+            continue  # vector 已处理
         if pd.api.types.is_numeric_dtype(X[col]):
             X[col] = X[col].fillna(X[col].mean())
         else:
@@ -1316,12 +1386,16 @@ def _train_and_evaluate(
         X[col] = le.fit_transform(X[col].astype(str))
         le_dict[col] = le
     
+    # Force fill any remaining NaN
+    X = X.fillna(0)
+    y = y.fillna(y.mean() if pd.api.types.is_numeric_dtype(y) else 0)
+    
     # Convert to numpy array
     X_array = X.values
     
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(
-        X_array, y.values, test_size=0.2, random_state=42
+        X_array, y.values, test_size=0.3, random_state=42
     )
     
     # Train and evaluate

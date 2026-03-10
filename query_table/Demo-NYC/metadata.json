@@ -1,0 +1,105 @@
+{
+  "resource": {
+    "name": "Demographic NYC",
+    "id": "cts7-vksw",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "American Community Survey Public Use Micro Sample, augmented by NYC Opportunity.",
+    "attribution": "Mayor's Office for Economic Opportunity",
+    "attribution_link": null,
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2022-05-09T22:27:18.000Z",
+    "createdAt": "2021-07-27T14:49:21.000Z",
+    "metadata_updated_at": "2022-05-09T22:27:18.000Z",
+    "data_updated_at": "2021-07-27T14:51:39.000Z",
+    "page_views": {
+      "page_views_last_week": 32,
+      "page_views_last_month": 90,
+      "page_views_total": 6601,
+      "page_views_last_week_log": 5.044394119358453,
+      "page_views_last_month_log": 6.507794640198696,
+      "page_views_total_log": 12.688687423222536
+    },
+    "columns_name": [
+      "EducAttain",
+      "SERIALNO",
+      "EST_Childcare"
+    ],
+    "columns_field_name": [
+      "educattain",
+      "serialno",
+      "est_childcare"
+    ],
+    "columns_datatype": [
+      "Number",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "Educational Attainment",
+      "Serial Number of each Census household in survey",
+      "NYCgov estimated Childcare Costs"
+    ],
+    "columns_format": [
+      {},
+      {
+        "noCommas": "true"
+      },
+      {}
+    ],
+    "download_count": 2120,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2021-07-27T14:51:45.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "City Government",
+    "domain_tags": [
+      "nycgov poverty measure"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Update_Automation",
+        "value": "No"
+      },
+      {
+        "key": "Update_Date-Made-Public",
+        "value": "7/28/2021"
+      },
+      {
+        "key": "Update_Update-Frequency",
+        "value": "Historical data"
+      },
+      {
+        "key": "Data-Collection_Data-Collection",
+        "value": "NYCGOV Poverty Measure"
+      },
+      {
+        "key": "Dataset-Information_Agency",
+        "value": "Mayor's Office for Economic Opportunity"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofnewyork.us"
+  },
+  "permalink": "https://data.cityofnewyork.us/d/cts7-vksw",
+  "link": "https://data.cityofnewyork.us/City-Government/NYCgov-Poverty-Measure-Data-2018-/cts7-vksw",
+  "owner": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  },
+  "creator": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  }
+}

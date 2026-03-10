@@ -1,0 +1,36 @@
+tables:
+  COVID-NYC:
+    join_columns:
+    - extract_date
+    target_column: Number_deaths
+  COVID-Chicago:
+    join_columns:
+    - Date
+    target_column: Deaths - Total
+  Demo-Chicago:
+    join_columns:
+    - Community Area
+    target_column: No High School Diploma
+  Demo-NYC:
+    join_columns:
+    - SERIALNO
+    target_column: EducAttain
+  Economic-Chicago:
+    join_columns:
+    - Community Area
+    target_column: Under $25,000
+  Economic-NYC:
+    join_columns:
+    - SERIALNO
+    target_column: Household/family type
+  Education-Chicago:
+    join_columns:
+    - School ID
+    target_column: CPS Performance Policy Status
+  Education-NYC:
+    join_columns:
+    - DBN
+    target_column: 2009-2010 OVERALL GRADE
+perturbation:
+  threshold: 0.1
+  beta: 0.3

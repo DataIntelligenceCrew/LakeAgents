@@ -1,0 +1,113 @@
+{
+  "resource": {
+    "name": "The relationship between domestic violence and shooting incidents in New York City",
+    "id": "rvmf-4sg6",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "This data set contains New York City Police Department provided domestic violence incident data for calendar years 2020, 2021 and 2022. In addition, ENDGBV obtained through Open Data the number of shooting incidents for calendar years 2020, 2021 and 2022. The data includes counts of the number of domestic violence incidents, shooting incidents and the number of expected domestic violence incidents and shooting incidents by: race (American Indian/Alaska Native, Asian/Pacific Islander, Black, and White) and sex (male, female) for New York City, each borough (Bronx, Brooklyn, Manhattan, Queens and Staten Island). It also provides the count and rate of domestic violence and shooting incidents by police precinct.  The expected number of domestic violence incidents and shooting incidents were calculated by taking the total number of actual domestic violence and shooting incidents for a given geography (New York City, the Bronx, Brooklyn, Manhattan, Queens and Staten Island) and proportioning them by demographic breakdown of the geographic area.",
+    "attribution": "Mayor's Office to End Domestic and Gender-Based Violence (ENDGBV)",
+    "attribution_link": "https://www.nyc.gov/assets/ocdv/downloads/pdf/DV-Gun-Violence-Report-12-28-2023.pdf",
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2025-01-14T17:39:08.000Z",
+    "createdAt": "2024-11-20T17:02:06.000Z",
+    "metadata_updated_at": "2025-01-14T17:39:08.000Z",
+    "data_updated_at": "2025-01-14T15:27:14.000Z",
+    "page_views": {
+      "page_views_last_week": 30,
+      "page_views_last_month": 135,
+      "page_views_total": 1379,
+      "page_views_last_week_log": 4.954196310386876,
+      "page_views_last_month_log": 7.08746284125034,
+      "page_views_total_log": 10.430452551665532
+    },
+    "columns_name": [
+      "Police Precinct/Geographic Location",
+      "Overall DV Rate",
+      "Shootings"
+    ],
+    "columns_field_name": [
+      "police_precinct_geographic",
+      "overall_dv_rate",
+      "shootings"
+    ],
+    "columns_datatype": [
+      "Text",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "The geographic area from which the data was collected ",
+      "The rate of domestic violence (DV) for a given geographic location. ",
+      "The number of shooting incidents reported to the NYPD. "
+    ],
+    "columns_format": [
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      }
+    ],
+    "download_count": 1186,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2024-11-20T17:16:26.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Public Safety",
+    "domain_tags": [
+      "domestic violence",
+      "shootings"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Update_Automation",
+        "value": "No"
+      },
+      {
+        "key": "Update_Date-Made-Public",
+        "value": "1/14/2025"
+      },
+      {
+        "key": "Update_Update-Frequency",
+        "value": "Historical data"
+      },
+      {
+        "key": "Update_Data-Change-Frequency",
+        "value": "Historical data"
+      },
+      {
+        "key": "Dataset-Information_Agency",
+        "value": "Mayor's Office to End Domestic and Gender-Based Violence (ENDGBV)"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofnewyork.us"
+  },
+  "permalink": "https://data.cityofnewyork.us/d/rvmf-4sg6",
+  "link": "https://data.cityofnewyork.us/Public-Safety/The-relationship-between-domestic-violence-and-sho/rvmf-4sg6",
+  "owner": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  },
+  "creator": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  }
+}

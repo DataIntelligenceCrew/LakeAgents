@@ -1,10 +1,54 @@
 """
 Configuration loader for the multi-agent data augmentation pipeline.
 """
+import json
+import re
 import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional
 from google.genai import types
+
+_PROJECT_ROOT = Path(__file__).resolve().parent
+
+
+def _apply_replacements_to_text(text: str, replacements: dict) -> str:
+    """Apply synonym replacements (word boundary, case-insensitive)."""
+    if not text or not replacements:
+        return str(text) if text is not None else ""
+    s = str(text)
+    for old, new in replacements.items():
+        s = re.sub(r"\b" + re.escape(old) + r"\b", new, s, flags=re.IGNORECASE)
+    return s
+
+
+def apply_replacements_to_task_config(config: dict, replacements: dict) -> dict:
+    """Return a new config with task.join_column and task.target_column replaced."""
+    if not replacements or "task" not in config:
+        return {**config, "task": {**config.get("task", {})}}
+    out = {k: v for k, v in config.items()}
+    out["task"] = {**config["task"]}
+    t = out["task"]
+    if t.get("join_column"):
+        jc = t["join_column"]
+        lst = jc if isinstance(jc, list) else [jc]
+        new_lst = [_apply_replacements_to_text(c, replacements) for c in lst]
+        t["join_column"] = new_lst if isinstance(jc, list) else new_lst[0]
+    if t.get("target_column"):
+        t["target_column"] = _apply_replacements_to_text(t["target_column"], replacements)
+    return out
+
+
+def load_replacements_for_table(table_folder: str, project_root: Optional[Path] = None) -> dict:
+    """Load replacements from jaccard_perturbed/{table_folder}_perturbed.json."""
+    root = project_root or _PROJECT_ROOT
+    path = root / "benchmark_perturbation" / "jaccard_perturbed" / f"{table_folder}_perturbed.json"
+    if not path.exists():
+        return {}
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f).get("replacements", {})
+    except Exception:
+        return {}
 
 def get_temperature(config: Dict[str, Any], agent_name: str) -> float:
     t = config.get('agents', {}).get('temperature', {})
@@ -102,14 +146,11 @@ class AgentPipelineConfig:
     Configuration wrapper class for easy access to config values.
     """
     
-    def __init__(self, config_path: Optional[str] = None):
-        """
-        Initialize configuration.
-        
-        Args:
-            config_path: Path to config file. If None, uses default.
-        """
-        self.config = load_config(config_path)
+    def __init__(self, config_path: Optional[str] = None, config_dict: Optional[Dict[str, Any]] = None):
+        if config_dict is not None:
+            self.config = config_dict
+        else:
+            self.config = load_config(config_path)
     
     @property
     def base_dir(self) -> str:

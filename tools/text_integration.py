@@ -47,7 +47,7 @@ def embed_texts_with_fasttext(
     dim = model.get_dimension()
     embs = np.zeros((len(texts), dim), dtype=np.float64)
     for i, t in enumerate(texts):
-        s = str(t).strip()
+        s = str(t).replace('\n', ' ').replace('\r', ' ').strip()
         if s:
             embs[i] = model.get_sentence_vector(s)
         # else: leave zeros
@@ -215,8 +215,10 @@ def select_text_subset_per_join_key(
                     min_marginal_gain=min_marginal_gain,
                     model_path=model_path,
                 )
-            except Exception:
+            except Exception as e:
                 result[jk][text_col] = unique_texts[:k]
+                if verbose:
+                    print(f"  {text_col}: embed failed: {type(e).__name__}: {e}")
                 if verbose:
                     print(f"  {text_col}: n_unique={n_unique}, n_selected={min(k, n_unique)} (embed failed)")
                 continue
@@ -277,9 +279,12 @@ def _summarize_single_text_column(
     """
     Summarize a single *_text column using LLM.
     Returns DataFrame with join_columns + {base_name}_summary.
+    Splits into batches when prompt exceeds MAX_PROMPT_CHARS.
     """
     import json
     import re
+
+    MAX_PROMPT_CHARS = 100_000
 
     base_name = text_col.replace(text_suffix, "")
     output_column_name = f"{base_name}_summary"
@@ -293,54 +298,170 @@ def _summarize_single_text_column(
             parts.append(f"Join key: {jk_str}\n  {base_name}: {val}")
     if not parts:
         return text_agg_df[join_columns].copy()
-    prompt_body = "\n\n---\n\n".join(parts)
 
-    prompt = (
+    prompt_prefix = (
         "You are analyzing aggregated text data by join key.\n\n"
-        f"{prompt_body}\n\n"
-        "---\n\n"
+    )
+    prompt_suffix = (
+        "\n\n---\n\n"
         "For each join key, provide summary (brief) and distinct_from_others (what differs vs others).\n"
         "Return JSON only: {\"keys\": [{\"join_key\": \"...\", \"summary\": \"...\", \"distinct_from_others\": \"...\"}]}\n"
         "Use exact join_key values as shown above."
     )
+    max_body = MAX_PROMPT_CHARS - len(prompt_prefix) - len(prompt_suffix)
+
+    all_rows = []
+    i = 0
+    while i < len(parts):
+        batch_parts = []
+        current_len = 0
+        while i < len(parts):
+            p = parts[i]
+            if current_len + len(p) + 10 > max_body and batch_parts:
+                break
+            batch_parts.append(p)
+            current_len += len(p) + 10
+            i += 1
+
+        prompt_body = "\n\n---\n\n".join(batch_parts)
+        prompt = prompt_prefix + prompt_body + prompt_suffix
+
+        response = llm_client.ask(prompt)
+        if not response:
+            continue
+
+        cleaned = response.strip()
+        cleaned = re.sub(r"^```json\s*", "", cleaned)
+        cleaned = re.sub(r"^```\s*", "", cleaned)
+        cleaned = re.sub(r"\s*```$", "", cleaned)
+        try:
+            data = json.loads(cleaned)
+        except json.JSONDecodeError:
+            m = re.search(r"\{.*\}", cleaned, flags=re.DOTALL)
+            if m:
+                try:
+                    data = json.loads(m.group(0))
+                except json.JSONDecodeError:
+                    continue
+            else:
+                continue
+
+        for item in data.get("keys", []):
+            jk_str = str(item.get("join_key", ""))
+            if len(join_columns) == 1:
+                row = {join_columns[0]: jk_str}
+            else:
+                parts_jk = [p.strip() for p in jk_str.split(" | ")]
+                row = {
+                    join_columns[j]: parts_jk[j] if j < len(parts_jk) else ""
+                    for j in range(len(join_columns))
+                }
+            row[output_column_name] = str(item.get("summary", ""))
+            all_rows.append(row)
+
+    if not all_rows:
+        return text_agg_df[join_columns].copy()
+    return pd.DataFrame(all_rows)
+
+def _llm_select_from_bottom_for_summary(
+    bottom_5_with_desc: List[Tuple[str, float, str]],
+    target_column: str,
+    task_type: str,
+    target_description: str = "",
+    user_intent: str = "",
+    max_cols: int = 2,
+    llm_client=None,
+    provider: str = "openai",
+) -> List[str]:
+    """
+    From the 5 columns with lowest correlation, select max_cols most likely useful
+    for augmentation based on column name/description, task, and target.
+    """
+    import json
+    import re
+
+    if not bottom_5_with_desc or len(bottom_5_with_desc) < max_cols:
+        return [t[0] for t in bottom_5_with_desc[:max_cols]]
+
+    valid_names = {t[0] for t in bottom_5_with_desc}
+
+    if llm_client is None:
+        from test_llm_prompt import create_llm_client
+        llm_client = create_llm_client(provider=provider)
+
+    lines = [f"- {c}: corr={v:.4f}, desc={d or '(none)'}" for c, v, d in bottom_5_with_desc]
+    prompt = (
+        f"Task: {task_type}. Target column: {target_column}."
+        + (f" Target description: {target_description}." if target_description else "")
+        + (f" User intent: {user_intent}." if user_intent else "")
+        + "\n\nThese 5 text columns have the LOWEST correlation with the target. "
+        "Select the 2 most likely useful for augmentation based on column name and description.\n\n"
+        + "\n".join(lines)
+        + f'\n\nReturn JSON only: {{"selected": ["col1", "col2"]}}'
+    )
 
     response = llm_client.ask(prompt)
     if not response:
-        return text_agg_df[join_columns].copy()
+        return [bottom_5_with_desc[0][0], bottom_5_with_desc[1][0]]
 
-    cleaned = response.strip()
-    cleaned = re.sub(r"^```json\s*", "", cleaned)
-    cleaned = re.sub(r"^```\s*", "", cleaned)
+    cleaned = re.sub(r"^```\w*\s*", "", response.strip())
     cleaned = re.sub(r"\s*```$", "", cleaned)
     try:
         data = json.loads(cleaned)
     except json.JSONDecodeError:
-        m = re.search(r"\{.*\}", cleaned, flags=re.DOTALL)
-        if m:
-            try:
-                data = json.loads(m.group(0))
-            except json.JSONDecodeError:
-                return text_agg_df[join_columns].copy()
-        else:
-            return text_agg_df[join_columns].copy()
+        m = re.search(r"\{[^}]*\"selected\"[^}]*\}", cleaned, flags=re.DOTALL)
+        try:
+            data = json.loads(m.group(0)) if m else {}
+        except (json.JSONDecodeError, AttributeError):
+            data = {}
+    selected = data.get("selected", [])
+    result = [s for s in selected if s in valid_names][:max_cols]
+    return result if result else [bottom_5_with_desc[i][0] for i in range(min(max_cols, len(bottom_5_with_desc)))]
 
-    rows = []
-    for item in data.get("keys", []):
-        jk_str = str(item.get("join_key", ""))
-        if len(join_columns) == 1:
-            row = {join_columns[0]: jk_str}
-        else:
-            parts_jk = [p.strip() for p in jk_str.split(" | ")]
-            row = {
-                join_columns[i]: parts_jk[i] if i < len(parts_jk) else ""
-                for i in range(len(join_columns))
-            }
-        row[output_column_name] = str(item.get("summary", ""))
-        rows.append(row)
 
-    if not rows:
-        return text_agg_df[join_columns].copy()
-    return pd.DataFrame(rows)
+def _llm_select_text_columns_for_summary(
+    text_cols_with_corr: List[Tuple[str, float, str]],  # (col_name, correlation, description)
+    max_cols: int = 2,
+    llm_client=None,
+    provider: str = "openai",
+) -> List[str]:
+    """
+    Let LLM select 1-2 most valuable text columns for summary based on correlation and description.
+    """
+    import json
+    import re
+
+    if not text_cols_with_corr:
+        return []
+    valid_names = {t[0] for t in text_cols_with_corr}
+
+    if llm_client is None:
+        from test_llm_prompt import create_llm_client
+        llm_client = create_llm_client(provider=provider)
+
+    lines = [f"- {c}: corr={corr:.4f}, desc={desc or ''}" for c, corr, desc in text_cols_with_corr]
+    prompt = (
+        "Text columns:\n" + "\n".join(lines)
+        + f"\n\nSelect 1-{max_cols} most valuable. Return JSON only: {{\"selected\": [\"col1\", \"col2\"]}}"
+    )
+
+    response = llm_client.ask(prompt)
+    if not response:
+        return [text_cols_with_corr[0][0]]
+
+    cleaned = re.sub(r"^```\w*\s*", "", response.strip())
+    cleaned = re.sub(r"\s*```$", "", cleaned)
+    try:
+        data = json.loads(cleaned)
+    except json.JSONDecodeError:
+        m = re.search(r"\{[^}]*\"selected\"[^}]*\}", cleaned, flags=re.DOTALL)
+        try:
+            data = json.loads(m.group(0)) if m else {}
+        except (json.JSONDecodeError, AttributeError):
+            data = {}
+    selected = data.get("selected", [])
+    result = [s for s in selected if s in valid_names][:max_cols]
+    return result if result else [text_cols_with_corr[0][0]]
 
 
 def summarize_text_per_join_key_with_llm(
@@ -349,12 +470,14 @@ def summarize_text_per_join_key_with_llm(
     text_suffix: str = "_text",
     llm_client=None,
     provider: str = "openai",
+    text_cols_to_summarize: Optional[List[str]] = None,
 ) -> pd.DataFrame:
-    
     text_cols = [
         c for c in text_agg_df.columns
         if c.endswith(text_suffix) and c not in join_columns
     ]
+    if text_cols_to_summarize is not None:
+        text_cols = [c for c in text_cols if c in text_cols_to_summarize]
     if not text_cols:
         return text_agg_df[join_columns].copy()
 

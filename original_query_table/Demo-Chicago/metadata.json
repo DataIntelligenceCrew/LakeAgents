@@ -1,0 +1,297 @@
+{
+  "resource": {
+    "name": "Public Health Statistics - Selected public health indicators by Chicago community area - Historical",
+    "id": "iqnk-2tcu",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "Note: This dataset is historical only and there are not corresponding datasets for more recent time periods. For that more-recent information, please visit the Chicago Health Atlas at https://chicagohealthatlas.org.\n\nThis dataset contains a selection of 27 indicators of public health significance by Chicago community area, with the most updated information available. The indicators are rates, percents, or other measures related to natality, mortality, infectious disease, lead poisoning, and economic status.  See the full description at https://data.cityofchicago.org/api/assets/2107948F-357D-4ED7-ACC2-2E9266BBFFA2.",
+    "attribution": "Illinois Department of Public Health (IDPH) and U.S. Census Bureau",
+    "attribution_link": null,
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2022-02-03T23:20:46.000Z",
+    "createdAt": "2012-05-18T18:25:32.000Z",
+    "metadata_updated_at": "2022-02-03T23:20:46.000Z",
+    "data_updated_at": "2013-05-30T14:08:57.000Z",
+    "page_views": {
+      "page_views_last_week": 99,
+      "page_views_last_month": 366,
+      "page_views_total": 80441,
+      "page_views_last_week_log": 6.643856189774725,
+      "page_views_last_month_log": 8.519636252843213,
+      "page_views_total_log": 16.295661330837323
+    },
+    "columns_name": [
+      "General Fertility Rate",
+      "Unemployment",
+      "No High School Diploma",
+      "Below Poverty Level",
+      "Preterm Births",
+      "Gonorrhea in Males",
+      "Infant Mortality Rate",
+      "Teen Birth Rate",
+      "Childhood Lead Poisoning",
+      "Firearm-related",
+      "Community Area",
+      "Community Area Name",
+      "Prostate Cancer in Males",
+      "Prenatal Care Beginning in First Trimester",
+      "Birth Rate",
+      "Dependency",
+      "Low Birth Weight",
+      "Assault (Homicide)",
+      "Colorectal Cancer",
+      "Per Capita Income",
+      "Crowded Housing",
+      "Tuberculosis",
+      "Gonorrhea in Females",
+      "Childhood Blood Lead Level Screening",
+      "Stroke (Cerebrovascular Disease)",
+      "Lung Cancer",
+      "Diabetes-related",
+      "Cancer (All Sites)",
+      "Breast cancer in females"
+    ],
+    "columns_field_name": [
+      "general_fertility_rate",
+      "unemployment",
+      "no_high_school_diploma",
+      "below_poverty_level",
+      "preterm_births",
+      "gonorrhea_in_males",
+      "infant_mortality_rate",
+      "teen_birth_rate",
+      "childhood_lead_poisoning",
+      "firearm_related",
+      "community_area",
+      "community_area_name",
+      "prostate_cancer_in_males",
+      "prenatal_care_beginning_in_first_trimester",
+      "birth_rate",
+      "dependency",
+      "low_birth_weight",
+      "assault_homicide",
+      "colorectal_cancer",
+      "per_capita_income",
+      "crowded_housing",
+      "tuberculosis",
+      "gonorrhea_in_females",
+      "childhood_blood_lead_level_screening",
+      "stroke_cerebrovascular_disease",
+      "lung_cancer",
+      "diabetes_related",
+      "cancer_all_sites",
+      "breast_cancer_in_females"
+    ],
+    "columns_datatype": [
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Number"
+    ],
+    "columns_description": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "columns_format": [
+      {
+        "align": "left"
+      },
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "align": "right"
+      },
+      {
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "align": "left"
+      },
+      {},
+      {
+        "align": "left"
+      },
+      {
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "align": "right"
+      },
+      {
+        "align": "right"
+      },
+      {}
+    ],
+    "download_count": 16751,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2013-06-04T18:23:42.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Health & Human Services",
+    "domain_tags": [
+      "historical"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Metadata_Data-Owner",
+        "value": "Epidemiology and Public Health Informatics, Chicago Department of Public Health (CDPH)"
+      },
+      {
+        "key": "Metadata_Time-Period",
+        "value": "2005 \u2013 2011"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofchicago.org"
+  },
+  "permalink": "https://data.cityofchicago.org/d/iqnk-2tcu",
+  "link": "https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Selected-public-health-in/iqnk-2tcu",
+  "owner": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  },
+  "creator": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  }
+}

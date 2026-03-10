@@ -1,0 +1,126 @@
+{
+  "query_table_name": {
+    "raw": "COVID-19 Chicago",
+    "tokens": [
+      "19",
+      "chicago",
+      "covid"
+    ]
+  },
+  "query_table_description": {
+    "raw": "NOTE: This dataset is retired and maintained for historical reference only.\n\nIt includes confirmed COVID-19 cases, deaths, and first hospitalizations among Chicago residents, recorded by specimen collection date, date of death, or first hospitalization date.\n\nRecent hospitalization data may be incomplete due to reporting delays, and all counts are provisional and subject to revision.\n\nDifferences from other sources may result from varying definitions, reporting practices, and date assignment methods.\n\nData Source: Illinois National Electronic Disease Surveillance System and Cook County Medical Examiner's Office.",
+    "tokens": [
+      "19",
+      "all",
+      "among",
+      "and",
+      "are",
+      "assignment",
+      "be",
+      "by",
+      "cases",
+      "chicago",
+      "collection",
+      "confirmed",
+      "cook",
+      "counts",
+      "county",
+      "covid",
+      "data",
+      "dataset",
+      "date",
+      "death",
+      "deaths",
+      "definitions",
+      "delays",
+      "differences",
+      "disease",
+      "due",
+      "electronic",
+      "examiner",
+      "first",
+      "for",
+      "from",
+      "historical",
+      "hospitalization",
+      "hospitalizations",
+      "illinois",
+      "includes",
+      "incomplete",
+      "is",
+      "it",
+      "maintained",
+      "may",
+      "medical",
+      "methods",
+      "national",
+      "note",
+      "of",
+      "office",
+      "only",
+      "or",
+      "other",
+      "practices",
+      "provisional",
+      "recent",
+      "recorded",
+      "reference",
+      "reporting",
+      "residents",
+      "result",
+      "retired",
+      "revision",
+      "source",
+      "sources",
+      "specimen",
+      "subject",
+      "surveillance",
+      "system",
+      "this",
+      "to",
+      "varying"
+    ]
+  },
+  "target_column": {
+    "raw": "Deaths - Total",
+    "tokens": [
+      "deaths",
+      "total"
+    ]
+  },
+  "target_column_description": {
+    "raw": "",
+    "tokens": []
+  },
+  "join_column": [
+    {
+      "raw": "Date",
+      "tokens": [
+        "date"
+      ]
+    }
+  ],
+  "join_column_description": [
+    {
+      "raw": "Case or death date. Blank indicates unknown date. Case dates indicate the date the test specimen was collected. Death dates are the date the death occurred.",
+      "tokens": [
+        "are",
+        "blank",
+        "case",
+        "collected",
+        "date",
+        "dates",
+        "death",
+        "indicate",
+        "indicates",
+        "occurred",
+        "or",
+        "specimen",
+        "test",
+        "the",
+        "unknown",
+        "was"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "query_table_name": {
+    "raw": "COVID-19 NYC",
+    "tokens": [
+      "19",
+      "covid",
+      "nyc"
+    ]
+  },
+  "query_table_description": {
+    "raw": "This dataset reports confirmed COVID-19 cases, hospitalizations, and deaths grouped by specimen collection date. All outcomes for a case are assigned to the date the positive test specimen was collected, not the actual hospitalization or death date. For datasets organized by diagnosis, admission, or death dates, refer to the NYC COVID-19 daily counts dataset.",
+    "tokens": [
+      "19",
+      "actual",
+      "admission",
+      "all",
+      "and",
+      "are",
+      "assigned",
+      "by",
+      "case",
+      "cases",
+      "collected",
+      "collection",
+      "confirmed",
+      "counts",
+      "covid",
+      "daily",
+      "dataset",
+      "datasets",
+      "date",
+      "dates",
+      "death",
+      "deaths",
+      "diagnosis",
+      "for",
+      "grouped",
+      "hospitalization",
+      "hospitalizations",
+      "not",
+      "nyc",
+      "or",
+      "organized",
+      "outcomes",
+      "positive",
+      "refer",
+      "reports",
+      "specimen",
+      "test",
+      "the",
+      "this",
+      "to",
+      "was"
+    ]
+  },
+  "target_column": {
+    "raw": "Number_deaths",
+    "tokens": [
+      "deaths",
+      "number"
+    ]
+  },
+  "target_column_description": {
+    "raw": "Count of confirmed COVID-19 cases among patients who died",
+    "tokens": [
+      "19",
+      "among",
+      "cases",
+      "confirmed",
+      "count",
+      "covid",
+      "died",
+      "of",
+      "patients",
+      "who"
+    ]
+  },
+  "join_column": [
+    {
+      "raw": "extract_date",
+      "tokens": [
+        "date",
+        "extract"
+      ]
+    }
+  ],
+  "join_column_description": [
+    {
+      "raw": "Date of extraction from live disease surveillance database",
+      "tokens": [
+        "database",
+        "date",
+        "disease",
+        "extraction",
+        "from",
+        "live",
+        "of",
+        "surveillance"
+      ]
+    }
+  ]
+}

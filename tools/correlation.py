@@ -83,6 +83,7 @@ def merge_target_with_candidate(
             if c in cand.columns:
                 cand = cand.drop(columns=[c])
 
+
     # Ensure join columns exist in both
     for jc in join_columns:
         if jc not in target_agg.columns or jc not in cand.columns:
@@ -129,6 +130,13 @@ def _get_feature_columns(
             feature_specs.append((col, "text"))
         elif pd.api.types.is_numeric_dtype(merged_df[col]):
             feature_specs.append((col, "numerical"))
+    
+    # #region agent log
+    import json as _json; _ts = __import__('time').time_ns() // 1000000
+    _specs_data = [{"col":c,"type":t,"dtype":str(merged_df[c].dtype),"is_numeric":bool(pd.api.types.is_numeric_dtype(merged_df[c])),"is_vector":bool(_is_vector_column(c,merged_df)),"is_text":bool(_is_text_column(c,merged_df))} for c,t in feature_specs[:20]]
+    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_J2","timestamp":_ts,"location":"correlation.py:_get_feature_columns","message":"feature classification results","data":{"feature_specs_count":len(feature_specs),"feature_specs_sample":_specs_data},"hypothesisId":"J"}) + '\n')
+    # #endregion
+    
     return feature_specs
 
 

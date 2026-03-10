@@ -1,0 +1,124 @@
+{
+  "resource": {
+    "name": "COVID-19 Outcomes by Testing Cohorts: Cases, Hospitalizations, and Deaths",
+    "id": "cwmx-mvra",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "The dataset shows outcomes (confirmed cases, hospitalizations, and deaths) for cohorts defined by each date of specimen collection (specimen_date). \r\n\r\nFor example, if a NYC resident tested positive for SARS-CoV-2 and was subsequently hospitalized, both events would show under the same specimen_date, indicating the date of specimen collection for the positive test and not the date of the hospitalization. \r\n\r\nFor a comparable dataset showing diagnosis dates for confirmed cases, admission dates for hospitalized patients, and death dates for decedents, see https://data.cityofnewyork.us/Health/COVID-19-Daily-Counts-of-Cases-Hospitalizations-an/rc75-m7u3",
+    "attribution": "Department of Health and Mental Hygiene (DOHMH)",
+    "attribution_link": null,
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2026-03-01T03:00:10.000Z",
+    "createdAt": "2020-04-28T18:50:27.000Z",
+    "metadata_updated_at": "2026-03-01T03:00:10.000Z",
+    "data_updated_at": "2026-01-22T14:40:43.000Z",
+    "page_views": {
+      "page_views_last_week": 38,
+      "page_views_last_month": 127,
+      "page_views_total": 25431,
+      "page_views_last_week_log": 5.285402218862249,
+      "page_views_last_month_log": 7.0,
+      "page_views_total_log": 14.634357301137978
+    },
+    "columns_name": [
+      "extract_date",
+      "Number_confirmed",
+      "specimen_date",
+      "Number_tested",
+      "Number_deaths",
+      "Number_hospitalized"
+    ],
+    "columns_field_name": [
+      "extract_date",
+      "number_confirmed",
+      "specimen_date",
+      "number_tested",
+      "number_deaths",
+      "number_hospitalized"
+    ],
+    "columns_datatype": [
+      "Calendar date",
+      "Number",
+      "Calendar date",
+      "Number",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "Date of extraction from live disease surveillance database",
+      "Count of patients tested who were confirmed to be COVID-19 cases",
+      "Date of specimen collection, equivalent to diagnosis date",
+      "Count of NYC residents newly tested for SARS-CoV-2",
+      "Count of confirmed COVID-19 cases among patients who died",
+      "Count of confirmed COVID-19 cases among patients ever hospitalized"
+    ],
+    "columns_format": [
+      {
+        "view": "date"
+      },
+      {},
+      {
+        "view": "date"
+      },
+      {},
+      {},
+      {}
+    ],
+    "download_count": 7654,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2020-04-28T18:50:30.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Health",
+    "domain_tags": [
+      "coronavirus",
+      "sars-cov-2",
+      "covid-19"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Update_Automation",
+        "value": "Yes"
+      },
+      {
+        "key": "Update_Date-Made-Public",
+        "value": "5/19/2020"
+      },
+      {
+        "key": "Update_Update-Frequency",
+        "value": "Daily"
+      },
+      {
+        "key": "Data-Collection_Data-Collection",
+        "value": "COVID-19 Health Data"
+      },
+      {
+        "key": "Dataset-Information_Agency",
+        "value": "Department of Health and Mental Hygiene (DOHMH)"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofnewyork.us"
+  },
+  "permalink": "https://data.cityofnewyork.us/d/cwmx-mvra",
+  "link": "https://data.cityofnewyork.us/Health/COVID-19-Outcomes-by-Testing-Cohorts-Cases-Hospita/cwmx-mvra",
+  "owner": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  },
+  "creator": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  }
+}

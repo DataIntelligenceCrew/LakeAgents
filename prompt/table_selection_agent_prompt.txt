@@ -33,13 +33,13 @@ STEP 3: Output
 Return ONLY valid JSON in this format:
 {
   "relevant_tables": [
-    {"table_name": "<exact id from index>", "reasoning": "Brief explanation: which index fields and dimensions matched, and whether it has possible_join_column.", "confidence": <0-1>, "matched_dimensions": ["Domain/Field", "Temporal", ...]},
+    {"table_id": "<exact id from index>", "reasoning": "Brief explanation: which index fields and dimensions matched, and whether it has possible_join_column.", "confidence": <0-1>, "matched_dimensions": ["Domain/Field", "Temporal", ...]},
     ...
   ]
 }
 
 RULES:
-- Use the EXACT table id from the index (e.g. "5ucz-vwe8") as table_name. Do not abbreviate or replace with a human-readable label.
+- Use the EXACT table id from the index (e.g. "5ucz-vwe8") as table_id. Do not abbreviate or replace with a human-readable label.
 - Do NOT include the join table itself in relevant_tables.
 - **High recall has higher priority than high precision**: Aim for both, but when in doubt between including or excluding a table, choose to include it so relevant tables are not missed. Then rank by confidence to reflect precision (higher confidence = stronger match).
 - Your reasoning must reference description/attribution/column_name/columns_description/classification/domain first, then population_group/temporal, then possible_join_column where applicable.

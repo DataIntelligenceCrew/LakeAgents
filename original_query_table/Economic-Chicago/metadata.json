@@ -1,0 +1,313 @@
+{
+  "resource": {
+    "name": "ACS 5 Year Data by Community Area",
+    "id": "t68z-cikk",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "Selected variables from the most recent ACS Community Survey (Released 2023) aggregated by Community Area.  Additional years will be added as they become available.\n\nThe underlying algorithm to create the dataset calculates the % of a census tract that falls within the boundaries of a given community area. Given that census tracts and community area boundaries are not aligned, these figures should be considered an estimate. \n\nTotal population in this dataset: 2,647,621\nTotal Chicago Population Per ACS 2023: 2,664,452\n% Difference: -0.632%\n\nThere are different approaches in common use for displaying Hispanic or Latino population counts. In this dataset, following the approach taken by the Census Bureau, a person who identifies as Hispanic or Latino will also be counted in the race category with which they identify. However, again following the Census Bureau data, there is also a column for White Not Hispanic or Latino.\n\nCode can be found here: https://github.com/Chicago/5-Year-ACS-Survey-Data\n\nCommunity Area Shapefile:\n\nhttps://data.cityofchicago.org/Facilities-Geographic-Boundaries/Boundaries-Community-Areas-current-/cauq-8yn6\n\nCensus Area Python Package Documentation:\n\nhttps://census-area.readthedocs.io/en/latest/index.html",
+    "attribution": "City of Chicago",
+    "attribution_link": "https://www.chicago.gov",
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2025-02-06T18:14:26.000Z",
+    "createdAt": "2025-01-06T15:56:54.000Z",
+    "metadata_updated_at": "2025-02-06T18:14:26.000Z",
+    "data_updated_at": "2025-01-23T16:10:00.000Z",
+    "page_views": {
+      "page_views_last_week": 354,
+      "page_views_last_month": 1410,
+      "page_views_total": 8324,
+      "page_views_last_week_log": 8.471675214392045,
+      "page_views_last_month_log": 10.462502272597265,
+      "page_views_total_log": 13.023234556845988
+    },
+    "columns_name": [
+      "Female 65 +",
+      "Female 50 to 64",
+      "White",
+      "ACS Year",
+      "American Indian or Alaska Native",
+      "Male 35 to 49",
+      "Hispanic or Latino",
+      "Multiracial",
+      "Black or African American",
+      "Asian",
+      "Female 25 to 34",
+      "Female 0 to 17",
+      "Male 65+",
+      "Male 25 to 34",
+      "Total Population",
+      "Female 35 to 49",
+      "$50,000 to $74,999",
+      "Community Area",
+      "Under $25,000",
+      "$75,000 to $125,000",
+      "Record ID",
+      "$125,000 +",
+      "Male 18 to 24",
+      "Male 0 to 17",
+      "White Not Hispanic or Latino",
+      "Other Race",
+      "Native Hawaiian or Pacific Islander",
+      "Male 50 to 64",
+      "Female 18 to 24",
+      "$25,000 to $49,999"
+    ],
+    "columns_field_name": [
+      "female_65",
+      "female_50_to_64",
+      "white",
+      "acs_year",
+      "american_indian_or_alaska",
+      "male_35_to_49",
+      "hispanic_or_latino",
+      "multiracial",
+      "black_or_african_american",
+      "asian",
+      "female_25_to_34",
+      "female_0_to_17",
+      "male_65",
+      "male_25_to_34",
+      "total_population",
+      "female_35_to_49",
+      "_50_000_to_74_999",
+      "community_area",
+      "under_25_000",
+      "_75_000_to_125_000",
+      "record_id",
+      "_125_000",
+      "male_18_to_24",
+      "male_0_to_17",
+      "white_not_hispanic_or_latino",
+      "other_race",
+      "native_hawaiin_or_pacific",
+      "male_50_to_64",
+      "female_18_to_24",
+      "_25_000_to_49_999"
+    ],
+    "columns_datatype": [
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "Total # of Individual Females 65+",
+      "Total # of Individual Females 50 to 64",
+      "Total # of Individuals in Community Area: White",
+      "The version of the ACS represented by the record.",
+      "Total # of Individuals in Community Area: American Indian or Alaska Native",
+      "Total # of Individual Males 35 to 49",
+      "Total # of Individuals in Community Area: Hispanic or Latino",
+      "Total # of Individuals in Community Area: Multiracial",
+      "Total # of Individuals in Community Area: Black or African American",
+      "Total # of Individuals in Community Area: Asian",
+      "Total # of Individual Females 25 to 34",
+      "Total # of Individual Females 0 to 17",
+      "Total # of Individual Males 65+",
+      "Total # of Individual Males 25 to 34",
+      "Total # of Individuals in Community Area",
+      "Total # of Individual Females 35 to 49",
+      "Total # of Families w/ income between $50,000 and $74,999",
+      "Name of Community Area",
+      "Total # of Families w/ income under $25,000",
+      "Total # of Families w/ income between $75,000 and $125,000",
+      "A unique identifier for this record.",
+      "Total # of Families w/ income over $125,000 +",
+      "Total # of Individual Males 18 to 24",
+      "Total # of Individual Males 0 to 17",
+      "Total # of Individuals in Community Area: White Not Hispanic or Latino",
+      "Total # of Individuals in Community Area: Other Race",
+      "Total # of Individuals in Community Area: Native Hawaiian or Pacific Islander",
+      "Total # of Individual Males 50 to 64",
+      "Total # of Individual Females 18 to 24",
+      "Total # of Families w/ income between $25,000 and $49,999"
+    ],
+    "columns_format": [
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "noCommas": "true"
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {},
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {},
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      }
+    ],
+    "download_count": 3315,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2025-02-06T18:14:26.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Community & Economic Development",
+    "domain_tags": [
+      "census",
+      "community area",
+      "federal",
+      "population"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Metadata_Data-Owner",
+        "value": "Department of Technology and Innovation"
+      },
+      {
+        "key": "Metadata_Time-Period",
+        "value": "As indicated by Year column"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofchicago.org",
+    "license": "See Terms of Use"
+  },
+  "permalink": "https://data.cityofchicago.org/d/t68z-cikk",
+  "link": "https://data.cityofchicago.org/Community-Economic-Development/ACS-5-Year-Data-by-Community-Area/t68z-cikk",
+  "owner": {
+    "id": "qpup-99bh",
+    "user_type": "interactive",
+    "display_name": "M\u00f3rr\u00edgan Sullivan"
+  },
+  "creator": {
+    "id": "qpup-99bh",
+    "user_type": "interactive",
+    "display_name": "M\u00f3rr\u00edgan Sullivan"
+  }
+}

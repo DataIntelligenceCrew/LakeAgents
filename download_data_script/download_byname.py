@@ -177,7 +177,7 @@ def get_dataset_by_id(dataset_id: str, domain: str = None, app_token: str = None
         return None
 
 
-def download_dataset(dataset: Dict, output_dir: str = "datasets") -> bool:
+def download_dataset(dataset: Dict, output_dir: str = "query_table") -> bool:
     """
     Download a dataset from Socrata
     
@@ -312,7 +312,7 @@ def main():
     verbose = "--verbose" in sys.argv or "-v" in sys.argv
     show_all_columns = "--show-columns" in sys.argv
     max_results = 50
-    output_dir = "../datasets"
+    output_dir = "../query_table"
     app_token = None
     domain_filter: Optional[str] = None
     domain_hint = None

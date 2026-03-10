@@ -1,0 +1,15 @@
+data:
+
+  base_dir: "LLM_summary_test_data"
+  data_filename: "NYC_2021_airbnb_reviews_data1.csv"
+
+task:
+  join_column: "listing_id"
+  text_column: "review"
+  target_column: "review_sentiment"
+  task_type: "regression"   # "classification" or "regression"
+  user_intent: "predict whether a listing gets positive or negative reviews"
+  target_column_description: "binary sentiment: 1=positive, 0=negative"
+  # optional: per-column descriptions for candidate columns
+  column_descriptions:
+    review: "guest review text"

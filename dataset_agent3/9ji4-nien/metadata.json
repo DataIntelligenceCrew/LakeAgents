@@ -1,0 +1,135 @@
+{
+  "resource": {
+    "name": "Population of the Limited English Proficient (LEP) Speakers by Community District",
+    "id": "9ji4-nien",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "Many residents of New York City speak more than one language; a number of them speak and understand non-English languages more fluently than English. This dataset, derived from the Census Bureau's American Community Survey (ACS), includes information on over 1.7 million limited English proficient (LEP) residents and a subset of that population called limited English proficient citizens of voting age (CVALEP) at the Community District level. There are 59 community districts throughout NYC, with each district being represented by a Community Board.",
+    "attribution": "Civic Engagement Commission (CEC)",
+    "attribution_link": "https://www1.nyc.gov/assets/civicengagement/html/CEC-Language-Profiles-Map.html",
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2024-01-18T21:52:13.000Z",
+    "createdAt": "2022-04-25T18:45:13.000Z",
+    "metadata_updated_at": "2024-01-18T21:52:13.000Z",
+    "data_updated_at": "2022-04-25T18:52:33.000Z",
+    "page_views": {
+      "page_views_last_week": 16,
+      "page_views_last_month": 105,
+      "page_views_total": 3409,
+      "page_views_last_week_log": 4.08746284125034,
+      "page_views_last_month_log": 6.727920454563199,
+      "page_views_total_log": 11.735556023911535
+    },
+    "columns_name": [
+      "Borough",
+      "Community District Population",
+      "Borough Community District Code",
+      "Total CVALEP Population (Estimate)",
+      "% of Population that is LEP",
+      "American Community Survey (ACS) Data Time Period",
+      "Community District Name",
+      "% of Population that is CVALEP",
+      "Total LEP Population (Estimate)"
+    ],
+    "columns_field_name": [
+      "borough",
+      "community_district_population",
+      "borough_cd_code",
+      "total_cvalep_population",
+      "of_population_that_is_lep",
+      "acs_5_year_data_time_period",
+      "community_district_name",
+      "of_population_that_is_cvalep",
+      "total_lep_population_estimate"
+    ],
+    "columns_datatype": [
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "The name of the borough the LEPs or CVALEPs belong",
+      "Population of a community district comes from the Decennial Census. For the 2015-2019 ACS 5-year data, the population count comes from the Decennial Census 2010. For the ACS 5-year data periods beginning 2016-2020, population count from the Decennial Census 2020 will be applied..",
+      "First number is the borough code, followed by two numbers representing a community district in that borough",
+      "Estimated number of CVALEP speakers in a community district",
+      "% of the LEP speakers out of the total population in a community district",
+      "The five-year time period covered by the ACS data from the Census Bureau used to create this dataset. ",
+      "The name of the community district the LEPs and CVALEPs belong to",
+      "% of the CVALEP speakers out of the total population in a community district",
+      "Estimated number of LEP speakers in a community district"
+    ],
+    "columns_format": [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {
+        "precisionStyle": "percentage",
+        "percentScale": "1"
+      },
+      {}
+    ],
+    "download_count": 1028,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2022-04-25T18:52:38.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "City Government",
+    "domain_tags": [
+      "civic engagement",
+      "language access",
+      "limited english proficiency",
+      "voter participation"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Update_Automation",
+        "value": "No"
+      },
+      {
+        "key": "Update_Date-Made-Public",
+        "value": "5/5/2021"
+      },
+      {
+        "key": "Update_Update-Frequency",
+        "value": "Annually"
+      },
+      {
+        "key": "Dataset-Information_Agency",
+        "value": "Civic Engagement Commission (CEC)"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofnewyork.us"
+  },
+  "permalink": "https://data.cityofnewyork.us/d/9ji4-nien",
+  "link": "https://data.cityofnewyork.us/City-Government/Population-of-the-Limited-English-Proficient-LEP-S/9ji4-nien",
+  "owner": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  },
+  "creator": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  }
+}

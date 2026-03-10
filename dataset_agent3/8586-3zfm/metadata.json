@@ -1,0 +1,275 @@
+{
+  "resource": {
+    "name": "Active Projects Under Construction",
+    "id": "8586-3zfm",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "New school projects (Capacity) and Capital Improvement Projects (CIP) currently under Construction.",
+    "attribution": "School Construction Authority (SCA)",
+    "attribution_link": null,
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2025-11-05T16:15:59.000Z",
+    "createdAt": "2011-10-09T00:24:57.000Z",
+    "metadata_updated_at": "2025-11-05T16:15:57.000Z",
+    "data_updated_at": "2025-11-05T16:15:59.000Z",
+    "page_views": {
+      "page_views_last_week": 127,
+      "page_views_last_month": 661,
+      "page_views_total": 126996,
+      "page_views_last_week_log": 7.0,
+      "page_views_last_month_log": 9.370687406807217,
+      "page_views_total_log": 16.95443489162132
+    },
+    "columns_name": [
+      "Council District",
+      "BBL",
+      "Location 1 (state)",
+      "Location 1 (city)",
+      "School Name",
+      "BoroughCode",
+      "Geographical District",
+      "Project Description",
+      "Construction Award",
+      "Borough",
+      "Building ID",
+      "Building Address",
+      "Postcode",
+      "City",
+      "Location 1 (zip)",
+      "Latitude",
+      "Location 1",
+      "Neighborhood Tabulation Area (NTA) (2020)",
+      "Longitude",
+      "BIN",
+      "Project type",
+      "Census Tract (2020)",
+      "Community Districts",
+      "Police Precincts",
+      "Borough Boundaries",
+      "Location 1 (address)",
+      "Zip Codes",
+      "City Council Districts",
+      "Community Board"
+    ],
+    "columns_field_name": [
+      "community_council",
+      "bbl",
+      "location_1_state",
+      "location_1_city",
+      "name",
+      "boro",
+      "geo_dist",
+      "projdesc",
+      "award",
+      "borough",
+      "buildingid",
+      "building_address",
+      "zip_code",
+      "city",
+      "location_1_zip",
+      "latitude",
+      "location_1",
+      "nta",
+      "longitude",
+      "bin",
+      "consttype",
+      "census_tract",
+      ":@computed_region_f5dn_yrer",
+      ":@computed_region_sbqj_enih",
+      ":@computed_region_yeji_bk3q",
+      "location_1_address",
+      ":@computed_region_efsh_h5xi",
+      ":@computed_region_92fq_4b7q",
+      "community_board"
+    ],
+    "columns_datatype": [
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Number",
+      "Text",
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Point",
+      "Text",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "The Council District field indicates the New York City Council District where the site is located",
+      "The BBL (Borough, Block, and Lot) is a unique identifier for each tax lot in the City",
+      "",
+      "",
+      "Name of School\n",
+      "Borough school exists\n",
+      "District school exists\n",
+      "Description of work\n",
+      "Value of Prime Construction contract\n",
+      "Borough name",
+      "ID of the Building",
+      "Address of the Building\n",
+      "Mailing zip Code\n",
+      "City",
+      "",
+      "Latitude of the site's location",
+      "System-generated column used for mapping",
+      "The Neighborhood Tabulation Area (Census 2020) field indicates the New York City Neighborhood area where the site is located",
+      "Longitude of the site's location",
+      "The BIN (Building Identification Number) is a unique identifier for each building in the City",
+      "Identifies the project as CIP or Capacity\n",
+      "The Census Tract (Census 2020) field indicates the U.S. Census Tract where the site is located. Please note that as part of the geocoding process, leading and trailing zeros are dropped",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "The Community Board field indicates the New York City Community District where the site is located"
+    ],
+    "columns_format": [
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      },
+      {},
+      {},
+      {
+        "displayStyle": "plain",
+        "align": "left"
+      },
+      {
+        "displayStyle": "plain",
+        "align": "left"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "displayStyle": "plain",
+        "align": "left"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {},
+      {
+        "displayStyle": "plain",
+        "align": "left"
+      },
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      },
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      },
+      {
+        "displayStyle": "plain",
+        "align": "left"
+      },
+      {
+        "noCommas": "true"
+      },
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    "download_count": 13694,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2024-05-24T16:26:21.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Housing & Development",
+    "domain_tags": [
+      "authority",
+      "capital",
+      "construction",
+      "current",
+      "education",
+      "improvement",
+      "lifelong learning",
+      "project",
+      "sca",
+      "school"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Update_Automation",
+        "value": "No"
+      },
+      {
+        "key": "Update_Date-Made-Public",
+        "value": "10/9/2011"
+      },
+      {
+        "key": "Update_Update-Frequency",
+        "value": "Quarterly"
+      },
+      {
+        "key": "Dataset-Information_Agency",
+        "value": "School Construction Authority (SCA)"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofnewyork.us"
+  },
+  "permalink": "https://data.cityofnewyork.us/d/8586-3zfm",
+  "link": "https://data.cityofnewyork.us/Housing-Development/Active-Projects-Under-Construction/8586-3zfm",
+  "owner": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  },
+  "creator": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  }
+}

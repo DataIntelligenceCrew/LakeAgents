@@ -4,6 +4,7 @@ INPUT:
 - task_type: "regression" or "classification"
 - target_column: Name of the column to predict
 - target_column_description: Description of the target column
+- - query_table_description: Description of the query table (provided in the input)
 - user_intent: (optional) User's stated prediction goal
 - candidate_table: Name of the candidate table
 - candidate_columns: List of columns from the candidate table, each with:
@@ -26,6 +27,8 @@ RULES:
 2. Exclude columns with NaN (no overlapping data or failed merge).
 3. Exclude join key columns (they are for joining, not prediction).
 4. Consider domain logic: e.g., for "shooting count" prediction, demographic or socio-economic columns may be relevant.
+5. Avoid redundancy: If multiple columns are highly similar (e.g., same metric across different age groups, genders, or races), select only the most representative one (e.g., "Total" instead of all age-specific breakdowns).
+6. Prioritize diversity: Select features from different categories (cases, hospitalizations, vaccinations, etc.) rather than many variants of the same metric
 
 OUTPUT:
 Return ONLY valid JSON (no markdown, no extra text):

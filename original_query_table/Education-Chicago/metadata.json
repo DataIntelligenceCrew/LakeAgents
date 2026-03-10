@@ -1,0 +1,693 @@
+{
+  "resource": {
+    "name": "Chicago Public Schools - Progress Report Cards (2011-2012)",
+    "id": "9xs2-f89t",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "This dataset shows all school level performance data used to create CPS School Report Cards for the 2011-2012 school year. Metrics are described as follows (also available for download at http://bit.ly/uhbzah): NDA indicates \"No Data Available.\" SAFETY ICON: Student Perception/Safety category from 5 Essentials survey // SAFETY SCORE: Student Perception/Safety score from 5 Essentials survey // FAMILY INVOLVEMENT ICON: Involved Families category from 5 Essentials survey // FAMILY INVOLVEMENT SCORE: Involved Families score from 5 Essentials survey // ENVIRONMENT ICON: Supportive Environment category from 5 Essentials survey // ENVIRONMENT SCORE: Supportive Environment score from 5 Essentials survey // INSTRUCTION ICON: Ambitious Instruction category from 5 Essentials survey // INSTRUCTION SCORE: Ambitious Instruction score from 5 Essentials survey // LEADERS ICON: Effective Leaders category from 5 Essentials survey // LEADERS SCORE: Effective Leaders score from 5 Essentials survey // TEACHERS ICON: Collaborative Teachers category from 5 Essentials survey // TEACHERS SCORE: Collaborative Teachers score from 5 Essentials survey // PARENT ENGAGEMENT ICON: Parent Perception/Engagement category from parent survey // PARENT ENGAGEMENT SCORE: Parent Perception/Engagement score from parent survey // AVERAGE STUDENT ATTENDANCE: Average daily student attendance // RATE OF MISCONDUCTS (PER 100 STUDENTS): # of misconducts per 100 students//AVERAGE TEACHER ATTENDANCE: Average daily teacher attendance // INDIVIDUALIZED EDUCATION PROGRAM COMPLIANCE RATE: % of IEPs and 504 plans completed by due date // PK-2 LITERACY: % of students at benchmark on DIBELS or IDEL // PK-2 MATH: % of students at benchmark on mClass // GR3-5 GRADE LEVEL MATH: % of students at grade level, math, grades 3-5 // GR3-5 GRADE LEVEL READ: % of students at grade level, reading, grades 3-5 // GR3-5 KEEP PACE READ: % of students meeting growth targets, reading, grades 3-5 // GR3-5 KEEP PACE MATH: % of students meeting growth targets, math, grades 3-5 // GR6-8 GRADE LEVEL MATH: % of students at grade level, math, grades 6-8 // GR6-8 GRADE LEVEL READ: % of students at grade level, reading, grades 6-8 // GR6-8 KEEP PACE MATH: % of students meeting growth targets, math, grades 6-8 // GR6-8 KEEP PACE READ: % of students meeting growth targets, reading, grades 6-8 // GR-8 EXPLORE MATH: % of students at college readiness benchmark, math // GR-8 EXPLORE READ: % of students at college readiness benchmark, reading // ISAT EXCEEDING MATH: % of students exceeding on ISAT, math // ISAT EXCEEDING READ: % of students exceeding on ISAT, reading // ISAT VALUE ADD MATH: ISAT value-add value, math // ISAT VALUE ADD READ: ISAT value-add value, reading // ISAT VALUE ADD COLOR MATH: ISAT value-add color, math // ISAT VALUE ADD COLOR READ: ISAT value-add color, reading // STUDENTS TAKING ALGEBRA: % of students taking algebra // STUDENTS PASSING ALGEBRA: % of students passing algebra // 9TH GRADE EXPLORE (2009): Average EXPLORE score, 9th graders who tested in fall 2009 // 9TH GRADE EXPLORE (2010): Average EXPLORE score, 9th graders who tested in fall 2010 // 10TH GRADE PLAN (2009): Average PLAN score, 10th graders who tested in fall 2009 // 10TH GRADE PLAN (2010): Average PLAN score, 10th graders who tested in fall 2010 // NET CHANGE EXPLORE AND PLAN: Difference between Grade 9 Explore (2009) and Grade 10 Plan (2010) // 11TH GRADE AVERAGE ACT (2011): Average ACT score, 11th graders who tested in fall 2011 // NET CHANGE PLAN AND ACT: Difference between Grade 10 Plan (2009) and Grade 11 ACT (2011) // COLLEGE ELIGIBILITY: % of graduates eligible for a selective four-year college // GRADUATION RATE: % of students who have graduated within five years // COLLEGE/ ENROLLMENT RATE: % of students enrolled in college // COLLEGE ENROLLMENT (NUMBER OF STUDENTS): Total school enrollment // FRESHMAN ON TRACK RATE: Freshmen On-Track rate // RCDTS: Region County District Type Schools Code",
+    "attribution": "Chicago Public Schools",
+    "attribution_link": "http://www.cps.edu",
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2018-09-14T21:38:54.000Z",
+    "createdAt": "2011-11-11T19:54:24.000Z",
+    "metadata_updated_at": "2018-09-14T21:38:54.000Z",
+    "data_updated_at": "2018-09-14T21:24:06.000Z",
+    "page_views": {
+      "page_views_last_week": 460,
+      "page_views_last_month": 1804,
+      "page_views_total": 223734,
+      "page_views_last_week_log": 8.848622940429339,
+      "page_views_last_month_log": 10.817783121774534,
+      "page_views_total_log": 17.771431436585672
+    },
+    "columns_name": [
+      "General Services Route ",
+      "College Enrollment (number of students) ",
+      "Leaders Score ",
+      "Pk-2 Math %",
+      "Gr3-5 Keep Pace Math %",
+      "10th Grade PLAN (2009) ",
+      "10th Grade PLAN (2010) ",
+      "Longitude",
+      "Parent Environment Icon",
+      "ISAT Value Add Color Read",
+      "Gr3-5 Keep Pace Read %",
+      "ISAT Exceeding Reading % ",
+      "ISAT Value Add Color Math",
+      "Name of School",
+      "ISAT Value Add Math",
+      "Latitude",
+      "Street Address",
+      "Instruction Icon ",
+      "Phone Number",
+      "Network Manager",
+      "Safety Score",
+      "Environment Score",
+      "Parent Engagement Score",
+      "Parent Environment Score",
+      "Individualized Education Program Compliance Rate ",
+      "Gr3-5 Grade Level Read % ",
+      "Ward",
+      "Gr6-8 Grade Level Math %",
+      "Gr6-8 Keep Pace Math%",
+      "Community Area Number",
+      "ISAT Exceeding Math %",
+      "ISAT Value Add Read",
+      "Students Taking  Algebra %",
+      "Students Passing  Algebra %",
+      "9th Grade EXPLORE (2009) ",
+      "9th Grade EXPLORE (2010) ",
+      "Net Change EXPLORE and PLAN",
+      "College Enrollment Rate %",
+      "Freshman on Track Rate %",
+      "X_COORDINATE",
+      "Community Area Name",
+      "CPS Performance Policy Status",
+      "State",
+      "Adequate Yearly Progress Made? ",
+      "Elementary, Middle, or High School",
+      "Healthy Schools Certified?",
+      "City",
+      "Family Involvement Icon",
+      "Link ",
+      "Environment Icon ",
+      "Gr-8 Explore Read %",
+      "Location (address)",
+      "Parent Engagement Icon ",
+      "Leaders Icon ",
+      "Teachers Icon ",
+      "Instruction Score",
+      "Police District",
+      "Net Change PLAN and ACT",
+      "RCDTS Code",
+      "Y_COORDINATE",
+      "CPS Performance Policy Level",
+      "Boundaries - ZIP Codes",
+      "Location (city)",
+      "Graduation Rate %",
+      "Historical Wards 2003-2015",
+      "Wards",
+      "College Eligibility %",
+      "Census Tracts",
+      "Location (zip)",
+      "Location (state)",
+      "Average Teacher Attendance",
+      "Teachers Score",
+      "Location",
+      "School ID",
+      "Safety Icon ",
+      "Collaborative Name",
+      "Pk-2 Literacy %",
+      "Average Student Attendance",
+      "Rate of Misconducts (per 100 students) ",
+      "Gr-8 Explore Math %",
+      "11th Grade Average ACT (2011) ",
+      "Zip Codes",
+      "Community Areas",
+      "Gr3-5 Grade Level Math %",
+      "Family Involvement Score",
+      "Track Schedule",
+      "ZIP Code",
+      "Gr6-8 Grade Level Read %",
+      "Gr6-8 Keep Pace Read %"
+    ],
+    "columns_field_name": [
+      "general_services_route_",
+      "college_enrollment_number_of_students_",
+      "leaders_score_",
+      "pk_2_math_",
+      "gr3_5_keep_pace_math",
+      "_th_grade_plan_2009_",
+      "_th_grade_plan_2010_",
+      "longitude",
+      "parent_environment_icon",
+      "isat_value_add_color_read",
+      "gr3_5_keep_pace_read_",
+      "isat_exceeding_reading_",
+      "isat_value_add_color_math",
+      "name_of_school",
+      "isat_value_add_math",
+      "latitude",
+      "street_address",
+      "instruction_icon_",
+      "phone_number",
+      "network_manager",
+      "safety_score",
+      "environment_score",
+      "parent_engagement_score",
+      "parent_environment_score",
+      "individualized_education_program_compliance_rate_",
+      "gr3_5_grade_level_read_",
+      "ward",
+      "gr6_8_grade_level_math",
+      "gr6_8_keep_pace_math",
+      "community_area_number",
+      "isat_exceeding_math_",
+      "isat_value_add_read",
+      "students_taking_algebra",
+      "students_passing_algebra",
+      "_th_grade_explore_2009_",
+      "_th_grade_explore_2010_",
+      "net_change_explore_and_plan",
+      "college_enrollment_rate",
+      "freshman_on_track_rate",
+      "x_coordinate",
+      "community_area_name",
+      "cps_performance_policy_status",
+      "state",
+      "adequate_yearly_progress_made_",
+      "elementary_or_high_school",
+      "healthy_schools_certified_",
+      "city",
+      "family_involvement_icon",
+      "link_",
+      "environment_icon_",
+      "gr_8_explore_read",
+      "location_address",
+      "parent_engagement_icon_",
+      "leaders_icon_",
+      "teachers_icon_",
+      "instruction_score",
+      "police_district",
+      "net_change_plan_and_act",
+      "rcdts_code",
+      "y_coordinate",
+      "cps_performance_policy_level",
+      ":@computed_region_rpca_8um6",
+      "location_city",
+      "graduation_rate_",
+      ":@computed_region_awaf_s7ux",
+      ":@computed_region_43wa_7qmu",
+      "college_eligibility_",
+      ":@computed_region_bdys_3d7i",
+      "location_zip",
+      "location_state",
+      "average_teacher_attendance",
+      "teachers_score",
+      "location",
+      "school_id",
+      "safety_icon_",
+      "collaborative_name",
+      "pk_2_literacy",
+      "average_student_attendance",
+      "rate_of_misconducts_per_100_students_",
+      "gr_8_explore_math",
+      "_th_grade_average_act_2011_",
+      ":@computed_region_6mkv_f3dw",
+      ":@computed_region_vrxf_vc4k",
+      "gr3_5_grade_level_math",
+      "family_involvement_score",
+      "track_schedule",
+      "zip_code",
+      "gr6_8_grade_level_read",
+      "gr6_8_keep_pace_read"
+    ],
+    "columns_datatype": [
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Text",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "URL",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Text",
+      "Point",
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Number",
+      "Text",
+      "Text"
+    ],
+    "columns_description": [
+      "",
+      "Number of students enrolled in college",
+      "Effective Leaders score from 5 Essentials survey. These scores range from 1 to 99. For more information on these scores,   \n please see the My Voice, My School survey available at \n www.ccsrsurvey.uchicago.edu/2011.",
+      "% of students at benchmark on mClass. \nmClass is a test that helps teachers measure math skills in younger students \n(grades K-2); given in some, but not all, CPS schools.",
+      "% of students meeting growth targets, math, grades 3-5",
+      "Average PLAN score, 10th graders tested fall 2009; serves as the midpoint check of academic \nprogress in high school; similar to ACT",
+      "Average PLAN score, 10th graders tested fall 2010; serves as the midpoint check of academic \nprogress in high school; similar to ACT",
+      "",
+      "Parent Perception/Environment category from parent survey",
+      "ISAT value-add color, reading",
+      "% of students meeting growth targets, reading, grades 3-5",
+      "% of students exceeding on ISAT, reading",
+      "ISAT value-add color, math",
+      "",
+      " ISAT value-add value, math",
+      "",
+      "",
+      "Ambitious Instruction category from 5 Essentials survey",
+      "",
+      "",
+      "Student Perception/Safety score from 5 Essentials survey. These scores range from 1 to 99. For more information on these scores,   \n please see the My Voice, My School survey available at \n www.ccsrsurvey.uchicago.edu/2011.",
+      "Supportive Environment score from 5 Essentials survey. These scores range from 1 to 99. For more information on these scores,   \n please see the My Voice, My School survey available at \n www.ccsrsurvey.uchicago.edu/2011.",
+      "Parent Perception/Engagement score from parent survey. These scores range from 30 to 70. For more information on these scores,   \n please see the parent survey information available at www.cps.edu.",
+      "Parent Perception/Environment score from parent survey. These scores range from 30 to 70. For more information on these scores,   \n please see the parent survey information available at www.cps.edu.",
+      "% of  Individualized Education Programs (IEPs) and 504 plans completed by due date",
+      "% of students at grade level, reading, grades 3-5",
+      "",
+      "% of students at grade level, math, grades 6-8",
+      "% of students meeting growth targets, math, grades 6-8",
+      "",
+      "% of students exceeding on ISAT, math",
+      " ISAT value-add value, reading",
+      "% of students taking algebra",
+      "% of students passing algebra",
+      "Average EXPLORE score, 9th graders tested in fall 2009. Test taken in 8th and 9th grades and provides baseline information \nabout students\u2019 college readiness; helps prepare students for their high school \ncoursework and their post-high school choices.",
+      "Average EXPLORE score, 9th graders tested in fall 2010. Test taken in 8th and 9th grades and provides baseline information \nabout students\u2019 college readiness; helps prepare students for their high school \ncoursework and their post-high school choices.",
+      "Difference between Grade 9 Explore (2009) and Grade 10 Plan (2010)",
+      "% of students enrolled in college",
+      "",
+      "",
+      "",
+      "This refl ects whether or not your school is on probation \nthis year. More information on the CPS Performance \nPolicy may be found online at www.cps.edu.\nN/A: Not applicable\nNDA: No data available",
+      "",
+      "",
+      "ES indicates elementary school; MS indicates middle school; and HS indicates high school",
+      "",
+      "",
+      "Involved Families category from 5 Essentials survey",
+      "",
+      "upportive Environment category from 5 Essentials survey. ",
+      " % of students at college readiness benchmark, reading ",
+      "",
+      "Parent Perception/Engagement category from parent survey",
+      "Effective Leaders category from 5 Essentials survey",
+      "Collaborative Teachers category from 5 Essentials survey",
+      "Ambitious Instruction score from 5 Essentials survey. These scores range from 1 to 99. For more information on these scores,   \n please see the My Voice, My School survey available at \n www.ccsrsurvey.uchicago.edu/2011.",
+      "",
+      "Difference between Grade 10 Plan (2009) and Grade 11 ACT (2011)",
+      "Illinois State Board of Education Region County District Type Schools Codes (ISBE RCDTS codes)",
+      "",
+      "Level 1 indicates the highest performing schools. \nLevel 2 indicates a middle-performing school that \nneeds improvement.\nLevel 3 indicates the lowest performing schools.\nNDA indicates no data available.",
+      "",
+      "",
+      "% of students who have graduated within five years",
+      "",
+      "",
+      "% of graduates eligible for a selective four-year college",
+      "",
+      "",
+      "",
+      "Average daily teacher attendance %",
+      "Collaborative Teachers score from 5 Essentials survey. These scores range from 1 to 99. For more information on these scores,   \n please see the My Voice, My School survey available at \n www.ccsrsurvey.uchicago.edu/2011.",
+      "",
+      "",
+      "Student Perception/Safety category from 5 Essentials survey",
+      "",
+      "% of students at benchmark on DIBELS or IDEL, tests that help teachers measure literacy skills development \nin younger students (grades K-2); given in most, but not all, CPS schools; IDEL is \ngiven to students who are learning to read in Spanish.",
+      "Average daily student attendance %",
+      "# of misconducts per 100 students",
+      "% of students at college readiness benchmark, math",
+      "Average ACT score, 11th graders who tested in fall 2011; measures high school students\u2019 general \neducational development and their ability to complete college level work; \nadministered as part of the Prairie State Achievement Exam (PSAE).",
+      "",
+      "",
+      "% of students at grade level, math, grades 3-5",
+      "Involved Families score from 5 Essentials survey. These scores range from 1 to 99. For more information on these scores,   \n please see the My Voice, My School survey available at \n www.ccsrsurvey.uchicago.edu/2011.",
+      "",
+      "",
+      "% of students at grade level, reading, grades 6-8",
+      "% of students meeting growth targets, reading, grades 6-8"
+    ],
+    "columns_format": [
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {},
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "align": "left"
+      },
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {},
+      {},
+      {
+        "align": "left"
+      },
+      {},
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "noCommas": "false",
+        "precision": "1",
+        "align": "right",
+        "percentScale": "100",
+        "precisionStyle": "percentage",
+        "view": "percent_text"
+      },
+      {
+        "align": "left"
+      },
+      {},
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      },
+      {},
+      {
+        "align": "left"
+      },
+      {},
+      {},
+      {
+        "align": "left"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {},
+      {
+        "align": "left"
+      },
+      {},
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {},
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {},
+      {
+        "align": "left"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      },
+      {
+        "align": "left"
+      },
+      {},
+      {},
+      {
+        "align": "left"
+      },
+      {},
+      {},
+      {
+        "align": "left"
+      },
+      {},
+      {},
+      {},
+      {
+        "noCommas": "false",
+        "precision": "1",
+        "align": "right",
+        "percentScale": "100",
+        "precisionStyle": "percentage",
+        "view": "percent_text"
+      },
+      {
+        "align": "left"
+      },
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      },
+      {
+        "align": "left"
+      },
+      {},
+      {
+        "align": "left"
+      },
+      {
+        "noCommas": "false",
+        "precision": "1",
+        "align": "right",
+        "percentScale": "100",
+        "precisionStyle": "percentage",
+        "view": "percent_text"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {},
+      {},
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      }
+    ],
+    "download_count": 50484,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2018-09-14T21:38:54.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Education",
+    "domain_tags": [
+      "report cards",
+      "cps"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Metadata_Frequency",
+        "value": "Data is updated annually"
+      },
+      {
+        "key": "Metadata_Data-Owner",
+        "value": "Chicago Public Schools"
+      },
+      {
+        "key": "Metadata_Time-Period",
+        "value": "2011 - 2012 School Year"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofchicago.org"
+  },
+  "permalink": "https://data.cityofchicago.org/d/9xs2-f89t",
+  "link": "https://data.cityofchicago.org/Education/Chicago-Public-Schools-Progress-Report-Cards-2011-/9xs2-f89t",
+  "owner": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  },
+  "creator": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  }
+}

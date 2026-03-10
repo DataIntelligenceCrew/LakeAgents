@@ -1,0 +1,83 @@
+{
+  "query_table_name": {
+    "raw": "Demographic Chicago",
+    "tokens": [
+      "chicago",
+      "demographic"
+    ]
+  },
+  "query_table_description": {
+    "raw": "This historical dataset provides 27 public health indicators by Chicago community area, including measures related to birth outcomes, mortality, infectious diseases, lead exposure, and economic conditions. The data reflect the most recent information available at the time of publication. For more recent data, refer to the Chicago Health Atlas.",
+    "tokens": [
+      "27",
+      "and",
+      "area",
+      "at",
+      "atlas",
+      "available",
+      "birth",
+      "by",
+      "chicago",
+      "community",
+      "conditions",
+      "data",
+      "dataset",
+      "diseases",
+      "economic",
+      "exposure",
+      "for",
+      "health",
+      "historical",
+      "including",
+      "indicators",
+      "infectious",
+      "information",
+      "lead",
+      "measures",
+      "more",
+      "mortality",
+      "most",
+      "of",
+      "outcomes",
+      "provides",
+      "public",
+      "publication",
+      "recent",
+      "refer",
+      "reflect",
+      "related",
+      "the",
+      "this",
+      "time",
+      "to"
+    ]
+  },
+  "target_column": {
+    "raw": "No High School Diploma",
+    "tokens": [
+      "diploma",
+      "high",
+      "no",
+      "school"
+    ]
+  },
+  "target_column_description": {
+    "raw": "",
+    "tokens": []
+  },
+  "join_column": [
+    {
+      "raw": "Community Area",
+      "tokens": [
+        "area",
+        "community"
+      ]
+    }
+  ],
+  "join_column_description": [
+    {
+      "raw": "",
+      "tokens": []
+    }
+  ]
+}

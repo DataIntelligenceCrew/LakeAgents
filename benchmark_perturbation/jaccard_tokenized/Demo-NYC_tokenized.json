@@ -1,0 +1,61 @@
+{
+  "query_table_name": {
+    "raw": "Demographic NYC",
+    "tokens": [
+      "demographic",
+      "nyc"
+    ]
+  },
+  "query_table_description": {
+    "raw": "American Community Survey Public Use Micro Sample, augmented by NYC Opportunity.",
+    "tokens": [
+      "american",
+      "augmented",
+      "by",
+      "community",
+      "micro",
+      "nyc",
+      "opportunity",
+      "public",
+      "sample",
+      "survey",
+      "use"
+    ]
+  },
+  "target_column": {
+    "raw": "EducAttain",
+    "tokens": [
+      "educattain"
+    ]
+  },
+  "target_column_description": {
+    "raw": "Educational Attainment",
+    "tokens": [
+      "attainment",
+      "educational"
+    ]
+  },
+  "join_column": [
+    {
+      "raw": "SERIALNO",
+      "tokens": [
+        "serialno"
+      ]
+    }
+  ],
+  "join_column_description": [
+    {
+      "raw": "Serial Number of each Census household in survey",
+      "tokens": [
+        "census",
+        "each",
+        "household",
+        "in",
+        "number",
+        "of",
+        "serial",
+        "survey"
+      ]
+    }
+  ]
+}

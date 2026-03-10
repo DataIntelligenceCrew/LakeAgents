@@ -70,7 +70,11 @@ def build_join_column_choose_agent(provider: Optional[str] = None, config: Optio
     elif provider == "gemini":
         llm = Gemini(model=model_name, retry_options=retry_config)
     else:
-        raise ValueError(f"Invalid provider: {provider}. Use 'gemini' or 'openai'.")
+        kw = {"model": model_name}
+        if provider == "local":
+            kw["api_base"] = "http://localhost:8080/v1"
+            kw["api_key"] = "not-needed"
+        llm = LiteLlm(**kw)
 
     prompt_file = "prompt/join_column_selection_agent_prompt.txt"
     

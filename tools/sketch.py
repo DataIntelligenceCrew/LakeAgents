@@ -60,7 +60,7 @@ def get_candidate_table(
 
     cfg = load_config()
     client = SocrataDatalakeClient(cfg.get("data", {}).get("datalake", {}))
-    rows = client.read_data(table_id, domain, max_rows=None)
+    rows = client.read_data(table_id, domain, max_rows=200000)
 
     if not rows or not isinstance(rows, list):
         return pd.DataFrame(), {"success": False, "reason": "empty or invalid response"}
@@ -83,16 +83,35 @@ def get_candidate_table(
 
 _HASH_MAX = 2**64 - 1  # Max value for normalizing to [0, 1]
 
+def _normalize_for_hash(value) -> str:
+    if pd.isna(value) or value is None:
+        return "__NA__"
+    s = str(value).strip().lower()
+    if not s:
+        return "__NA__"
+    # 只对看起来像 ISO 或含 T 的日期做标准化
+    if "t" in s and ("-" in s or s.count("/") == 2):
+        try:
+            return pd.to_datetime(value).strftime("%Y-%m-%d")
+        except Exception:
+            pass
+    # MM/DD/YYYY 等格式
+    if s.count("/") == 2 or (s.count("-") >= 2 and len(s) <= 12):
+        try:
+            return pd.to_datetime(value).strftime("%Y-%m-%d")
+        except Exception:
+            pass
+    try:
+        num = float(value)
+        if num == int(num):  # 14.0 -> 14
+            return str(int(num))
+        return str(num)  # 3.14 保持为 "3.14"
+    except (ValueError, TypeError):
+        pass  
+    return s
 
 def hash_value_to_int(value) -> int:
-    """
-    Step 1: Hash any value (str, int, float, None, etc.) to a non-negative integer.
-    Uses SHA-256 for consistency across runs.
-    """
-    if pd.isna(value) or value is None:
-        s = "__NA__"
-    else:
-        s = str(value).strip().lower()
+    s = _normalize_for_hash(value) 
     h = hashlib.sha256(s.encode("utf-8", errors="replace")).digest()
     return int.from_bytes(h[:8], byteorder="big")
 
@@ -140,7 +159,7 @@ def hash_df_columns_to_unit(df: pd.DataFrame, columns: Optional[List[str]] = Non
 
 # ---- Bottom-k sketch ----
 
-DEFAULT_SKETCH_K = 512
+DEFAULT_SKETCH_K = 256
 
 
 def bottom_k_sketch_column(series: pd.Series, k: int = DEFAULT_SKETCH_K) -> np.ndarray:
@@ -157,6 +176,38 @@ def bottom_k_sketch_column(series: pd.Series, k: int = DEFAULT_SKETCH_K) -> np.n
     k_smallest = np.partition(unique, k)[:k]
     return np.sort(k_smallest)
 
+def bottom_k_sketch_column_with_samples(
+    series: pd.Series,
+    k: int = DEFAULT_SKETCH_K,
+) -> tuple[np.ndarray, list, str]:
+    """
+    Create bottom-k sketch and preserve the original column values that form the sketch.
+
+    Returns:
+        sketch: Sorted array of the k smallest distinct hashes (same as bottom_k_sketch_column).
+        original_values: List of distinct values from the column whose hashes are in the bottom-k.
+        column_name: The name of the column (series.name, or "" if not set).
+
+    Use original_values to filter rows to only those with join key in this set before aggregation.
+    """
+    col_name = series.name if series.name is not None else ""
+    series_clean = series.astype(object).dropna()
+    if len(series_clean) == 0:
+        return np.array([]), [], col_name
+
+    # Build (value, hash) for each distinct value
+    distinct_vals = series_clean.unique()
+    value_to_hash = [(v, hash_value_to_unit(v)) for v in distinct_vals]
+    # Sort by hash, take bottom-k
+    value_to_hash.sort(key=lambda x: x[1])
+    if len(value_to_hash) <= k:
+        hashes = np.sort(np.array([h for _, h in value_to_hash]))
+        values = [v for v, _ in value_to_hash]
+        return hashes, values, col_name
+    bottom_k_pairs = value_to_hash[:k]
+    hashes = np.sort(np.array([h for _, h in bottom_k_pairs]))
+    values = [v for v, _ in bottom_k_pairs]
+    return hashes, values, col_name
 
 def bottom_k_sketch_df(
     df: pd.DataFrame,
@@ -173,6 +224,25 @@ def bottom_k_sketch_df(
         if c in df.columns:
             sketches[c] = bottom_k_sketch_column(df[c], k=k)
     return sketches
+
+def bottom_k_sketch_df_with_samples(
+    df: pd.DataFrame,
+    k: int = DEFAULT_SKETCH_K,
+    columns: Optional[List[str]] = None,
+) -> dict[str, tuple[np.ndarray, list, str]]:
+    """
+    Create bottom-k sketches and preserve original values that form each sketch.
+
+    Returns: dict mapping column_name -> (sketch, original_values, column_name).
+    Use original_values to filter rows to only sketch samples before aggregation.
+    """
+    cols = columns if columns is not None else list(df.columns)
+    result = {}
+    for c in cols:
+        if c in df.columns:
+            sketch, values, name = bottom_k_sketch_column_with_samples(df[c], k=k)
+            result[c] = (sketch, values, name or c)
+    return result
 
 # ---- Jaccard similarity ----
 

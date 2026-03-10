@@ -26,8 +26,14 @@ def build_augment_column_selection_agent(config=None) -> Agent:
     
     if provider == "openai":
         llm = LiteLlm(model=model_name)
-    else:
+    elif provider == "gemini":
         llm = Gemini(model=model_name, retry_options=config.get_retry_config())
+    else:
+        kw = {"model": model_name}
+        if provider == "local":
+            kw["api_base"] = "http://localhost:8080/v1"
+            kw["api_key"] = "not-needed"
+        llm = LiteLlm(**kw)
     
     return Agent(
         name="AugmentColumnSelectionAgent",

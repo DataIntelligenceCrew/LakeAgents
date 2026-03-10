@@ -66,3 +66,27 @@ pytorch-frame/
 # Ignore entire third_party reference repos
 third_party/**
 !third_party/.keep
+correlation-sketches/
+
+data/
+perturbed_*/
+opendata_metadata_cache/
+opendata_table_index.json
+session_checked/
+fasttext.bin
+models/
+LLM_summary_test_data/
+llama.cpp/
+benchmark_perturbation/jaccard_perturbed/
+benchmark_perturbation/jaccard_tokenized/
+correlation-sketches/
+dataset_agent3/
+datasets_omnimatch/
+datasets_omnimatch2/
+download_data_script/
+LLM_summary_test_data/
+omnimatch/
+opendata_metadata_cache/
+original_query_tables/
+session_checked/
+

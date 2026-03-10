@@ -1,0 +1,148 @@
+{
+  "query_table_name": {
+    "raw": "Education Chicago",
+    "tokens": [
+      "chicago",
+      "education"
+    ]
+  },
+  "query_table_description": {
+    "raw": "This dataset contains school-level performance metrics used to produce the 2011-2012 CPS School Report Cards. It includes survey-based indicators from the 5 Essentials (such as safety, family involvement, environment, instruction, leadership, and teacher collaboration), parent engagement measures, attendance and misconduct rates, IEP compliance, literacy and math benchmarks across grade levels, student growth metrics, standardized test performance (ISAT, EXPLORE, PLAN, ACT), algebra participation and passing rates, college readiness and eligibility measures, graduation and college enrollment rates, Freshman On-Track rate, and related school identifiers. NDA indicates 'No Data Available.'",
+    "tokens": [
+      "2011",
+      "2012",
+      "across",
+      "act",
+      "algebra",
+      "and",
+      "as",
+      "attendance",
+      "available",
+      "based",
+      "benchmarks",
+      "cards",
+      "collaboration",
+      "college",
+      "compliance",
+      "contains",
+      "cps",
+      "data",
+      "dataset",
+      "eligibility",
+      "engagement",
+      "enrollment",
+      "environment",
+      "essentials",
+      "explore",
+      "family",
+      "freshman",
+      "from",
+      "grade",
+      "graduation",
+      "growth",
+      "identifiers",
+      "iep",
+      "includes",
+      "indicates",
+      "indicators",
+      "instruction",
+      "involvement",
+      "isat",
+      "it",
+      "leadership",
+      "level",
+      "levels",
+      "literacy",
+      "math",
+      "measures",
+      "metrics",
+      "misconduct",
+      "nda",
+      "no",
+      "on",
+      "parent",
+      "participation",
+      "passing",
+      "performance",
+      "plan",
+      "produce",
+      "rate",
+      "rates",
+      "readiness",
+      "related",
+      "report",
+      "safety",
+      "school",
+      "standardized",
+      "student",
+      "such",
+      "survey",
+      "teacher",
+      "test",
+      "the",
+      "this",
+      "to",
+      "track",
+      "used"
+    ]
+  },
+  "target_column": {
+    "raw": "CPS Performance Policy Status",
+    "tokens": [
+      "cps",
+      "performance",
+      "policy",
+      "status"
+    ]
+  },
+  "target_column_description": {
+    "raw": "This refl ects whether or not your school is on probation \nthis year. More information on the CPS Performance \nPolicy may be found online at www.cps.edu.\nN/A: Not applicable\nNDA: No data available",
+    "tokens": [
+      "applicable",
+      "at",
+      "available",
+      "be",
+      "cps",
+      "data",
+      "ects",
+      "edu",
+      "found",
+      "information",
+      "is",
+      "may",
+      "more",
+      "nda",
+      "no",
+      "not",
+      "on",
+      "online",
+      "or",
+      "performance",
+      "policy",
+      "probation",
+      "refl",
+      "school",
+      "the",
+      "this",
+      "whether",
+      "www",
+      "year",
+      "your"
+    ]
+  },
+  "join_column": [
+    {
+      "raw": "School ID",
+      "tokens": [
+        "id",
+        "school"
+      ]
+    }
+  ],
+  "join_column_description": [
+    {
+      "raw": "",
+      "tokens": []
+    }
+  ]
+}

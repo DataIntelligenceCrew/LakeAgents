@@ -1,0 +1,103 @@
+{
+  "resource": {
+    "name": "NYC Parks Forever Wild",
+    "id": "48va-85tp",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "The Forever Wild layer delineates the location of ecologically important natural resources within NYC Parks property. \n\nMap: https://data.cityofnewyork.us/dataset/Forever-Wild-Map/br7w-st33\n\nData Dictionary and User Guide: https://docs.google.com/spreadsheets/d/1BGfs3SaRlh0p2itOIimg1OQMvfkVuT0NQE6xDitZDQM/edit?usp=sharing",
+    "attribution": "Department of Parks and Recreation (DPR)",
+    "attribution_link": null,
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2026-01-18T14:39:40.000Z",
+    "createdAt": "2021-06-17T15:18:03.000Z",
+    "metadata_updated_at": "2026-01-18T14:39:39.000Z",
+    "data_updated_at": "2026-01-18T14:39:40.000Z",
+    "page_views": {
+      "page_views_last_week": 98,
+      "page_views_last_month": 403,
+      "page_views_total": 11940,
+      "page_views_last_week_log": 6.6293566200796095,
+      "page_views_last_month_log": 8.658211482751796,
+      "page_views_total_log": 13.543636039823014
+    },
+    "columns_name": [
+      "GISPropNum",
+      "PropertyName",
+      "ForverWildID",
+      "Acres",
+      "shape"
+    ],
+    "columns_field_name": [
+      "gispropnum",
+      "propertyname",
+      "forverwildid",
+      "acres",
+      "shape"
+    ],
+    "columns_datatype": [
+      "Text",
+      "Text",
+      "Text",
+      "Number",
+      "MultiPolygon"
+    ],
+    "columns_description": [
+      "NYC Parks GIS Property Number",
+      "NYC Parks SIGNNAME associated with GISPROPNUM",
+      "Unique ID of Forever Wild site",
+      "Area size of polygon (in acres)",
+      "Auto-generated fields"
+    ],
+    "columns_format": [
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    "download_count": 3207,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2023-10-30T15:31:25.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Environment",
+    "domain_tags": [],
+    "domain_metadata": [
+      {
+        "key": "Update_Automation",
+        "value": "Yes"
+      },
+      {
+        "key": "Update_Update-Frequency",
+        "value": "Monthly"
+      },
+      {
+        "key": "Dataset-Information_Agency",
+        "value": "Department of Parks and Recreation (DPR)"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofnewyork.us"
+  },
+  "permalink": "https://data.cityofnewyork.us/d/48va-85tp",
+  "link": "https://data.cityofnewyork.us/Environment/NYC-Parks-Forever-Wild/48va-85tp",
+  "owner": {
+    "id": "yrqv-pmyz",
+    "user_type": "interactive",
+    "display_name": "NYC Parks Open Data Team"
+  },
+  "creator": {
+    "id": "yrqv-pmyz",
+    "user_type": "interactive",
+    "display_name": "NYC Parks Open Data Team"
+  }
+}

@@ -1,0 +1,139 @@
+{
+  "query_table_name": {
+    "raw": "Education NYC",
+    "tokens": [
+      "education",
+      "nyc"
+    ]
+  },
+  "query_table_description": {
+    "raw": "This dataset presents the 2009–2010 CPS Progress Report results for all schools as of February 2, 2011. Schools are compared only within the same level (Elementary, K-8, Middle, High, Transfer), and peer indexes are calculated differently by level. For Elementary and K-8 schools, the peer index ranges from 0 to 100 and is based on demographic factors such as % ELL, % Special Education, % Title I free lunch, and % Black/Hispanic, with higher values indicating greater student need. For Middle and High Schools, the peer index ranges from 1.00 to 4.50 and incorporates prior proficiency measures and student characteristics, with lower values indicating greater student need.",
+    "tokens": [
+      "00",
+      "100",
+      "2009",
+      "2010",
+      "2011",
+      "50",
+      "all",
+      "and",
+      "are",
+      "as",
+      "based",
+      "black",
+      "by",
+      "calculated",
+      "characteristics",
+      "compared",
+      "cps",
+      "dataset",
+      "demographic",
+      "differently",
+      "education",
+      "elementary",
+      "ell",
+      "factors",
+      "february",
+      "for",
+      "free",
+      "from",
+      "greater",
+      "high",
+      "higher",
+      "hispanic",
+      "incorporates",
+      "index",
+      "indexes",
+      "indicating",
+      "is",
+      "level",
+      "lower",
+      "lunch",
+      "measures",
+      "middle",
+      "need",
+      "of",
+      "on",
+      "only",
+      "peer",
+      "presents",
+      "prior",
+      "proficiency",
+      "progress",
+      "ranges",
+      "report",
+      "results",
+      "same",
+      "schools",
+      "special",
+      "student",
+      "such",
+      "the",
+      "this",
+      "title",
+      "to",
+      "transfer",
+      "values",
+      "with",
+      "within"
+    ]
+  },
+  "target_column": {
+    "raw": "2009-2010 OVERALL GRADE",
+    "tokens": [
+      "2009",
+      "2010",
+      "grade",
+      "overall"
+    ]
+  },
+  "target_column_description": {
+    "raw": "Grade assigned each school based on school environment, student performance & student progress any additional recongnition obtained on exemplary student outcomes. Scores are based on comparing results from one school to peer schools. ",
+    "tokens": [
+      "additional",
+      "any",
+      "are",
+      "assigned",
+      "based",
+      "comparing",
+      "each",
+      "environment",
+      "exemplary",
+      "from",
+      "grade",
+      "obtained",
+      "on",
+      "one",
+      "outcomes",
+      "peer",
+      "performance",
+      "progress",
+      "recongnition",
+      "results",
+      "school",
+      "schools",
+      "scores",
+      "student",
+      "to"
+    ]
+  },
+  "join_column": [
+    {
+      "raw": "DBN",
+      "tokens": [
+        "dbn"
+      ]
+    }
+  ],
+  "join_column_description": [
+    {
+      "raw": "District, Borough, School Number",
+      "tokens": [
+        "borough",
+        "district",
+        "number",
+        "school"
+      ]
+    }
+  ]
+}

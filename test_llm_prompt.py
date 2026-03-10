@@ -18,7 +18,7 @@ csv.field_size_limit(min(1000000, sys.maxsize))
 class OpenAIClient:
     """Client for OpenAI API"""
     
-    def __init__(self, api_key=None, model="gpt-4o"):
+    def __init__(self, api_key=None, model="gpt-4o-mini"):
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         if not self.api_key:
             raise ValueError("Please set OPENAI_API_KEY environment variable")
@@ -509,43 +509,50 @@ Sample rows (first 30):
 
 
 
-def extract_json(text):
-    """Extract JSON from LLM response"""
-    # Handle None or empty response
-    if text is None:
-        return '{"status": "failed", "error": "LLM returned None (API error or quota exceeded)"}'
-    
-    if not isinstance(text, str):
-        return '{"status": "failed", "error": "LLM returned non-string response"}'
-    
+def extract_json(text: str) -> Dict[str, Any]:
+    """Extract JSON from model output."""
+    if not text or not isinstance(text, str):
+        return {}
     text = text.strip()
-    
-    # If empty after strip, return error JSON
     if not text:
-        return '{"status": "failed", "error": "LLM returned empty response"}'
-    
-    # Remove markdown code blocks
+        return {}
+
+    # 1. 优先从 markdown 代码块中提取 JSON（Llama 等模型常用格式）
+    json_str = None
     if "```json" in text:
-        text = text.split("```json")[1].split("```")[0]
+        parts = text.split("```json", 1)[1].split("```", 1)
+        json_str = parts[0].strip() if parts else None
     elif "```" in text:
-        text = text.split("```")[1].split("```")[0]
-    
-    # Find JSON object
-    start = text.find("{")
-    if start == -1:
-        return text
-    
-    # Match braces
-    count = 0
-    for i in range(start, len(text)):
-        if text[i] == '{':
-            count += 1
-        elif text[i] == '}':
-            count -= 1
-            if count == 0:
-                return text[start:i+1]
-    
-    return text[start:]
+        parts = text.split("```", 1)[1].split("```", 1)
+        json_str = parts[0].strip() if parts else None
+
+    if json_str:
+        try:
+            return json.loads(json_str)
+        except json.JSONDecodeError:
+            pass
+
+    # 2. 尝试直接解析整段文本
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    # 3. 用正则找 {...} 并解析
+    match = re.search(r'\{.*\}', text, flags=re.DOTALL)
+    if match:
+        json_str = match.group(0)
+        try:
+            return json.loads(json_str)
+        except json.JSONDecodeError:
+            try:
+                import ast
+                return ast.literal_eval(json_str)
+            except (ValueError, SyntaxError):
+                pass
+
+    # 4. 都没有解析出有效 JSON 时才返回空
+    return {"relevant_tables": []}
 
 
 def analyze_dataset(dataset_path, client):

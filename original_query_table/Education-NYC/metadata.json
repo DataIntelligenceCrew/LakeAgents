@@ -1,0 +1,169 @@
+{
+  "resource": {
+    "name": "2009 - 2010 School Progress Reports - All Schools",
+    "id": "ffnc-f3aa",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "2009/10 Progress Report results for all schools (data as of 2/2/2011)\r\n\r\nPeer indexes are calculated differently depending on School Level.  Schools are only compared to other schools in the same School Level (e.g., Elementary, K-8, Middle, High, Transfer)\r\n\r\n1) Elementary, K-8, K-3, K-2 - peer index is a value from 0-100.  We use a composite demographic statistic based on % ELL, % SpEd, % Title I free lunch, and % Black/Hispanic.  Higher values indicate student populations with higher need.\r\n\r\n2) Middle - peer index is a value from 1.00-4.50.  For middle schools, we use the average 4th grade proficiency ratings in ELA and Math and the % SpEd. Lower values indicate student populations with higher need.\r\n\r\n3) High School - peer index is a value from 1.00-4.50. For high schools, we use the average 8th grade proficiency, the % SpEd, the % Self-contained, and the % overage. Lower values indicate student populations with higher need.",
+    "attribution": "Department of Education (DOE)",
+    "attribution_link": null,
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2024-11-26T23:10:14.000Z",
+    "createdAt": "2011-10-06T20:20:00.000Z",
+    "metadata_updated_at": "2024-11-26T23:10:14.000Z",
+    "data_updated_at": "2011-10-06T20:20:02.000Z",
+    "page_views": {
+      "page_views_last_week": 10,
+      "page_views_last_month": 39,
+      "page_views_total": 4645,
+      "page_views_last_week_log": 3.4594316186372978,
+      "page_views_last_month_log": 5.321928094887363,
+      "page_views_total_log": 12.181773438808808
+    },
+    "columns_name": [
+      "2009-2010 PROGRESS CATEGORY SCORE",
+      "2009-2010 ADDITIONAL CREDIT",
+      "PROGRESS REPORT TYPE",
+      "SCHOOL LEVEL*",
+      "SCHOOL",
+      "PRINCIPAL",
+      "DISTRICT",
+      "PEER INDEX*",
+      "2009-2010 OVERALL SCORE",
+      "2009-2010 ENVIRONMENT CATEGORY SCORE",
+      "2009-2010 PERFORMANCE CATEGORY SCORE",
+      "2009-2010 PERFORMANCE GRADE",
+      "2009-2010 PROGRESS GRADE",
+      "2009-2010 ENVIRONMENT GRADE",
+      "DBN",
+      "2008-09 PROGRESS REPORT GRADE",
+      "2009-2010 OVERALL GRADE"
+    ],
+    "columns_field_name": [
+      "_progress_category_score",
+      "_additional_credit",
+      "progress_report_type",
+      "school_level_",
+      "school",
+      "principal",
+      "district",
+      "peer_index_",
+      "_overall_score",
+      "_environment_category_score",
+      "_performance_category_score",
+      "_performance_grade",
+      "_progress_grade",
+      "_environment_grade",
+      "dbn",
+      "_progress_report_grade",
+      "_overall_grade"
+    ],
+    "columns_datatype": [
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Text"
+    ],
+    "columns_description": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "columns_format": [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    "download_count": 4763,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2011-10-11T18:29:04.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Education",
+    "domain_tags": [
+      "lifelong learning"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Update_Automation",
+        "value": "No"
+      },
+      {
+        "key": "Update_Date-Made-Public",
+        "value": "10/11/2011"
+      },
+      {
+        "key": "Update_Update-Frequency",
+        "value": "Historical data"
+      },
+      {
+        "key": "Dataset-Information_Agency",
+        "value": "Department of Education (DOE)"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofnewyork.us"
+  },
+  "permalink": "https://data.cityofnewyork.us/d/ffnc-f3aa",
+  "link": "https://data.cityofnewyork.us/Education/2009-2010-School-Progress-Reports-All-Schools/ffnc-f3aa",
+  "owner": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  },
+  "creator": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "resource": {
+    "name": "Education NYC",
+    "id": "ffnc-f3aa",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "This dataset presents the 2009–2010 CPS Progress Report results for all schools as of February 2, 2011. Schools are compared only within the same level (Elementary, K-8, Middle, High, Transfer), and peer indexes are calculated differently by level. For Elementary and K-8 schools, the peer index ranges from 0 to 100 and is based on demographic factors such as % ELL, % Special Education, % Title I free lunch, and % Black/Hispanic, with higher values indicating greater student need. For Middle and High Schools, the peer index ranges from 1.00 to 4.50 and incorporates prior proficiency measures and student characteristics, with lower values indicating greater student need.",
+    "attribution": "Department of Education (DOE)",
+    "attribution_link": null,
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2024-11-26T23:10:14.000Z",
+    "createdAt": "2011-10-06T20:20:00.000Z",
+    "metadata_updated_at": "2024-11-26T23:10:14.000Z",
+    "data_updated_at": "2011-10-06T20:20:02.000Z",
+    "page_views": {
+      "page_views_last_week": 10,
+      "page_views_last_month": 39,
+      "page_views_total": 4645,
+      "page_views_last_week_log": 3.4594316186372978,
+      "page_views_last_month_log": 5.321928094887363,
+      "page_views_total_log": 12.181773438808808
+    },
+    "columns_name": [
+      "2009-2010 OVERALL GRADE",
+      "DBN",
+      "PEER INDEX*",
+      "2009-2010 ENVIRONMENT CATEGORY SCORE"
+    ],
+    "columns_field_name": [
+      "_overall_grade",
+      "dbn",
+      "peer_index_",
+      "_environment_category_score"
+    ],
+    "columns_datatype": [
+      "Text",
+      "Text",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "Grade assigned each school based on school environment, student performance & student progress any additional recongnition obtained on exemplary student outcomes. Scores are based on comparing results from one school to peer schools. ",
+      "District, Borough, School Number",
+      "Peer indexes are calculated differently depends on school level.  Schools are compared to other schools in same school level (ex. Elementary, K-8, Middle, High School, High school transfer)",
+      "Environment score reflect measuring pre-conditions for learning, student attendance and other aspects, such as high expectations, engagement, safety, respect and communication in school."
+    ],
+    "columns_format": [
+      {},
+      {},
+      {},
+      {}
+    ],
+    "download_count": 4763,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2011-10-11T18:29:04.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Education",
+    "domain_tags": [
+      "lifelong learning"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Update_Automation",
+        "value": "No"
+      },
+      {
+        "key": "Update_Date-Made-Public",
+        "value": "10/11/2011"
+      },
+      {
+        "key": "Update_Update-Frequency",
+        "value": "Historical data"
+      },
+      {
+        "key": "Dataset-Information_Agency",
+        "value": "Department of Education (DOE)"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofnewyork.us"
+  },
+  "permalink": "https://data.cityofnewyork.us/d/ffnc-f3aa",
+  "link": "https://data.cityofnewyork.us/Education/2009-2010-School-Progress-Reports-All-Schools/ffnc-f3aa",
+  "owner": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  },
+  "creator": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  }
+}

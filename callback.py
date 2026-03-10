@@ -207,7 +207,7 @@ class AugmentValidatorCallback:
                     from datalake_client import SocrataDatalakeClient
                     cfg = load_config()
                     api_client = SocrataDatalakeClient(cfg.get("data", {}).get("datalake", {}))
-                    rows = api_client.read_data(candidate_table_name, opendata_domain, max_rows=10000)
+                    rows = api_client.read_data(candidate_table_name, opendata_domain, max_rows=500000)
                     cand_df = pd.DataFrame(rows) if rows else None
                 except Exception:
                     pass

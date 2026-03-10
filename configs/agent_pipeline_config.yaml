@@ -5,8 +5,8 @@
 data:
   data_source: "datalake"  # "local" 或 "datalake"
   
-  base_dir: "dataset_agent3"
-  data_filename: "rows.csv"
+  base_dir: "query_table"
+  data_filename: "rows_original.csv"
   
   # Datalake configuration
   datalake:
@@ -18,16 +18,18 @@ data:
       - "data.cityofnewyork.us"  # NYC
       - "data.cityofchicago.org"  # Chicago
     
-    max_tables: 50  # stop after finding maximum n related tables
+    max_tables: 10  # stop after finding maximum n related tables
 
 # Pipeline task settings
 task:
-  join_table_name: "shooting count"  # Name of the base/join table
-  join_column: ["BORO"]  # Join columns (can be single or composite)
-  target_column: "shooting count"  # Target column for prediction
+
+  join_table_name: "COVID-Chicago"  
+  join_column: ["Date"]
+  target_column: "Deaths - Total"
   task_type: "regression"  # Options: "regression" or "classification"
   session:
-    session_id: "0043"
+    session_id: "005"
+
 # Validation thresholds
 validation:
   match_rate_threshold: 0.1  # Minimum match rate for join validation (0.0 - 1.0)
@@ -44,7 +46,8 @@ sampling:
 # LLM Agent settings
 agents:
   # Provider for all agents (can be overridden per agent)
-  default_provider: "openai"  # Options: "gemini", "openai"
+  # default_provider: "openai"  # Options: "gemini", "openai"
+  default_provider: "local"  # Options: "gemini", "openai"
 
   temperature:
     default: 0.5  # Default temperature for all agents
@@ -56,7 +59,15 @@ agents:
   
   # Model configurations
   models:
-    # Gemini models
+    
+    local:
+      # table_selection: "openai/llama"
+      # join_column_selection: "openai/llama"
+      # utility_gain: "openai/llama"
+      table_selection: "openai/Qwen/Qwen2.5-1.5B-Instruct"
+      join_column_selection: "openai/Qwen/Qwen2.5-1.5B-Instruct"
+      utility_gain: "openai/Qwen/Qwen2.5-1.5B-Instruct"
+
     gemini:
       table_selection: "gemini-2.5-flash"
       join_column_selection: "gemini-2.5-flash-lite"
@@ -64,9 +75,9 @@ agents:
     
     # OpenAI models
     openai:
-      table_selection: "openai/gpt-4o-mini"
-      join_column_selection: "openai/gpt-4o-mini"
-      utility_gain: "openai/gpt-4o-mini"
+      table_selection: "openai/gpt-4o"
+      join_column_selection: "openai/gpt-4o"
+      utility_gain: "openai/gpt-4o"
   prompts:
     table_selection: prompt/table_selection_agent_prompt.txt
     join_column_selection: prompt/join_column_selection_agent_prompt.txt
@@ -74,9 +85,9 @@ agents:
   
   # Per-agent provider overrides (optional)
   provider_overrides:
-    table_selection: null  # null means use default_provider
-    join_column_selection: null
-    utility_gain: null
+    table_selection: local  # null means use default_provider
+    join_column_selection: local
+    utility_gain: local
   
   # HTTP retry configuration
   retry:
@@ -84,6 +95,16 @@ agents:
     exp_base: 7  # Exponential backoff base
     initial_delay: 1  # Initial delay in seconds
     http_status_codes: [429, 500, 503, 504]  # Status codes to retry on
+
+  # Prompt truncation (when model context is limited, e.g. Qwen2.5-1.5B 8192 tokens)
+  # Unified switch: when enabled, truncates query_table_description, dimension_specs, and index_entries
+  prompt_truncation:
+    enabled: true  # true = truncate; false = no truncation
+    max_index_entries: 5  # max index entries (read_table_index)
+    max_chars_per_index_field: 150  # truncate index fields longer than this
+    max_columns_per_entry: 6  # max column names/descriptions per index entry (columns_name, columns_description)
+    max_query_table_description_chars: 180  # truncate query table description
+    max_dimension_specs_chars: 120  # truncate dimension_specifications JSON
 
 # Delay settings (for API rate limiting)
 delays:

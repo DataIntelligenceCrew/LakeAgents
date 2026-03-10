@@ -1,0 +1,98 @@
+{
+  "resource": {
+    "name": "Public Safety Chicago",
+    "id": "28me-84fj",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "This dataset supports the Chicago Police Sentiment Dashboard and contains monthly survey-based measures of residents’ perceptions of safety and trust in police. Data are available citywide and by detective area or district, with breakdowns by demographic characteristics. Scores are derived from survey responses on a 0–10 scale and represent average ratings rather than percentages. The data were collected by Elucd through digital surveys and are part of the Chicago Police Department’s reform efforts under the consent decree.",
+    "attribution": "Chicago Police Department",
+    "attribution_link": "https://home.chicagopolice.org",
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2025-02-05T10:05:08.000Z",
+    "createdAt": "2021-04-13T21:04:18.000Z",
+    "metadata_updated_at": "2021-04-28T22:41:00.000Z",
+    "data_updated_at": "2025-02-05T10:05:08.000Z",
+    "page_views": {
+      "page_views_last_week": 50,
+      "page_views_last_month": 283,
+      "page_views_total": 5731,
+      "page_views_last_week_log": 5.672425341971496,
+      "page_views_last_month_log": 8.149747119504683,
+      "page_views_total_log": 12.484822894262146
+    },
+    "columns_name": [
+      "AREA",
+      "DISTRICT",
+      "SAFETY"
+    ],
+    "columns_field_name": [
+      "area",
+      "district",
+      "safety"
+    ],
+    "columns_datatype": [
+      "Text",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "",
+      "",
+      "Overall score for the question: \"When it comes to the threat of crime, how safe do you feel in your neighborhood? (Level of safety from 0-10)\""
+    ],
+    "columns_format": [
+      {},
+      {},
+      {}
+    ],
+    "download_count": 4049,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2021-04-26T22:37:34.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Public Safety",
+    "domain_tags": [
+      "consent decree",
+      "police",
+      "public safety"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Metadata_Frequency",
+        "value": "Data are updated monthly"
+      },
+      {
+        "key": "Metadata_Data-Owner",
+        "value": "Chicago Police Department"
+      },
+      {
+        "key": "Metadata_Time-Period",
+        "value": "November 2017 - Present"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofchicago.org",
+    "license": "See Terms of Use"
+  },
+  "permalink": "https://data.cityofchicago.org/d/28me-84fj",
+  "link": "https://data.cityofchicago.org/Public-Safety/Police-Sentiment-Scores/28me-84fj",
+  "owner": {
+    "id": "vewm-vupz",
+    "user_type": "interactive",
+    "display_name": "Jonathan Levy"
+  },
+  "creator": {
+    "id": "vewm-vupz",
+    "user_type": "interactive",
+    "display_name": "Jonathan Levy"
+  }
+}

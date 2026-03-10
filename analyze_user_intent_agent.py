@@ -44,7 +44,12 @@ def build_analyze_user_intent_agent(
     elif provider == "gemini":
         llm = Gemini(model=model_name, retry_options=retry_config)
     else:
-        raise ValueError(f"Invalid provider: {provider}. Use 'gemini' or 'openai'.")
+
+        kw = {"model": model_name}
+        if provider == "local":
+            kw["api_base"] = "http://localhost:8080/v1"
+            kw["api_key"] = "not-needed"
+        llm = LiteLlm(**kw)
 
     generate_content_config = None
     if config is not None and hasattr(config, "get_temperature"):
