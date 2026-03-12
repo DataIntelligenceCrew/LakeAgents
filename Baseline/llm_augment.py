@@ -7,7 +7,12 @@ import json
 import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-
+import argparse
+import asyncio
+import json
+import re
+import yaml
+from pathlib import Path
 import pandas as pd
 from google.adk.agents import Agent
 from google.adk.runners import InMemoryRunner
@@ -184,7 +189,7 @@ async def suggest_llm_augment_columns(
     last_text = _extract_last_text_from_events(events)
     parsed = _extract_json(last_text)
     suggested = parsed.get("suggested_augment_columns", [])
-    return suggested[:10] if isinstance(suggested, list) else []
+    return suggested[:15] if isinstance(suggested, list) else []
 
 
 # ---------------------------------------------------------------------------
@@ -270,10 +275,12 @@ async def generate_llm_augment_values(
         instruction=instruction,
         generate_content_config=types.GenerateContentConfig(temperature=0.2),
     )
-    runner = InMemoryRunner(agent=agent)
     join_keys = df[jc].dropna().astype(str).str.strip().unique().tolist()
+    if len(join_keys) > 500:
+        join_keys = join_keys[:500]
     results = {}
     for jk in join_keys:
+        runner = InMemoryRunner(agent=agent)  # Fresh session per join_key to avoid history accumulation
         prompt = _build_generate_prompt(jk, aug_cols, table_context)
         try:
             events = await runner.run_debug(prompt)
@@ -305,6 +312,8 @@ async def run_llm_augment_and_save(
     task_type: str,
     user_intent: str,
     config: Optional[AgentPipelineConfig] = None,
+    llm_rows_file: Optional[str] = None,
+    llm_metadata_file: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Full pipeline: suggest columns -> generate values -> save rows_llm.csv and metadata_llm.json."""
     if config is None:
@@ -352,7 +361,10 @@ async def run_llm_augment_and_save(
             lambda k: values_by_key.get(k, {}).get(name)
         )
 
-    out_csv = base_path / "rows_llm.csv"
+    output_cfg = config.config.get("output", {})
+    rows_filename = llm_rows_file or output_cfg.get("llm_rows_file", "rows_llm.csv")
+    meta_filename = llm_metadata_file or output_cfg.get("llm_metadata_file", "metadata_llm.json")
+    out_csv = base_path / rows_filename
     df.to_csv(out_csv, index=False, encoding="utf-8")
 
     meta_out = dict(meta)
@@ -371,7 +383,7 @@ async def run_llm_augment_and_save(
             r["columns_field_name"].append(name.lower().replace(" ", "_").replace("-", "_"))
     meta_out["resource"] = r
 
-    out_meta = base_path / "metadata_llm.json"
+    out_meta = base_path / meta_filename
     with open(out_meta, "w", encoding="utf-8") as f:
         json.dump(meta_out, f, indent=2, ensure_ascii=False)
 
@@ -381,3 +393,63 @@ async def run_llm_augment_and_save(
         "suggested_columns": [c.get("column_name", "") for c in aug_cols],
         "augment_cols_added": len(aug_cols),
     }
+
+# Task config for each table (join_table -> task_type, user_intent)
+TASKS = {
+    "COVID-Chicago": {"task_type": "regression", "user_intent": "Predict the daily mortality rate of covid in Chicago"},
+    "Demo-Chicago": {"task_type": "regression", "user_intent": "Predict the ratio of people without high school diploma using Public Health data in Chicago"},
+    "Economic-Chicago": {"task_type": "regression", "user_intent": "Predict the number of people having annual income lower than $25000 using community survey data in Chicago"},
+    "Education-Chicago": {"task_type": "classification", "user_intent": "predict the public school performance from 2011-2012 in Chicago"},
+    "COVID-NYC": {"task_type": "regression", "user_intent": "Predict the daily mortality rate of covid in NYC"},
+    "Demo-NYC": {"task_type": "classification", "user_intent": "predict the education level of people in NYC based on the data about poverty in 2018"},
+    "Economic-NYC": {"task_type": "classification", "user_intent": "predict the household/family type in NYC using the poverty data in 2018"},
+    "Education-NYC": {"task_type": "classification", "user_intent": "predict the grade of school in nyc using the education record in 2009-2010"},
+}
+
+
+def main():
+    parser = argparse.ArgumentParser(description="LLM augment: suggest & generate augment columns per join_key")
+    parser.add_argument("table_name", type=str, help="Query table folder name, e.g. Education-NYC")
+    parser.add_argument("--base-dir", type=str, default="query_table", help="Base dir for query tables")
+    parser.add_argument("--rows-file", type=str, default=None, help="Output rows CSV filename (e.g. rows_gpt4o.csv)")
+    parser.add_argument("--metadata-file", type=str, default=None, help="Output metadata JSON filename (e.g. metadata_gpt4o.json)")
+    args = parser.parse_args()
+
+    _project = Path(__file__).resolve().parent.parent
+    perturb_path = _project / "configs" / "perturbation.yaml"
+    if not perturb_path.exists():
+        print(f"Error: {perturb_path} not found")
+        return 1
+    with open(perturb_path, "r", encoding="utf-8") as f:
+        cfg = yaml.safe_load(f)
+    table_cfg = cfg.get("tables", {}).get(args.table_name)
+    if not table_cfg:
+        print(f"Error: table '{args.table_name}' not in configs/perturbation.yaml tables")
+        return 1
+    join_cols = table_cfg.get("join_columns", [])
+    join_column = join_cols[0] if join_cols else None
+    target_column = table_cfg.get("target_column", "")
+    if not join_column:
+        print(f"Error: no join_columns for {args.table_name}")
+        return 1
+    task_info = TASKS.get(args.table_name, {})
+    task_type = task_info.get("task_type", "regression")
+    user_intent = task_info.get("user_intent", f"Predict {target_column}")
+
+    print(f"Running llm_augment for {args.table_name} (join={join_column}, target={target_column})")
+    result = asyncio.run(run_llm_augment_and_save(
+        base_dir=args.base_dir,
+        table_folder=args.table_name,
+        join_column=join_column,
+        target_column=target_column,
+        task_type=task_type,
+        user_intent=user_intent,
+        llm_rows_file=args.rows_file,
+        llm_metadata_file=args.metadata_file,
+    ))
+    print(result)
+    return 0 if result.get("rows_path") else 1
+
+
+if __name__ == "__main__":
+    exit(main())

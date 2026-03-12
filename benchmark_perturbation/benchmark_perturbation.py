@@ -77,11 +77,14 @@ def get_perturbed_pipeline_config(
     cfg["task"]["join_column"] = table_cfg.get("join_columns", cfg["task"].get("join_column"))
     cfg["task"]["target_column"] = table_cfg.get("target_column", cfg["task"].get("target_column"))
 
-    replacements = load_replacements_for_table(table_folder, _PROJECT)
+    perturbed_dir = _PROJECT / f"perturbed_{threshold}_{beta}"
+    replacements = load_replacements_for_table(
+        table_folder, _PROJECT, perturbed_base_dir=perturbed_dir
+    )
     cfg = apply_replacements_to_task_config(cfg, replacements)
 
     cfg["data"] = {**cfg.get("data", {})}
-    cfg["data"]["base_dir"] = str(_PROJECT / f"perturbed_{threshold}_{beta}")
+    cfg["data"]["base_dir"] = str(perturbed_dir)
     return cfg
 
 

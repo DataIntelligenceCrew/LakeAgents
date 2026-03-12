@@ -1,0 +1,98 @@
+[
+  {
+    "table": "COVID-NYC",
+    "task_type": "regression",
+    "metric_name": "r2_score",
+    "n_rows": 500,
+    "metric_rows_4omini": null,
+    "metric_rows": null,
+    "metric_rows_llm": null,
+    "error_rows_4omini": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows_llm": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'"
+  },
+  {
+    "table": "COVID-Chicago",
+    "task_type": "regression",
+    "metric_name": "r2_score",
+    "n_rows": 500,
+    "metric_rows_4omini": null,
+    "metric_rows": null,
+    "metric_rows_llm": null,
+    "error_rows_4omini": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows_llm": "File not found: /localdisk3/ytang49/opendata/query_table/COVID-Chicago/rows_llm.csv"
+  },
+  {
+    "table": "Demo-Chicago",
+    "task_type": "regression",
+    "metric_name": "r2_score",
+    "n_rows": 500,
+    "metric_rows_4omini": null,
+    "metric_rows": null,
+    "metric_rows_llm": null,
+    "error_rows_4omini": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows_llm": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'"
+  },
+  {
+    "table": "Demo-NYC",
+    "task_type": "classification",
+    "metric_name": "f1_score",
+    "n_rows": 500,
+    "metric_rows_4omini": null,
+    "metric_rows": null,
+    "metric_rows_llm": null,
+    "error_rows_4omini": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows_llm": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'"
+  },
+  {
+    "table": "Economic-Chicago",
+    "task_type": "regression",
+    "metric_name": "r2_score",
+    "n_rows": 500,
+    "metric_rows_4omini": null,
+    "metric_rows": null,
+    "metric_rows_llm": null,
+    "error_rows_4omini": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows_llm": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'"
+  },
+  {
+    "table": "Economic-NYC",
+    "task_type": "classification",
+    "metric_name": "f1_score",
+    "n_rows": 500,
+    "metric_rows_4omini": null,
+    "metric_rows": null,
+    "metric_rows_llm": null,
+    "error_rows_4omini": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows_llm": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'"
+  },
+  {
+    "table": "Education-Chicago",
+    "task_type": "classification",
+    "metric_name": "f1_score",
+    "n_rows": 500,
+    "metric_rows_4omini": null,
+    "metric_rows": null,
+    "metric_rows_llm": null,
+    "error_rows_4omini": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows_llm": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'"
+  },
+  {
+    "table": "Education-NYC",
+    "task_type": "classification",
+    "metric_name": "f1_score",
+    "n_rows": 500,
+    "metric_rows_4omini": null,
+    "metric_rows": null,
+    "metric_rows_llm": null,
+    "error_rows_4omini": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'",
+    "error_rows_llm": "[Errno 30] Read-only file system: '/localdisk3/ytang49/opendata/.cursor/debug.log'"
+  }
+]

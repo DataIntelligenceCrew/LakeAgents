@@ -6,7 +6,7 @@ data:
   data_source: "datalake"  # "local" 或 "datalake"
   
   base_dir: "query_table"
-  data_filename: "rows_original.csv"
+  data_filename: "rows.csv"
   
   # Datalake configuration
   datalake:
@@ -23,12 +23,12 @@ data:
 # Pipeline task settings
 task:
 
-  join_table_name: "COVID-Chicago"  
-  join_column: ["Date"]
-  target_column: "Deaths - Total"
-  task_type: "regression"  # Options: "regression" or "classification"
+  join_table_name: "Education-Chicago"
+  join_column: ["School ID"]
+  target_column: "CPS Performance Policy Status"
+  task_type: "classification"  # Options: "regression" or "classification"
   session:
-    session_id: "005"
+    session_id: "001"
 
 # Validation thresholds
 validation:
@@ -38,7 +38,7 @@ validation:
 
 # Sampling settings
 sampling:
-  sample_size: 1000  # Number of rows to sample for ML model training/evaluation
+  sample_size: 500  # Number of rows to sample for ML model training/evaluation
   # Used in:
   #   - compute_feature_importance (FI calculation)
   #   - AugmentValidatorCallback (baseline and augmented metric calculation)
@@ -47,7 +47,7 @@ sampling:
 agents:
   # Provider for all agents (can be overridden per agent)
   # default_provider: "openai"  # Options: "gemini", "openai"
-  default_provider: "local"  # Options: "gemini", "openai"
+  default_provider: "openai"  # Options: "gemini", "openai"
 
   temperature:
     default: 0.5  # Default temperature for all agents
@@ -64,9 +64,9 @@ agents:
       # table_selection: "openai/llama"
       # join_column_selection: "openai/llama"
       # utility_gain: "openai/llama"
-      table_selection: "openai/Qwen/Qwen2.5-1.5B-Instruct"
-      join_column_selection: "openai/Qwen/Qwen2.5-1.5B-Instruct"
-      utility_gain: "openai/Qwen/Qwen2.5-1.5B-Instruct"
+      table_selection: "openai/Qwen/Qwen2.5-7B-Instruct"
+      join_column_selection: "openai/Qwen/Qwen2.5-7B-Instruct"
+      utility_gain: "openai/Qwen/Qwen2.5-7B-Instruct"
 
     gemini:
       table_selection: "gemini-2.5-flash"
@@ -75,9 +75,9 @@ agents:
     
     # OpenAI models
     openai:
-      table_selection: "openai/gpt-4o"
-      join_column_selection: "openai/gpt-4o"
-      utility_gain: "openai/gpt-4o"
+      table_selection: "openai/gpt-4o-mini"
+      join_column_selection: "openai/gpt-4o-mini"
+      utility_gain: "openai/gpt-4o-mini"
   prompts:
     table_selection: prompt/table_selection_agent_prompt.txt
     join_column_selection: prompt/join_column_selection_agent_prompt.txt
@@ -85,9 +85,9 @@ agents:
   
   # Per-agent provider overrides (optional)
   provider_overrides:
-    table_selection: local  # null means use default_provider
-    join_column_selection: local
-    utility_gain: local
+    table_selection:  null  # null means use default_provider
+    join_column_selection: null
+    utility_gain: null
   
   # HTTP retry configuration
   retry:
@@ -132,6 +132,10 @@ output:
   print_results: true  # Print final results summary
   save_results: false  # Save results to JSON file
   results_file: "pipeline_results.json"  # Output file name (if save_results is true)
+  experiment_log_file: "experiments/experiment_log_mini.json"
+  llm_rows_file: "rows_mini.csv"  # LLM augment output CSV (Baseline/llm_augment.py)
+  llm_metadata_file: "metadata_mini.json"  # LLM augment output metadata (Baseline/llm_augment.py)  
+
 
 # Advanced settings
 advanced:

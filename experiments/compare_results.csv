@@ -1,0 +1,9 @@
+Table,Task Type,rows_4omini,rows.csv,rows_llm,Status
+COVID-NYC,regression,N/A,N/A,N/A,error
+COVID-Chicago,regression,N/A,N/A,N/A,error
+Demo-Chicago,regression,N/A,N/A,N/A,error
+Demo-NYC,classification,N/A,N/A,N/A,error
+Economic-Chicago,regression,N/A,N/A,N/A,error
+Economic-NYC,classification,N/A,N/A,N/A,error
+Education-Chicago,classification,N/A,N/A,N/A,error
+Education-NYC,classification,N/A,N/A,N/A,error

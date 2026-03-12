@@ -127,6 +127,17 @@ def process_numerical_perturb(
     if df.empty:
         return {"table": table_folder, "status": "skip", "reason": "empty"}
     table_cfg = TABLE_CONFIG.get(table_folder, {})
+    # Limit to first 500 join_keys to match llm_augment (avoid token explosion)
+    join_cols_cfg = table_cfg.get("join_columns", [])
+    if join_cols_cfg:
+        jc = join_cols_cfg[0] if isinstance(join_cols_cfg[0], str) else join_cols_cfg[0]
+        if jc in df.columns:
+            unique_keys = df[jc].dropna().astype(str).str.strip().unique().tolist()
+            if len(unique_keys) > 500:
+                keys_to_keep = set(unique_keys[:500])
+                df = df[df[jc].astype(str).str.strip().isin(keys_to_keep)].copy()
+            if df.empty:
+                return {"table": table_folder, "status": "skip", "reason": "empty after join_key filter"}
     exclude = table_cfg.get("join_columns", [])
     num_cols = get_numerical_columns(df, base_dir, table_folder, exclude)
     if not num_cols:

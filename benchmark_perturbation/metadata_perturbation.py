@@ -355,5 +355,9 @@ def map_perturbed_to_query_table(
         else:
             print(f"Warning: {table_name} rows not found, skip copy")
 
-        print(f"Saved: {out_dir}/metadata.json, {data_filename}")
+        # Save replacements for this (tau, beta, table) so experiments load correct column names
+        with open(out_dir / "replacements.json", "w", encoding="utf-8") as f:
+            json.dump({"replacements": replacements, "threshold": threshold, "beta": beta}, f, ensure_ascii=False)
+
+        print(f"Saved: {out_dir}/metadata.json, {data_filename}, replacements.json")
     return output_base / subdir 

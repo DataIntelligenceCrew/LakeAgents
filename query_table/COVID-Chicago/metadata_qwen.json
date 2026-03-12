@@ -1,0 +1,167 @@
+{
+  "resource": {
+    "name": "COVID-19 Chicago",
+    "id": "naz8-j4nc",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "NOTE: This dataset is retired and maintained for historical reference only.\n\nIt includes confirmed COVID-19 cases, deaths, and first hospitalizations among Chicago residents, recorded by specimen collection date, date of death, or first hospitalization date.\n\nRecent hospitalization data may be incomplete due to reporting delays, and all counts are provisional and subject to revision.\n\nDifferences from other sources may result from varying definitions, reporting practices, and date assignment methods.\n\nData Source: Illinois National Electronic Disease Surveillance System and Cook County Medical Examiner's Office.",
+    "attribution": "City of Chicago",
+    "attribution_link": "https://chicago.gov/coronavirus",
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2026-02-18T23:32:41.000Z",
+    "createdAt": "2020-04-24T17:01:23.000Z",
+    "metadata_updated_at": "2026-02-18T23:32:41.000Z",
+    "data_updated_at": "2024-05-22T22:15:13.000Z",
+    "page_views": {
+      "page_views_last_week": 209,
+      "page_views_last_month": 684,
+      "page_views_total": 149685,
+      "page_views_last_week_log": 7.714245517666122,
+      "page_views_last_month_log": 9.419960177847889,
+      "page_views_total_log": 17.191579768143892
+    },
+    "columns_name": [
+      "Hospitalizations - Total",
+      "Cases - Total",
+      "Deaths - Total",
+      "Date",
+      "Hospitalizations_Ratio_Per_Case",
+      "Days_Since_First_Hospitalization",
+      "Cumulative_Hospitalizations",
+      "New_Hospitalizations_Last_Week",
+      "New_Deaths_Last_Week",
+      "Population_Density_By_Zip_Code",
+      "Median_Age_By_Zip_Code",
+      "Proportion_of_Older_Adults_By_Zip_Code",
+      "Proportion_of_Poverty_By_Zip_Code",
+      "Proportion_of_Black_Residents_By_Zip_Code",
+      "Proportion_of_Hispanic_Residents_By_Zip_Code",
+      "Proportion_of_Female_Residents_By_Zip_Code",
+      "Proportion_of_Male_Residents_By_Zip_Code",
+      "Proportion_of_Employed_By_Zip_Code"
+    ],
+    "columns_field_name": [
+      "hospitalizations_total",
+      "cases_total",
+      "deaths_total",
+      "lab_report_date",
+      "hospitalizations_ratio_per_case",
+      "days_since_first_hospitalization",
+      "cumulative_hospitalizations",
+      "new_hospitalizations_last_week",
+      "new_deaths_last_week",
+      "population_density_by_zip_code",
+      "median_age_by_zip_code",
+      "proportion_of_older_adults_by_zip_code",
+      "proportion_of_poverty_by_zip_code",
+      "proportion_of_black_residents_by_zip_code",
+      "proportion_of_hispanic_residents_by_zip_code",
+      "proportion_of_female_residents_by_zip_code",
+      "proportion_of_male_residents_by_zip_code",
+      "proportion_of_employed_by_zip_code"
+    ],
+    "columns_datatype": [
+      "Number",
+      "Number",
+      "Number",
+      "Calendar date",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "",
+      "",
+      "",
+      "Case or death date. Blank indicates unknown date. Case dates indicate the date the test specimen was collected. Death dates are the date the death occurred.",
+      "Ratio of hospitalizations to total cases on a given day, which can indicate the severity of the outbreak.",
+      "Number of days since the first hospitalization was reported, which can indicate the duration of the outbreak.",
+      "Total number of hospitalizations up to the given date, which can provide context on the overall impact of the outbreak.",
+      "Number of new hospitalizations in the last week, which can indicate recent trends in the outbreak.",
+      "Number of new deaths in the last week, which can indicate recent trends in mortality.",
+      "Population density of the zip code where the case or death occurred, which can influence transmission rates.",
+      "Median age of the population in the zip code where the case or death occurred, which can influence mortality rates.",
+      "Proportion of the population aged 65+ in the zip code where the case or death occurred, which can influence mortality rates.",
+      "Proportion of the population living in poverty in the zip code where the case or death occurred, which can influence access to healthcare and mortality rates.",
+      "Proportion of the population that is Black in the zip code where the case or death occurred, which can influence mortality rates.",
+      "Proportion of the population that is Hispanic in the zip code where the case or death occurred, which can influence mortality rates.",
+      "Proportion of the female population in the zip code where the case or death occurred, which can influence mortality rates.",
+      "Proportion of the male population in the zip code where the case or death occurred, which can influence mortality rates.",
+      "Proportion of the population that is employed in the zip code where the case or death occurred, which can influence access to healthcare and mortality rates."
+    ],
+    "columns_format": [
+      {},
+      {},
+      {},
+      {
+        "view": "date"
+      }
+    ],
+    "download_count": 45619,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2020-08-14T18:52:39.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Health & Human Services",
+    "domain_tags": [
+      "ethnicity",
+      "covid-19",
+      "death",
+      "gender",
+      "health",
+      "historical",
+      "link to article present",
+      "public health",
+      "race"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Metadata_Data-Owner",
+        "value": "Department of Public Health"
+      },
+      {
+        "key": "Metadata_Time-Period",
+        "value": "March 2020 - May 2024"
+      },
+      {
+        "key": "Metadata_Changes-and-Other-Historical-Information-Useful-to-Understanding-This-Dataset",
+        "value": "https://www.google.com/search?as_q=\"Related+dataset+ID+s\"+\"naz8-j4nc\"+inurl:stories&as_sitesearch=data.cityofchicago.org"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofchicago.org",
+    "license": "See Terms of Use"
+  },
+  "permalink": "https://data.cityofchicago.org/d/naz8-j4nc",
+  "link": "https://data.cityofchicago.org/Health-Human-Services/COVID-19-Daily-Cases-Deaths-and-Hospitalizations-H/naz8-j4nc",
+  "owner": {
+    "id": "vewm-vupz",
+    "user_type": "interactive",
+    "display_name": "Jonathan Levy"
+  },
+  "creator": {
+    "id": "vewm-vupz",
+    "user_type": "interactive",
+    "display_name": "Jonathan Levy"
+  }
+}

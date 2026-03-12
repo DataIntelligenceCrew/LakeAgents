@@ -1,0 +1,98 @@
+[
+  {
+    "table": "COVID-NYC",
+    "task_type": "regression",
+    "metric_name": "r2_score",
+    "n_rows": 500,
+    "metric_rows_4omini": 0.7632031036285912,
+    "metric_rows": 0.779346584722389,
+    "metric_rows_qwen": 0.779346584722389,
+    "error_rows_4omini": null,
+    "error_rows": null,
+    "error_rows_qwen": null
+  },
+  {
+    "table": "COVID-Chicago",
+    "task_type": "regression",
+    "metric_name": "r2_score",
+    "n_rows": 500,
+    "metric_rows_4omini": 0.5761645793724326,
+    "metric_rows": 0.5761645793724326,
+    "metric_rows_qwen": 0.5761645793724326,
+    "error_rows_4omini": null,
+    "error_rows": null,
+    "error_rows_qwen": null
+  },
+  {
+    "table": "Demo-Chicago",
+    "task_type": "regression",
+    "metric_name": "r2_score",
+    "n_rows": 500,
+    "metric_rows_4omini": 0.31786638979647375,
+    "metric_rows": 0.4350587085308939,
+    "metric_rows_qwen": 0.4350587085308939,
+    "error_rows_4omini": null,
+    "error_rows": null,
+    "error_rows_qwen": null
+  },
+  {
+    "table": "Demo-NYC",
+    "task_type": "classification",
+    "metric_name": "f1_score",
+    "n_rows": 500,
+    "metric_rows_4omini": 0.20647357420125412,
+    "metric_rows": 0.1844991789819376,
+    "metric_rows_qwen": 0.1844991789819376,
+    "error_rows_4omini": null,
+    "error_rows": null,
+    "error_rows_qwen": null
+  },
+  {
+    "table": "Economic-Chicago",
+    "task_type": "regression",
+    "metric_name": "r2_score",
+    "n_rows": 500,
+    "metric_rows_4omini": 0.46256121413605256,
+    "metric_rows": 0.5445503272961523,
+    "metric_rows_qwen": 0.5445503272961523,
+    "error_rows_4omini": null,
+    "error_rows": null,
+    "error_rows_qwen": null
+  },
+  {
+    "table": "Economic-NYC",
+    "task_type": "classification",
+    "metric_name": "f1_score",
+    "n_rows": 500,
+    "metric_rows_4omini": 0.42011363636363636,
+    "metric_rows": 0.3861356932153392,
+    "metric_rows_qwen": 0.3861356932153392,
+    "error_rows_4omini": null,
+    "error_rows": null,
+    "error_rows_qwen": null
+  },
+  {
+    "table": "Education-Chicago",
+    "task_type": "classification",
+    "metric_name": "f1_score",
+    "n_rows": 500,
+    "metric_rows_4omini": 0.6756583767110083,
+    "metric_rows": 0.6756583767110083,
+    "metric_rows_qwen": 0.6756583767110083,
+    "error_rows_4omini": null,
+    "error_rows": null,
+    "error_rows_qwen": null
+  },
+  {
+    "table": "Education-NYC",
+    "task_type": "classification",
+    "metric_name": "f1_score",
+    "n_rows": 500,
+    "metric_rows_4omini": 0.5154579800791771,
+    "metric_rows": 0.5154579800791771,
+    "metric_rows_qwen": 0.5154579800791771,
+    "error_rows_4omini": null,
+    "error_rows": null,
+    "error_rows_qwen": null
+  }
+]

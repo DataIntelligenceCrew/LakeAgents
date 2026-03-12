@@ -55,13 +55,13 @@ def build_join_column_choose_agent(provider: Optional[str] = None, config: Optio
         # Fallback to defaults
         if provider is None:
             provider = "openai"
-    retry_config = types.HttpRetryOptions(
-        attempts=5,
-        exp_base=7,
-        initial_delay=1,
-        http_status_codes=[429, 500, 503, 504],
-    )
-    model_name = "openai/gpt-4o-mini" if provider == "openai" else "gemini-2.5-flash-lite"
+        retry_config = types.HttpRetryOptions(
+            attempts=5,
+            exp_base=7,
+            initial_delay=1,
+            http_status_codes=[429, 500, 503, 504],
+        )
+        model_name = "openai/gpt-4o-mini" if provider == "openai" else "gemini-2.5-flash-lite"
 
     compute_statistics_tool = FunctionTool(func=compute_statistics)
 

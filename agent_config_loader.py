@@ -38,9 +38,26 @@ def apply_replacements_to_task_config(config: dict, replacements: dict) -> dict:
     return out
 
 
-def load_replacements_for_table(table_folder: str, project_root: Optional[Path] = None) -> dict:
-    """Load replacements from jaccard_perturbed/{table_folder}_perturbed.json."""
+def load_replacements_for_table(
+    table_folder: str,
+    project_root: Optional[Path] = None,
+    perturbed_base_dir: Optional[Path] = None,
+) -> dict:
+    """
+    Load replacements for a table. Prefer per-dir replacements if perturbed_base_dir is provided.
+    - If perturbed_base_dir/table_folder/replacements.json exists, load from there (per tau,beta).
+    - Else fall back to jaccard_perturbed/{table_folder}_perturbed.json (global).
+    """
     root = project_root or _PROJECT_ROOT
+    if perturbed_base_dir is not None:
+        per_dir_path = Path(perturbed_base_dir) / table_folder / "replacements.json"
+        if per_dir_path.exists():
+            try:
+                with open(per_dir_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                return data.get("replacements", {})
+            except Exception:
+                pass
     path = root / "benchmark_perturbation" / "jaccard_perturbed" / f"{table_folder}_perturbed.json"
     if not path.exists():
         return {}
@@ -259,4 +276,8 @@ class AgentPipelineConfig:
         """Whether to print results to console."""
         return self.config['output']['print_results']
 
+    @property
+    def session_checked_dir(self) -> Optional[str]:
+        """Session checked 目录路径，None 表示使用默认值。"""
+        return self.config.get("output", {}).get("session_checked_dir")
     

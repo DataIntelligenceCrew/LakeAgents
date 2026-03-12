@@ -1,0 +1,159 @@
+{
+  "resource": {
+    "name": "COVID-19 NYC",
+    "id": "cwmx-mvra",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "This dataset reports confirmed COVID-19 cases, hospitalizations, and deaths grouped by specimen collection date. All outcomes for a case are assigned to the date the positive test specimen was collected, not the actual hospitalization or death date. For datasets organized by diagnosis, admission, or death dates, refer to the NYC COVID-19 daily counts dataset.",
+    "attribution": "Department of Health and Mental Hygiene (DOHMH)",
+    "attribution_link": null,
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2026-03-01T03:00:10.000Z",
+    "createdAt": "2020-04-28T18:50:27.000Z",
+    "metadata_updated_at": "2026-03-01T03:00:10.000Z",
+    "data_updated_at": "2026-01-22T14:40:43.000Z",
+    "page_views": {
+      "page_views_last_week": 38,
+      "page_views_last_month": 127,
+      "page_views_total": 25431,
+      "page_views_last_week_log": 5.285402218862249,
+      "page_views_last_month_log": 7.0,
+      "page_views_total_log": 14.634357301137978
+    },
+    "columns_name": [
+      "extract_date",
+      "Number_confirmed",
+      "Number_deaths",
+      "confirmed_cases_per_day",
+      "hospitalizations_per_day",
+      "age_distribution",
+      "gender_distribution",
+      "vaccination_rate",
+      "comorbidities_percentage",
+      "testing_rate",
+      "ICU_beds_available",
+      "ventilators_available",
+      "median_age",
+      "positive_test_rate",
+      "mask_wearing_adherence",
+      "social_distancing_measures"
+    ],
+    "columns_field_name": [
+      "extract_date",
+      "number_confirmed",
+      "number_deaths",
+      "confirmed_cases_per_day",
+      "hospitalizations_per_day",
+      "age_distribution",
+      "gender_distribution",
+      "vaccination_rate",
+      "comorbidities_percentage",
+      "testing_rate",
+      "icu_beds_available",
+      "ventilators_available",
+      "median_age",
+      "positive_test_rate",
+      "mask_wearing_adherence",
+      "social_distancing_measures"
+    ],
+    "columns_datatype": [
+      "Calendar date",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Text"
+    ],
+    "columns_description": [
+      "Date of extraction from live disease surveillance database",
+      "Count of patients tested who were confirmed to be COVID-19 cases",
+      "Count of confirmed COVID-19 cases among patients who died",
+      "Daily count of confirmed COVID-19 cases based on specimen collection date",
+      "Daily count of hospitalizations due to confirmed COVID-19 cases based on specimen collection date",
+      "Age distribution of confirmed cases based on specimen collection date",
+      "Gender distribution of confirmed cases based on specimen collection date",
+      "Percentage of the population vaccinated up to the specimen collection date",
+      "Percentage of confirmed cases with known comorbidities based on specimen collection date",
+      "Number of tests conducted per 100,000 population on the specimen collection date",
+      "Number of ICU beds available on the specimen collection date",
+      "Number of ventilators available on the specimen collection date",
+      "Median age of confirmed cases based on specimen collection date",
+      "Percentage of positive tests out of total tests conducted on the specimen collection date",
+      "Estimated percentage of the population adhering to mask-wearing guidelines on the specimen collection date",
+      "Level of social distancing measures in place on the specimen collection date (low, medium, high)"
+    ],
+    "columns_format": [
+      {
+        "view": "date"
+      },
+      {},
+      {}
+    ],
+    "download_count": 7654,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2020-04-28T18:50:30.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Health",
+    "domain_tags": [
+      "coronavirus",
+      "sars-cov-2",
+      "covid-19"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Update_Automation",
+        "value": "Yes"
+      },
+      {
+        "key": "Update_Date-Made-Public",
+        "value": "5/19/2020"
+      },
+      {
+        "key": "Update_Update-Frequency",
+        "value": "Daily"
+      },
+      {
+        "key": "Data-Collection_Data-Collection",
+        "value": "COVID-19 Health Data"
+      },
+      {
+        "key": "Dataset-Information_Agency",
+        "value": "Department of Health and Mental Hygiene (DOHMH)"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofnewyork.us"
+  },
+  "permalink": "https://data.cityofnewyork.us/d/cwmx-mvra",
+  "link": "https://data.cityofnewyork.us/Health/COVID-19-Outcomes-by-Testing-Cohorts-Cases-Hospita/cwmx-mvra",
+  "owner": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  },
+  "creator": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  }
+}

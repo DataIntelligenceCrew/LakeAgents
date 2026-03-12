@@ -17,6 +17,7 @@ import argparse
 import json
 from pathlib import Path
 from datetime import datetime
+from agent_config_loader import load_config
 
 _PROJECT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PROJECT))
@@ -85,6 +86,7 @@ def run_grid(verbose: bool = True):
 def run_orchestrator_inprocess(
     join_table: str, user_intent: str, task_type: str, session_id: str,
     base_dir: str, data_filename: str = "rows.csv", tau: float = None, beta: float = None,
+    provider: str = None, session_checked_dir: str = None,
 ):
     """Run orchestrator in-process. Returns (returncode, output_dict)."""
     from agent_config_loader import AgentPipelineConfig
@@ -98,6 +100,11 @@ def run_orchestrator_inprocess(
     cfg_dict["data"]["data_filename"] = data_filename
     cfg_dict.setdefault("task", {}).setdefault("session", {})
     cfg_dict["task"]["session"]["session_id"] = session_id
+
+    if provider is not None:  
+        cfg_dict.setdefault("agents", {})["default_provider"] = provider
+    if session_checked_dir is not None:
+        cfg_dict.setdefault("output", {})["session_checked_dir"] = session_checked_dir
 
     config = AgentPipelineConfig(config_dict=cfg_dict)
 
@@ -157,6 +164,7 @@ def run_experiments(tau_list, beta_list, data_filename, session_start, log_path,
                     join_table=task["join_table"], user_intent=task["user_intent"],
                     task_type=task["task_type"], session_id=sid, base_dir=base_dir,
                     data_filename=data_filename, tau=tau, beta=beta,
+                    provider=args.provider,
                 )
                 results.append({"tau": tau, "beta": beta, "join_table": task["join_table"], "session_id": sid, "returncode": ret})
 
@@ -186,6 +194,96 @@ def run_experiments(tau_list, beta_list, data_filename, session_start, log_path,
 
     return results
 
+def load_log_entries(log_path: Path) -> list[dict]:
+    entries = []
+    with open(log_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entries.append(json.loads(line))
+            except json.JSONDecodeError:
+                pass
+    return entries
+
+
+def replace_entry_in_log(log_path: Path, tau: float, beta: float, join_table: str, new_entry: dict) -> None:
+    entries = []
+    with open(log_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                e = json.loads(line)
+                if e.get("tau") == tau and e.get("beta") == beta and e.get("join_table") == join_table:
+                    entries.append(new_entry)
+                else:
+                    entries.append(e)
+            except json.JSONDecodeError:
+                pass
+    with open(log_path, "w", encoding="utf-8") as f:
+        for e in entries:
+            f.write(json.dumps(e, ensure_ascii=False) + "\n")
+
+
+def rerun_failed_tasks(log_path, args):
+    """只重跑失败任务并替换 log 中的对应行。"""
+    entries = load_log_entries(log_path)
+    failed = [e for e in entries if e.get("returncode", 0) != 0 or "error" in e]
+    print(f"Found {len(failed)} failed tasks\n")
+
+    for i, e in enumerate(failed):
+        tau, beta, join_table = e["tau"], e["beta"], e["join_table"]
+        session_id = e.get("session_id", "???")
+        task = next((t for t in TASKS if t["join_table"] == join_table), None)
+        if not task:
+            continue
+        base_dir = f"perturbed_{tau}_{beta}"
+        if not (_PROJECT / base_dir).exists():
+            print(f"Skip {base_dir} (not found)")
+            continue
+
+        print(f"[{i+1}/{len(failed)}] τ={tau} β={beta} {join_table} sess={session_id}")
+        update_perturbation_yaml(tau, beta)
+
+        ret, output = run_orchestrator_inprocess(
+            join_table=task["join_table"],
+            user_intent=task["user_intent"],
+            task_type=task["task_type"],
+            session_id=session_id,
+            base_dir=str(_PROJECT / base_dir),
+            data_filename=args.data_filename,
+            tau=tau,
+            beta=beta,
+            provider=args.provider,
+            session_checked_dir=args.session_checked_dir,
+        )
+
+        baseline = output.get("baseline_metric") if output else None
+        augmented = output.get("augmented_metric") if output else None
+        augment_results = output.get("augment_results", []) if output else []
+        selected = [r.get("candidate_table", "?") for r in augment_results]
+        augment_cols = {r.get("candidate_table", "?"): r.get("selected_augment_columns", []) for r in augment_results}
+        improvement = (augmented - baseline) if (baseline is not None and augmented is not None) else None
+
+        new_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "tau": tau, "beta": beta, "join_table": join_table, "task_type": task["task_type"],
+            "session_id": session_id, "returncode": ret,
+            "selected_candidate_tables": selected,
+            "augment_columns_per_candidate": augment_cols,
+            "baseline_metric": float(baseline) if baseline is not None else None,
+            "augmented_metric": float(augmented) if augmented is not None else None,
+            "improvement": float(improvement) if improvement is not None else None,
+            "metric_name": output.get("metric_name", "r2_score") if output else None,
+        }
+        if ret != 0 and output:
+            new_entry["error"] = output.get("error")
+
+        replace_entry_in_log(log_path, tau, beta, join_table, new_entry)
+        print(f"  -> {'ok' if ret == 0 else 'FAILED'} (replaced in log)")
 
 def main():
     parser = argparse.ArgumentParser(description="完整 benchmark：每个 (τ,β) 先生成再跑实验")
@@ -197,11 +295,25 @@ def main():
     parser.add_argument("--beta-only", type=float, nargs="+")
     parser.add_argument("--log-file", type=str, default=None)
     parser.add_argument("--quiet", action="store_true")
+    parser.add_argument("--start-from-session", type=int, default=None,
+                    help="从第 N 个 session 开始跑，跳过前 N-1 次 (τ,β,task)")
+    parser.add_argument("--provider", type=str, default=None, choices=["local", "openai"],
+                    help="覆盖 default_provider，用于并行跑 local 和 openai")
+    parser.add_argument("--session-checked-dir", type=str, default=None,
+                        help="session_checked 目录，用于隔离 local/openai 实验的 session 缓存")
+    parser.add_argument("--rerun-failed", action="store_true", help="只重跑失败任务并替换 log 中的行")
+
     args = parser.parse_args()
+
+    if args.rerun_failed:
+        rerun_failed_tasks(log_path, args)
+        return 0
 
     tau_list = args.tau_only if args.tau_only else TAU_VALUES
     beta_list = args.beta_only if args.beta_only else BETA_VALUES
-    log_path = Path(args.log_file) if args.log_file else _PROJECT / "experiments" / "experiment_log_llm.json"
+    cfg = load_config()
+    default_log = cfg.get("output", {}).get("experiment_log_file", "experiments/experiment_log_llm.json")
+    log_path = Path(args.log_file) if args.log_file else _PROJECT / default_log
     verbose = not args.quiet
 
     session_id = args.session_start
@@ -238,6 +350,12 @@ def main():
 
                 total = len(tau_list) * len(beta_list) * len(TASKS)
                 for task in TASKS:
+                    if not hasattr(main, '_current_session'):
+                        main._current_session = 0
+                    main._current_session += 1
+                    if args.start_from_session is not None and main._current_session < args.start_from_session:
+                        session_id += 1
+                        continue
                     sid = f"{session_id:03d}"
                     if verbose:
                         print(f"\n--- [{session_id}/{total}] {task['join_table']} ({task['task_type']}) sess={sid} ---")
@@ -245,6 +363,7 @@ def main():
                         join_table=task["join_table"], user_intent=task["user_intent"],
                         task_type=task["task_type"], session_id=sid, base_dir=base_dir,
                         data_filename=args.data_filename, tau=tau, beta=beta,
+                        provider=args.provider, session_checked_dir=args.session_checked_dir,
                     )
                     exp_results.append({"tau": tau, "beta": beta, "join_table": task["join_table"], "session_id": sid, "returncode": ret})
 

@@ -32,5 +32,5 @@ tables:
     - DBN
     target_column: 2009-2010 OVERALL GRADE
 perturbation:
-  threshold: 0.1
+  threshold: 0.9
   beta: 0.3

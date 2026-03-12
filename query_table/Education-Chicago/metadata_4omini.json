@@ -1,0 +1,152 @@
+{
+  "resource": {
+    "name": "Education Chicago",
+    "id": "9xs2-f89t",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "This dataset contains school-level performance metrics used to produce the 2011-2012 CPS School Report Cards. It includes survey-based indicators from the 5 Essentials (such as safety, family involvement, environment, instruction, leadership, and teacher collaboration), parent engagement measures, attendance and misconduct rates, IEP compliance, literacy and math benchmarks across grade levels, student growth metrics, standardized test performance (ISAT, EXPLORE, PLAN, ACT), algebra participation and passing rates, college readiness and eligibility measures, graduation and college enrollment rates, Freshman On-Track rate, and related school identifiers. NDA indicates 'No Data Available.'",
+    "attribution": "Chicago Public Schools",
+    "attribution_link": "http://www.cps.edu",
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2018-09-14T21:38:54.000Z",
+    "createdAt": "2011-11-11T19:54:24.000Z",
+    "metadata_updated_at": "2018-09-14T21:38:54.000Z",
+    "data_updated_at": "2018-09-14T21:24:06.000Z",
+    "page_views": {
+      "page_views_last_week": 460,
+      "page_views_last_month": 1804,
+      "page_views_total": 223734,
+      "page_views_last_week_log": 8.848622940429339,
+      "page_views_last_month_log": 10.817783121774534,
+      "page_views_total_log": 17.771431436585672
+    },
+    "columns_name": [
+      "CPS Performance Policy Status",
+      "School ID",
+      "Safety Icon ",
+      "average_attendance_rate",
+      "parent_engagement_score",
+      "teacher_collaboration_index",
+      "student_growth_metric",
+      "standardized_test_scores",
+      "algebra_pass_rate",
+      "freshman_on_track_rate",
+      "IEP_compliance_rate",
+      "college_enrollment_rate",
+      "safety_perception_score",
+      "environmental_quality_index",
+      "teacher_turnover_rate"
+    ],
+    "columns_field_name": [
+      "cps_performance_policy_status",
+      "school_id",
+      "safety_icon_",
+      "average_attendance_rate",
+      "parent_engagement_score",
+      "teacher_collaboration_index",
+      "student_growth_metric",
+      "standardized_test_scores",
+      "algebra_pass_rate",
+      "freshman_on_track_rate",
+      "iep_compliance_rate",
+      "college_enrollment_rate",
+      "safety_perception_score",
+      "environmental_quality_index",
+      "teacher_turnover_rate"
+    ],
+    "columns_datatype": [
+      "Text",
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "This refl ects whether or not your school is on probation \nthis year. More information on the CPS Performance \nPolicy may be found online at www.cps.edu.\nN/A: Not applicable\nNDA: No data available",
+      "",
+      "Student Perception/Safety category from 5 Essentials survey",
+      "The average attendance rate of students in the school, indicating student engagement.",
+      "A score representing the level of parent engagement in school activities and decision-making.",
+      "An index measuring the level of collaboration among teachers within the school.",
+      "A metric indicating the growth of students' academic performance over the year.",
+      "Average scores from standardized tests (e.g., ISAT, ACT) for the school.",
+      "The percentage of students passing algebra courses in the school.",
+      "The percentage of freshmen on track to graduate within four years.",
+      "The percentage of compliance with Individualized Education Programs for students with disabilities.",
+      "The percentage of graduates enrolling in college after high school.",
+      "A score derived from student surveys regarding their perception of safety at school.",
+      "An index measuring the quality of the school environment (e.g., facilities, resources).",
+      "The percentage of teachers leaving the school each year."
+    ],
+    "columns_format": [
+      {
+        "align": "left"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      },
+      {
+        "align": "left"
+      }
+    ],
+    "download_count": 50484,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2018-09-14T21:38:54.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Education",
+    "domain_tags": [
+      "report cards",
+      "cps"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Metadata_Frequency",
+        "value": "Data is updated annually"
+      },
+      {
+        "key": "Metadata_Data-Owner",
+        "value": "Chicago Public Schools"
+      },
+      {
+        "key": "Metadata_Time-Period",
+        "value": "2011 - 2012 School Year"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofchicago.org"
+  },
+  "permalink": "https://data.cityofchicago.org/d/9xs2-f89t",
+  "link": "https://data.cityofchicago.org/Education/Chicago-Public-Schools-Progress-Report-Cards-2011-/9xs2-f89t",
+  "owner": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  },
+  "creator": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  }
+}

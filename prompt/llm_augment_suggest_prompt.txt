@@ -22,7 +22,7 @@ REASONING:
 1. Consider what external or derived information would help predict the target.
 2. Prefer numerical features for regression; categorical or numerical for classification.
 3. Suggest columns that are plausibly available at the join key level.
-4. Limit to at most 1 columns. Quality over quantity.
+4. Limit to at most 15 columns. Quality over quantity.
 
 OUTPUT:
 Return ONLY valid JSON (no markdown):

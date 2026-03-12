@@ -16,7 +16,7 @@ import fasttext
 from functools import partial
 from llm_agent_tools import find_dataset_dir, build_opendata_search_params, get_fasttext_sim, _train_and_evaluate
 from augment_column_selection_agent import build_augment_column_selection_agent
-from agent_config_loader import AgentPipelineConfig
+from agent_config_loader import AgentPipelineConfig, load_config
 from analyze_user_intent_agent import build_analyze_user_intent_agent
 from datalake_client import SocrataDatalakeClient
 from datetime import datetime
@@ -43,18 +43,18 @@ SKIP_TABLES = {}
 
 
     
-def _session_checked_path(session_id: str) -> Path:
+def _session_checked_path(session_id: str, base_dir: Optional[Path] = None) -> Path:
     """Sanitize session_id for use as filename."""
     safe = re.sub(r"[^\w\-]", "_", str(session_id).strip()) or "default"
-    return SESSION_CHECKED_DIR / f"{safe}.json"
+    return (base_dir or SESSION_CHECKED_DIR) / f"{safe}.json"
 
-def _load_session_checked(session_id: Optional[str]) -> tuple:
+def _load_session_checked(session_id: Optional[str], base_dir: Optional[Path] = None) -> tuple:
     """Load checked table for this session. Returns (checked_set, checked_table).
     checked_set: set of IDs for exclude_tables. checked_table: list of full entries (dict with id, description, possible_join_column, etc.).
     Old format (list of IDs only) -> checked_table=[], checked_set=those IDs."""
     if not session_id:
         return set(), []
-    path = _session_checked_path(session_id)
+    path = _session_checked_path(session_id, base_dir)
     if not path.exists():
         return set(), []
     try:
@@ -80,11 +80,11 @@ def _load_session_checked(session_id: Optional[str]) -> tuple:
         return checked_set, []
     return set(), []
 
-def _save_session_checked(session_id: Optional[str], checked_table: list) -> None:
+def _save_session_checked(session_id: Optional[str], checked_table: list, base_dir: Optional[Path] = None) -> None:
     """Save checked table (list of full entries) for this session."""
     if not session_id:
         return
-    path = _session_checked_path(session_id)
+    path = _session_checked_path(session_id, base_dir)
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
         with open(path, "w", encoding="utf-8") as f:
@@ -301,6 +301,13 @@ async def run_orchestrator(
     session_id = session_id if session_id is not None else config.session_id
     BASE_DIR = config.base_dir
 
+    _session_dir: Optional[Path] = None
+    if getattr(config, "session_checked_dir", None):
+        _p = config.session_checked_dir
+        _session_dir = Path(_p)
+        if not _session_dir.is_absolute():
+            _session_dir = (Path(__file__).resolve().parent / _p).resolve()
+
     # Resolve display name for LLM: use metadata resource.name (perturbed) if available, else folder name
     real_join_table_name = find_dataset_dir(join_table_name, BASE_DIR)
     base_path_obj = Path(__file__).resolve().parent / BASE_DIR
@@ -417,7 +424,7 @@ Please analyze the user intent and return the result in JSON format according to
         join_columns_set = {str(j).strip().lower() for j in join_columns_list if j}
         index_path = Path(__file__).resolve().parent / "opendata_table_index.json"
         exclude_base = [join_table_name] if join_table_name else []
-        checked_set, checked_table = _load_session_checked(session_id)
+        checked_set, checked_table = _load_session_checked(session_id, _session_dir)
 
         # Load existing index (cumulative)
         existing_index = []
@@ -466,7 +473,7 @@ Please analyze the user intent and return the result in JSON format according to
                                 checked_table.append(session_entry)
                                 break
                         checked_set.add(ds_id_str)
-                        _save_session_checked(session_id, checked_table)
+                        _save_session_checked(session_id, checked_table, _session_dir)
                     continue
                 full_meta = _load_metadata_from_cache(domain_for_fetch, ds_id)
                 if full_meta is None:
@@ -528,7 +535,7 @@ Please analyze the user intent and return the result in JSON format according to
                         session_entry["possible_join_column_is_true"] = bool(possible)
                         checked_table.append(session_entry)
                         checked_set.add(ds_id_str)
-                        _save_session_checked(session_id, checked_table)
+                        _save_session_checked(session_id, checked_table, _session_dir)
 
         merged_index = existing_index + new_entries
         # Ensure every entry has "name" (table_name) before writing

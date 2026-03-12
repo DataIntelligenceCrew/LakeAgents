@@ -1,0 +1,192 @@
+{
+  "resource": {
+    "name": "Demographic Chicago",
+    "id": "iqnk-2tcu",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "This historical dataset provides 27 public health indicators by Chicago community area, including measures related to birth outcomes, mortality, infectious diseases, lead exposure, and economic conditions. The data reflect the most recent information available at the time of publication. For more recent data, refer to the Chicago Health Atlas.",
+    "attribution": "Illinois Department of Public Health (IDPH) and U.S. Census Bureau",
+    "attribution_link": null,
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2022-02-03T23:20:46.000Z",
+    "createdAt": "2012-05-18T18:25:32.000Z",
+    "metadata_updated_at": "2022-02-03T23:20:46.000Z",
+    "data_updated_at": "2013-05-30T14:08:57.000Z",
+    "page_views": {
+      "page_views_last_week": 99,
+      "page_views_last_month": 366,
+      "page_views_total": 80441,
+      "page_views_last_week_log": 6.643856189774725,
+      "page_views_last_month_log": 8.519636252843213,
+      "page_views_total_log": 16.295661330837323
+    },
+    "columns_name": [
+      "No High School Diploma",
+      "Community Area",
+      "Unemployment",
+      "Below Poverty Level",
+      "Infant Mortality Rate",
+      "Teen Birth Rate",
+      "Preterm Births",
+      "General Fertility Rate",
+      "Percent_Unemployment",
+      "Percent_Below_Poverty_Level",
+      "Teen_Birth_Rate_Per_1000",
+      "Infant_Mortality_Rate_Per_1000",
+      "General_Fertility_Rate_Per_1000",
+      "Percent_No_High_School_Diploma_Last_Decade",
+      "Percent_Less_than_12_Years_Education",
+      "Percent_Less_than_9_Years_Education",
+      "Percent_Less_than_6_Years_Education",
+      "Percent_Less_than_3_Years_Education",
+      "Percent_Completing_12th_Grade_No_Diploma",
+      "Percent_Completing_GED",
+      "Percent_Completing_High_School_Diploma"
+    ],
+    "columns_field_name": [
+      "no_high_school_diploma",
+      "community_area",
+      "unemployment",
+      "below_poverty_level",
+      "infant_mortality_rate",
+      "teen_birth_rate",
+      "preterm_births",
+      "general_fertility_rate",
+      "percent_unemployment",
+      "percent_below_poverty_level",
+      "teen_birth_rate_per_1000",
+      "infant_mortality_rate_per_1000",
+      "general_fertility_rate_per_1000",
+      "percent_no_high_school_diploma_last_decade",
+      "percent_less_than_12_years_education",
+      "percent_less_than_9_years_education",
+      "percent_less_than_6_years_education",
+      "percent_less_than_3_years_education",
+      "percent_completing_12th_grade_no_diploma",
+      "percent_completing_ged",
+      "percent_completing_high_school_diploma"
+    ],
+    "columns_datatype": [
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "Percentage of the population aged 16 and over who are unemployed and actively seeking employment.",
+      "Percentage of the population below the federal poverty line, which can indicate economic hardship and its impact on educational opportunities.",
+      "Number of live births to females aged 15-19 per 1000 population, indicating potential early life disruptions to educational pursuits.",
+      "Number of infant deaths per 1000 live births, reflecting broader health and socioeconomic conditions affecting educational outcomes.",
+      "Number of live births per 1000 women aged 15-44, which can influence the age distribution and potential educational attainment levels.",
+      "Percentage of the population aged 25 and over without a high school diploma over the last decade, providing a trend indicator.",
+      "Percentage of the population aged 25 and over with less than 12 years of education, indicating a broader measure of educational attainment.",
+      "Percentage of the population aged 25 and over with less than 9 years of education, further breaking down the educational attainment levels.",
+      "Percentage of the population aged 25 and over with less than 6 years of education, capturing the lowest levels of educational attainment.",
+      "Percentage of the population aged 25 and over with less than 3 years of education, indicating the most extreme cases of educational underachievement.",
+      "Percentage of the population aged 25 and over who completed the 12th grade but did not receive a diploma, indicating alternative pathways to educational attainment.",
+      "Percentage of the population aged 25 and over who have completed a GED, indicating alternative educational attainment pathways.",
+      "Percentage of the population aged 25 and over who have completed a high school diploma, indicating the primary pathway to educational attainment."
+    ],
+    "columns_format": [
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "align": "right"
+      },
+      {
+        "align": "left"
+      }
+    ],
+    "download_count": 16751,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2013-06-04T18:23:42.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Health & Human Services",
+    "domain_tags": [
+      "historical"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Metadata_Data-Owner",
+        "value": "Epidemiology and Public Health Informatics, Chicago Department of Public Health (CDPH)"
+      },
+      {
+        "key": "Metadata_Time-Period",
+        "value": "2005 – 2011"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofchicago.org"
+  },
+  "permalink": "https://data.cityofchicago.org/d/iqnk-2tcu",
+  "link": "https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Selected-public-health-in/iqnk-2tcu",
+  "owner": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  },
+  "creator": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  }
+}
