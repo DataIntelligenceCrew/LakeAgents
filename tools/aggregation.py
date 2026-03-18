@@ -68,25 +68,35 @@ def classify_column_type(
         return "text"
     return "ignore"
 
-def convert_numeric_columns(df: pd.DataFrame) -> pd.DataFrame:
+def convert_numeric_columns(
+    df: pd.DataFrame,
+    exclude_columns: Optional[list] = None,
+) -> pd.DataFrame:
     """
     Convert object columns that contain numeric values to numeric dtype.
     Uses pd.to_numeric with errors='coerce' (invalid values become NaN).
-    
+
     Args:
         df: Input DataFrame
-    
+        exclude_columns: Columns to skip (e.g. join/target ID columns that cause segfault on large data).
+
     Returns:
         DataFrame with numeric columns converted.
     """
     df_converted = df.copy()
-    
+    exclude = set(exclude_columns or [])
+
     # #region agent log
-    import json as _json; _ts = __import__('time').time_ns() // 1000000
-    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D0","timestamp":_ts,"location":"aggregation.py:82","message":"dtypes before convert_numeric_columns","data":{"dtypes":{col:str(dtype) for col,dtype in df.dtypes.items()}},"hypothesisId":"D"}) + '\n')
+    try:
+        import json as _json; _ts = __import__('time').time_ns() // 1000000
+        with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D0","timestamp":_ts,"location":"aggregation.py:82","message":"dtypes before convert_numeric_columns","data":{"dtypes":{col:str(dtype) for col,dtype in df.dtypes.items()}},"hypothesisId":"D"}) + '\n')
+    except OSError:
+        pass
     # #endregion
-    
+
     for col in df_converted.columns:
+        if col in exclude:
+            continue
         if df_converted[col].dtype == 'object':
             # Try to convert to numeric
             converted = pd.to_numeric(df_converted[col], errors='coerce')
@@ -98,8 +108,11 @@ def convert_numeric_columns(df: pd.DataFrame) -> pd.DataFrame:
                     df_converted[col] = converted
     
     # #region agent log
-    import json as _json; _ts = __import__('time').time_ns() // 1000000
-    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D0b","timestamp":_ts,"location":"aggregation.py:99","message":"dtypes after convert_numeric_columns","data":{"dtypes":{col:str(dtype) for col,dtype in df_converted.dtypes.items()}},"hypothesisId":"D"}) + '\n')
+    try:
+        import json as _json; _ts = __import__('time').time_ns() // 1000000
+        with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D0b","timestamp":_ts,"location":"aggregation.py:99","message":"dtypes after convert_numeric_columns","data":{"dtypes":{col:str(dtype) for col,dtype in df_converted.dtypes.items()}},"hypothesisId":"D"}) + '\n')
+    except OSError:
+        pass
     # #endregion
     
     return df_converted
@@ -109,7 +122,7 @@ def aggregate_categorical_column(
     join_columns: List[str],
     categorical_column: str,
     method: str = "count",  # "count" or "proportion"
-    return_as_vector: bool = True,  # True: 单列 vector, False: 多列 one-hot
+    return_as_vector: bool = True,
 ) -> pd.DataFrame:
     """
     Aggregate a categorical column by join key.

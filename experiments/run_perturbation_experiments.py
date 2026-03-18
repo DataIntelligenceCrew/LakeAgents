@@ -1,16 +1,8 @@
 #!/usr/bin/env python3
 """
-完整 benchmark：先生成 perturbed 文件，再跑 pipeline 实验。
-1. Phase 1（可选）：对每个 (τ, β) 运行 run_full_pipeline 生成 perturbed_{τ}_{β}
-2. Phase 2：对每个 (τ, β) 跑 8 个任务，记录到 experiment_log.json
-
-用法:
-  python experiments/run_perturbation_experiments.py                    # 生成 + 实验
-  python experiments/run_perturbation_experiments.py --skip-grid       # 仅实验（跳过生成，用已有 perturbed）
-  python experiments/run_perturbation_experiments.py --grid-only       # 仅生成，不跑实验
 """
 import litellm
-# litellm._turn_on_debug()
+import os
 import sys
 import asyncio
 import argparse
@@ -34,6 +26,10 @@ TASKS = [
     {"join_table": "Demo-NYC", "task_type": "classification", "user_intent": "predict the education level of people in NYC based on the data about poverty in 2018"},
     {"join_table": "Economic-NYC", "task_type": "classification", "user_intent": "predict the household/family type in NYC using the poverty data in 2018"},
     {"join_table": "Education-NYC", "task_type": "classification", "user_intent": "predict the grade of school in nyc using the education record in 2009-2010"},
+    {"join_table": "Environment_NYC", "task_type": "classification", "user_intent": "predict the health condition of street trees in NYC from the 2015 street tree census"},
+    {"join_table": "Food Inspections-NYC", "task_type": "classification", "user_intent": "Predict the score of different restaurants in food inspection of NYC"},
+    {"join_table": "Food Inspections-Chicago", "task_type": "classification", "user_intent": "Predict the risk level of food inspection in Chicago"},
+    {"join_table": "Building Permits-Chicago", "task_type": "classification", "user_intent": "Predict the building permit type of buildings in Chicago"},
 ]
 
 TASK_DIMENSIONS = {
@@ -45,6 +41,10 @@ TASK_DIMENSIONS = {
     "Demo-NYC": {"Domain/Field": ["Poverty"], "Geographic": ["New York City"], "Temporal": ["2018"], "Population Group": ["all"]},
     "Economic-NYC": {"Domain/Field": ["Poverty"], "Geographic": ["New York City"], "Temporal": ["2018"], "Population Group": ["all"]},
     "Education-NYC": {"Domain/Field": ["education"], "Geographic": ["New York City"], "Temporal": ["2009-2010"], "Population Group": ["all"]},
+    "Environment_NYC": {"Domain/Field": ["Environment"], "Geographic": ["New York City"], "Temporal": ["2015"], "Population Group": ["all"]},
+    "Food Inspections-NYC": {"Domain/Field": ["food inspections"], "Geographic": ["New York City"], "Temporal": ["all"], "Population Group": ["all"]},
+    "Food Inspections-Chicago": {"Domain/Field": ["food inspections"], "Geographic": ["Chicago"], "Temporal": ["all"], "Population Group": ["all"]},
+    "Building Permits-Chicago": {"Domain/Field": ["building permits"], "Geographic": ["Chicago"], "Temporal": ["all"], "Population Group": ["all"]},
 }
 
 
@@ -60,8 +60,8 @@ def update_perturbation_yaml(threshold: float, beta: float) -> None:
         yaml.dump(cfg, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
 
-def run_grid(verbose: bool = True):
-    """Phase 1: 生成 perturbed 文件。"""
+def run_grid(verbose: bool = True, tables=None):
+    """"""
     from benchmark_perturbation.benchmark_perturbation import run_full_pipeline
 
     results = []
@@ -75,7 +75,7 @@ def run_grid(verbose: bool = True):
                 print(f"[Grid {idx}/{total}] τ={tau}, β={beta}")
                 print("="*60)
             try:
-                run_full_pipeline(threshold=tau, beta=beta)
+                run_full_pipeline(threshold=tau, beta=beta, tables=tables)
                 results.append({"tau": tau, "beta": beta, "status": "ok"})
             except Exception as e:
                 print(f"  FAILED: {e}")
@@ -108,7 +108,6 @@ def run_orchestrator_inprocess(
 
     config = AgentPipelineConfig(config_dict=cfg_dict)
 
-    # 为 dimension 确认自动填充预设值
     dims = TASK_DIMENSIONS.get(join_table, {})
     responses = []
     for dim_name in ["Domain/Field", "Geographic", "Temporal", "Population Group"]:
@@ -140,7 +139,7 @@ def append_experiment_log(log_path: Path, entry: dict) -> None:
 
 
 def run_experiments(tau_list, beta_list, data_filename, session_start, log_path, verbose=True):
-    """Phase 2: 对每个 (τ, β) 跑 8 个任务。"""
+    """"""
     total = len(tau_list) * len(beta_list) * len(TASKS)
     session_id = session_start
     results = []
@@ -229,7 +228,7 @@ def replace_entry_in_log(log_path: Path, tau: float, beta: float, join_table: st
 
 
 def rerun_failed_tasks(log_path, args):
-    """只重跑失败任务并替换 log 中的对应行。"""
+    """"""
     entries = load_log_entries(log_path)
     failed = [e for e in entries if e.get("returncode", 0) != 0 or "error" in e]
     print(f"Found {len(failed)} failed tasks\n")
@@ -286,9 +285,9 @@ def rerun_failed_tasks(log_path, args):
         print(f"  -> {'ok' if ret == 0 else 'FAILED'} (replaced in log)")
 
 def main():
-    parser = argparse.ArgumentParser(description="完整 benchmark：每个 (τ,β) 先生成再跑实验")
-    parser.add_argument("--skip-grid", action="store_true", help="跳过生成，直接用已有 perturbed（需每个 pair 都存在）")
-    parser.add_argument("--grid-only", action="store_true", help="仅生成，不跑实验")
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument("--skip-grid", action="store_true", help="")
+    parser.add_argument("--grid-only", action="store_true", help="")
     parser.add_argument("--session-start", type=int, default=1)
     parser.add_argument("--data-filename", type=str, default="rows.csv")
     parser.add_argument("--tau-only", type=float, nargs="+")
@@ -296,14 +295,26 @@ def main():
     parser.add_argument("--log-file", type=str, default=None)
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--start-from-session", type=int, default=None,
-                    help="从第 N 个 session 开始跑，跳过前 N-1 次 (τ,β,task)")
+                    help="")
     parser.add_argument("--provider", type=str, default=None, choices=["local", "openai"],
-                    help="覆盖 default_provider，用于并行跑 local 和 openai")
+                    help="")
     parser.add_argument("--session-checked-dir", type=str, default=None,
-                        help="session_checked 目录，用于隔离 local/openai 实验的 session 缓存")
-    parser.add_argument("--rerun-failed", action="store_true", help="只重跑失败任务并替换 log 中的行")
+                        help="")
+    parser.add_argument("--rerun-failed", action="store_true", help="")
+    parser.add_argument("--tables", "-t", nargs="+", help="Only run these join_table names (e.g. -t Taxi-Chicago Traffic_Chicago Taxi-NYC Environment_NYC)")
+    parser.add_argument("--debug-table-selection", action="store_true",
+                        help="Enable Table Selection debug: print full_text preview and parsed relevant_tables (and set DEBUG_TABLE_SELECTION=1)")
+    parser.add_argument("--debug-llm", action="store_true",
+                        help="Enable LiteLLM debug (litellm._turn_on_debug()) to see LLM request/response")
 
     args = parser.parse_args()
+
+    if args.debug_table_selection:
+        os.environ["DEBUG_TABLE_SELECTION"] = "1"
+    if args.debug_llm:
+        litellm._turn_on_debug()
+
+    tasks_to_run = [t for t in TASKS if t["join_table"] in set(args.tables)] if args.tables else TASKS
 
     if args.rerun_failed:
         rerun_failed_tasks(log_path, args)
@@ -323,15 +334,14 @@ def main():
         for beta in beta_list:
             base_dir = f"perturbed_{tau}_{beta}"
 
-            # 本 pair：先生成 perturbed
             if not args.skip_grid:
                 if verbose:
                     print(f"\n{'='*60}")
-                    print(f"生成 perturbed_{tau}_{beta}")
+                    print(f"Generating perturbed_{tau}_{beta}")
                     print("="*60)
                 try:
                     from benchmark_perturbation.benchmark_perturbation import run_full_pipeline
-                    run_full_pipeline(threshold=tau, beta=beta)
+                    run_full_pipeline(threshold=tau, beta=beta, tables=args.tables if args.tables else None)
                 except Exception as e:
                     print(f"  FAILED: {e}")
                     continue
@@ -340,16 +350,15 @@ def main():
                     print(f"Skip {base_dir} (not found)")
                     continue
 
-            # 本 pair：再跑 8 个任务
             if not args.grid_only:
                 if verbose:
                     print(f"\n{'='*60}")
-                    print(f"跑实验 τ={tau}, β={beta} -> {base_dir}")
+                    print(f"Running experiments τ={tau}, β={beta} -> {base_dir}")
                     print("="*60)
                 update_perturbation_yaml(tau, beta)
 
-                total = len(tau_list) * len(beta_list) * len(TASKS)
-                for task in TASKS:
+                total = len(tau_list) * len(beta_list) * len(tasks_to_run)
+                for task in tasks_to_run:
                     if not hasattr(main, '_current_session'):
                         main._current_session = 0
                     main._current_session += 1
@@ -393,7 +402,7 @@ def main():
 
     if not args.grid_only and exp_results:
         ok = sum(1 for r in exp_results if r["returncode"] == 0)
-        print(f"\n实验完成: {ok}/{len(exp_results)} 成功, Log: {log_path}")
+        print(f"\nDone: {ok}/{len(exp_results)} succeeded, Log: {log_path}")
         for r in exp_results:
             if r["returncode"] != 0:
                 print(f"  Failed: τ={r['tau']} β={r['beta']} {r['join_table']} sess={r['session_id']}")

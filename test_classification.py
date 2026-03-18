@@ -4,34 +4,47 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score
+import sys
+from pathlib import Path
 
-path = "/localdisk3/ytang49/opendata/query_table/cts7-vksw copy/rows.csv"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from tools.text_integration import embed_texts_with_fasttext
+
+
+path = "/localdisk3/ytang49/opendata/original_query_table/Food Inspections-Chicago/rows.csv"
 df = pd.read_csv(path)
 
-df = df.dropna()
-
-target_col = "HHT"
-
-# X = df[['INTP_adj']]
-X = df.drop(columns=[target_col])
+target_col = "Risk"
+X = df[['Facility Type']]
 y = df[target_col]
 
-# 先编码 X
-for col in X.select_dtypes(include="object").columns:
-    X[col] = X[col].astype("category").cat.codes
+used_cols = list(X.columns) + [target_col]
+df = df.dropna(subset=used_cols)
 
-# 先 split，再编码 y
+# for col in X.select_dtypes(include="object").columns:
+#     X[col] = X[col].astype("category").cat.codes
+model_path = str(Path(__file__).resolve().parent / "fasttext.bin")
+parts = []
+for col in X.columns:
+    if X[col].dtype == object or X[col].dtype.name == "string":
+        texts = X[col].fillna("").astype(str).tolist()
+        emb = embed_texts_with_fasttext(texts, model_path=model_path)
+        parts.append(emb)
+    else:
+        parts.append(X[col].values.reshape(-1, 1))
+X = np.hstack(parts)
+
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-# 在训练集上 fit LabelEncoder
 le = LabelEncoder()
 y_train_encoded = le.fit_transform(y_train)
 y_test_encoded = le.transform(y_test)
 
-print(f"训练集类别数: {len(np.unique(y_train_encoded))}")
-print(f"测试集类别数: {len(np.unique(y_test_encoded))}")
+print(f"Train classes: {len(np.unique(y_train_encoded))}")
+print(f"Test classes: {len(np.unique(y_test_encoded))}")
 
 model = XGBClassifier(
     n_estimators=200,

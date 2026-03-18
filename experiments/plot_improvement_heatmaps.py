@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """
-从 experiment log 绘制 2×4 子图网格：每个 task 一个 (tau, beta) 热力图，颜色=improvement。
 """
 import json
 import argparse
@@ -8,7 +7,6 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 
-# 8 tasks 固定顺序
 TASKS_ORDER = [
     "COVID-Chicago", "COVID-NYC", "Demo-Chicago", "Demo-NYC",
     "Economic-Chicago", "Economic-NYC", "Education-Chicago", "Education-NYC",
@@ -30,7 +28,7 @@ def load_entries(log_path: str) -> list[dict]:
 
 
 def build_improvement_matrix(entries: list[dict], join_table: str) -> tuple[np.ndarray, list, list]:
-    """提取某个 task 的 (tau, beta) -> improvement，返回矩阵和 tau/beta 列表。"""
+    """"""
     tau_set = sorted(set(e["tau"] for e in entries))
     beta_set = sorted(set(e["beta"] for e in entries))
     tau_to_idx = {t: i for i, t in enumerate(tau_set)}
@@ -80,7 +78,6 @@ def main():
         ax.set_ylabel("τ")
         ax.set_title(task, fontsize=10)
 
-        # 在格子里标注数值
         for i in range(mat.shape[0]):
             for j in range(mat.shape[1]):
                 v = mat[i, j]
@@ -93,9 +90,7 @@ def main():
     plt.suptitle(args.title, fontsize=12)
     plt.tight_layout()
 
-    # 共用 colorbar
-    cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
-    fig.colorbar(im, cax=cbar_ax, label="Improvement")
+
 
     out_path = args.output or log_path.with_suffix(".improvement_heatmaps.png")
     plt.savefig(out_path, dpi=150, bbox_inches="tight")

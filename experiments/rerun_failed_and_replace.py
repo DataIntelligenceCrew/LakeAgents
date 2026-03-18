@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """
-只重跑 experiment log 中失败的任务，并把结果写回 log（替换对应行，不追加）。
 """
 import json
 import argparse
@@ -25,11 +24,11 @@ def load_entries(log_path: Path) -> list[dict]:
 
 
 def has_error(entry: dict) -> bool:
-    return entry.get("returncode", 0) != 0 or "error" in entry
+    return entry.get("selected_candidate_tables") == []
 
 
 def replace_entry_in_log(log_path: Path, tau: float, beta: float, join_table: str, new_entry: dict) -> None:
-    """用 new_entry 替换 log 中 (tau, beta, join_table) 匹配的那一行。"""
+    """"""
     entries = []
     with open(log_path, "r", encoding="utf-8") as f:
         for line in f:

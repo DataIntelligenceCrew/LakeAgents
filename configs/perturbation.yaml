@@ -1,3 +1,6 @@
+run_tables:
+- Taxi-Chicago
+- Traffic_Chicago
 tables:
   COVID-NYC:
     join_columns:
@@ -31,6 +34,35 @@ tables:
     join_columns:
     - DBN
     target_column: 2009-2010 OVERALL GRADE
+  Taxi-Chicago:
+    join_columns:
+    - Trip ID
+    target_column: Trip Total
+  Traffic_Chicago:
+    join_columns:
+    - CRASH_RECORD_ID
+    target_column: INJURIES_TOTAL
+  Taxi-NYC:
+    join_columns:
+    - PULocationID
+    - DOLocationID
+    target_column: total_amount
+  Environment_NYC:
+    join_columns:
+    - tree_id
+    target_column: health
+  Food Inspections-NYC:
+    join_columns:
+    - CAMIS
+    target_column: SCORE
+  Building Permits-Chicago:
+    join_columns:
+    - ID
+    target_column: PERMIT_STATUS
+  Food Inspections-Chicago:
+    join_columns:
+    - Inspection ID
+    target_column: Risk
 perturbation:
-  threshold: 0.9
-  beta: 0.3
+  threshold: 0.1
+  beta: 0.1

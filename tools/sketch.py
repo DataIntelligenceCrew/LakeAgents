@@ -89,13 +89,11 @@ def _normalize_for_hash(value) -> str:
     s = str(value).strip().lower()
     if not s:
         return "__NA__"
-    # 只对看起来像 ISO 或含 T 的日期做标准化
     if "t" in s and ("-" in s or s.count("/") == 2):
         try:
             return pd.to_datetime(value).strftime("%Y-%m-%d")
         except Exception:
             pass
-    # MM/DD/YYYY 等格式
     if s.count("/") == 2 or (s.count("-") >= 2 and len(s) <= 12):
         try:
             return pd.to_datetime(value).strftime("%Y-%m-%d")
@@ -105,7 +103,7 @@ def _normalize_for_hash(value) -> str:
         num = float(value)
         if num == int(num):  # 14.0 -> 14
             return str(int(num))
-        return str(num)  # 3.14 保持为 "3.14"
+        return str(num)
     except (ValueError, TypeError):
         pass  
     return s
@@ -159,52 +157,65 @@ def hash_df_columns_to_unit(df: pd.DataFrame, columns: Optional[List[str]] = Non
 
 # ---- Bottom-k sketch ----
 
-DEFAULT_SKETCH_K = 256
+DEFAULT_SKETCH_K = 512
+SKETCH_RATIO = 0.1
+SKETCH_K_MAX = 10000
+SKETCH_K_MIN = 256
 
 
-def bottom_k_sketch_column(series: pd.Series, k: int = DEFAULT_SKETCH_K) -> np.ndarray:
-    """
-    Create bottom-k sketch for a column.
-    Hashes each value to [0,1], keeps the k smallest distinct hashes, returns sorted array.
-    If column has fewer than k distinct values, returns all distinct hashes (sorted).
-    """
+def _effective_k(
+    n_unique: int,
+    k: int,
+    ratio: Optional[float] = None,
+    k_max: Optional[int] = None,
+    k_min: Optional[int] = None,
+) -> int:
+    k_eff = k
+    if ratio is not None and n_unique > 0:
+        k_from_ratio = int(np.ceil(ratio * n_unique))
+        k_from_ratio = max(k_from_ratio, k_min if k_min is not None else SKETCH_K_MIN)
+        k_from_ratio = max(k_from_ratio, k)
+        k_eff = min(k_from_ratio, k_max if k_max is not None else SKETCH_K_MAX)
+    return min(k_eff, n_unique)
+
+
+def bottom_k_sketch_column(
+    series: pd.Series,
+    k: int = DEFAULT_SKETCH_K,
+    ratio: Optional[float] = SKETCH_RATIO,
+    k_max: Optional[int] = SKETCH_K_MAX,
+) -> np.ndarray:
     hashed = hash_column_to_unit(series.astype(object))
     unique = np.unique(hashed.dropna().values)
-    if len(unique) <= k:
+    n_unique = len(unique)
+    k_eff = _effective_k(n_unique, k, ratio, k_max)
+    if n_unique <= k_eff:
         return np.sort(unique)
-    # Partition to get k smallest (partial sort)
-    k_smallest = np.partition(unique, k)[:k]
+    k_smallest = np.partition(unique, k_eff)[:k_eff]
     return np.sort(k_smallest)
 
 def bottom_k_sketch_column_with_samples(
     series: pd.Series,
     k: int = DEFAULT_SKETCH_K,
+    ratio: Optional[float] = SKETCH_RATIO,
+    k_max: Optional[int] = SKETCH_K_MAX,
 ) -> tuple[np.ndarray, list, str]:
-    """
-    Create bottom-k sketch and preserve the original column values that form the sketch.
-
-    Returns:
-        sketch: Sorted array of the k smallest distinct hashes (same as bottom_k_sketch_column).
-        original_values: List of distinct values from the column whose hashes are in the bottom-k.
-        column_name: The name of the column (series.name, or "" if not set).
-
-    Use original_values to filter rows to only those with join key in this set before aggregation.
-    """
     col_name = series.name if series.name is not None else ""
     series_clean = series.astype(object).dropna()
     if len(series_clean) == 0:
         return np.array([]), [], col_name
 
-    # Build (value, hash) for each distinct value
     distinct_vals = series_clean.unique()
+    n_unique = len(distinct_vals)
+    k_eff = _effective_k(n_unique, k, ratio, k_max)
+
     value_to_hash = [(v, hash_value_to_unit(v)) for v in distinct_vals]
-    # Sort by hash, take bottom-k
     value_to_hash.sort(key=lambda x: x[1])
-    if len(value_to_hash) <= k:
+    if n_unique <= k_eff:
         hashes = np.sort(np.array([h for _, h in value_to_hash]))
         values = [v for v, _ in value_to_hash]
         return hashes, values, col_name
-    bottom_k_pairs = value_to_hash[:k]
+    bottom_k_pairs = value_to_hash[:k_eff]
     hashes = np.sort(np.array([h for _, h in bottom_k_pairs]))
     values = [v for v, _ in bottom_k_pairs]
     return hashes, values, col_name
@@ -213,45 +224,44 @@ def bottom_k_sketch_df(
     df: pd.DataFrame,
     k: int = DEFAULT_SKETCH_K,
     columns: Optional[List[str]] = None,
+    ratio: Optional[float] = SKETCH_RATIO,
+    k_max: Optional[int] = SKETCH_K_MAX,
 ) -> dict[str, np.ndarray]:
     """
     Create bottom-k sketches for all specified columns.
-    Returns: dict mapping column_name -> sorted array of k smallest hashes in [0,1].
+    k_eff = min(max(k, ceil(ratio * n_unique)), k_max) per column when ratio is set.
     """
     cols = columns if columns is not None else list(df.columns)
     sketches = {}
     for c in cols:
         if c in df.columns:
-            sketches[c] = bottom_k_sketch_column(df[c], k=k)
+            sketches[c] = bottom_k_sketch_column(df[c], k=k, ratio=ratio, k_max=k_max)
     return sketches
 
 def bottom_k_sketch_df_with_samples(
     df: pd.DataFrame,
     k: int = DEFAULT_SKETCH_K,
     columns: Optional[List[str]] = None,
+    ratio: Optional[float] = SKETCH_RATIO,
+    k_max: Optional[int] = SKETCH_K_MAX,
 ) -> dict[str, tuple[np.ndarray, list, str]]:
     """
     Create bottom-k sketches and preserve original values that form each sketch.
-
-    Returns: dict mapping column_name -> (sketch, original_values, column_name).
-    Use original_values to filter rows to only sketch samples before aggregation.
+    k_eff per column: min(max(k, ceil(ratio * n_unique)), k_max).
     """
     cols = columns if columns is not None else list(df.columns)
     result = {}
     for c in cols:
         if c in df.columns:
-            sketch, values, name = bottom_k_sketch_column_with_samples(df[c], k=k)
+            sketch, values, name = bottom_k_sketch_column_with_samples(
+                df[c], k=k, ratio=ratio, k_max=k_max
+            )
             result[c] = (sketch, values, name or c)
     return result
 
 # ---- Jaccard similarity ----
 
 def jaccard_similarity_sketches(sketch_a: np.ndarray, sketch_b: np.ndarray) -> float:
-    """
-    Compute Jaccard similarity between two bottom-k sketches.
-    Jaccard = |A ∩ B| / |A ∪ B|.
-    Returns 0.0 if both sketches are empty.
-    """
     if len(sketch_a) == 0 and len(sketch_b) == 0:
         return 0.0
     inter = np.intersect1d(sketch_a, sketch_b)
@@ -261,18 +271,35 @@ def jaccard_similarity_sketches(sketch_a: np.ndarray, sketch_b: np.ndarray) -> f
     return len(inter) / union_size
 
 
+def containment_similarity_sketches(join_sketch: np.ndarray, cand_sketch: np.ndarray) -> float:
+    if len(join_sketch) == 0:
+        return 0.0
+    inter = np.intersect1d(join_sketch, cand_sketch)
+    return len(inter) / len(join_sketch)
+
+
 def jaccard_sketch_with_columns(
     join_sketch: np.ndarray,
     candidate_sketches: dict[str, np.ndarray],
 ) -> dict[str, float]:
-    """
-    Compare join column sketch with each candidate column sketch.
-    Returns: dict mapping column_name -> Jaccard similarity with join column.
-    """
     return {
         col: jaccard_similarity_sketches(join_sketch, sketch)
         for col, sketch in candidate_sketches.items()
     }
+
+
+def sketch_scores_with_columns(
+    join_sketch: np.ndarray,
+    candidate_sketches: dict[str, np.ndarray],
+) -> dict[str, float]:
+    result = {}
+    for col, cand_sketch in candidate_sketches.items():
+        jaccard = jaccard_similarity_sketches(join_sketch, cand_sketch)
+        containment = containment_similarity_sketches(join_sketch, cand_sketch)
+        score = max(jaccard, containment)
+        result[col] = score
+        print(f"[sketch] column={col} jaccard={jaccard:.6f} containment={containment:.6f} score={score:.6f}")
+    return result
 
 # ---- Top-k Jaccard selection ----
 
@@ -295,27 +322,29 @@ def select_topk_jaccard_columns(
 
 
 def select_join_columns_for_candidate(
-    join_sketch: np.ndarray | dict[str, np.ndarray], 
+    join_sketch: np.ndarray | dict[str, np.ndarray],
     cand_df: pd.DataFrame,
     k_columns: int = DEFAULT_TOPK_JOIN_COLUMNS,
     min_jaccard: float = 0.5,
     sketch_k: int = DEFAULT_SKETCH_K,
+    sketch_ratio: Optional[float] = SKETCH_RATIO,
+    sketch_k_max: Optional[int] = SKETCH_K_MAX,
 ) -> list[tuple[str, float]] | dict[str, list[tuple[str, float]]]:
     """
     Support single column or composite key.
     - join_sketch is np.ndarray: return [(col, jaccard), ...]
     - join_sketch is dict: return {join_col: [(col, jaccard), ...], ...}
     """
-    cand_sketches = bottom_k_sketch_df(cand_df, k=sketch_k)
+    cand_sketches = bottom_k_sketch_df(
+        cand_df, k=sketch_k, ratio=sketch_ratio, k_max=sketch_k_max
+    )
     
     if isinstance(join_sketch, dict):
-        # Composite key
         result = {}
         for join_col, sketch in join_sketch.items():
-            jaccards = jaccard_sketch_with_columns(sketch, cand_sketches)
-            result[join_col] = select_topk_jaccard_columns(jaccards, k=k_columns, min_jaccard=min_jaccard)
+            scores = sketch_scores_with_columns(sketch, cand_sketches)
+            result[join_col] = select_topk_jaccard_columns(scores, k=k_columns, min_jaccard=min_jaccard)
         return result
     else:
-        # Single key
-        jaccards = jaccard_sketch_with_columns(join_sketch, cand_sketches)
-        return select_topk_jaccard_columns(jaccards, k=k_columns, min_jaccard=min_jaccard)
+        scores = sketch_scores_with_columns(join_sketch, cand_sketches)
+        return select_topk_jaccard_columns(scores, k=k_columns, min_jaccard=min_jaccard)

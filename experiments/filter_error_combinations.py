@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 """
-从 experiment log (JSONL) 中筛出有 error 的 combination。
-输出: session_id, tau, beta, join_table, error
 """
 import json
 import argparse
@@ -23,7 +21,7 @@ def load_entries(log_path: str) -> list[dict]:
 
 
 def has_error(entry: dict) -> bool:
-    return entry.get("returncode", 0) != 0 or "error" in entry
+    return entry.get("selected_candidate_tables") == []
 
 
 def main():

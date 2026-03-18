@@ -3,7 +3,7 @@
 
 # Data settings
 data:
-  data_source: "datalake"  # "local" 或 "datalake"
+  data_source: "datalake"
   
   base_dir: "query_table"
   data_filename: "rows.csv"
@@ -22,13 +22,26 @@ data:
 
 # Pipeline task settings
 task:
+  # join_table_name: "Food Inspections-NYC"
+  # join_column: "CAMIS"
+  # target_column: "SCORE"
+  # task_type: "classification"  # Options: "regression" or "classification"
+  # session:
+  #   session_id: "205"
 
-  join_table_name: "Education-Chicago"
-  join_column: ["School ID"]
-  target_column: "CPS Performance Policy Status"
+  # join_table_name: "Building Permits-Chicago"
+  # join_column: "ID"
+  # target_column: "PERMIT_STATUS"
+  # task_type: "classification"  # Options: "regression" or "classification"
+  # session:
+  #   session_id: "206"
+  
+  join_table_name: "Food Inspections-Chicago"
+  join_column: "Inspection ID"
+  target_column: "Risk"
   task_type: "classification"  # Options: "regression" or "classification"
   session:
-    session_id: "001"
+    session_id: "210"
 
 # Validation thresholds
 validation:
@@ -61,9 +74,6 @@ agents:
   models:
     
     local:
-      # table_selection: "openai/llama"
-      # join_column_selection: "openai/llama"
-      # utility_gain: "openai/llama"
       table_selection: "openai/Qwen/Qwen2.5-7B-Instruct"
       join_column_selection: "openai/Qwen/Qwen2.5-7B-Instruct"
       utility_gain: "openai/Qwen/Qwen2.5-7B-Instruct"
@@ -132,7 +142,7 @@ output:
   print_results: true  # Print final results summary
   save_results: false  # Save results to JSON file
   results_file: "pipeline_results.json"  # Output file name (if save_results is true)
-  experiment_log_file: "experiments/experiment_log_mini.json"
+  experiment_log_file: "experiments/experiment_log_qwen.json"
   llm_rows_file: "rows_mini.csv"  # LLM augment output CSV (Baseline/llm_augment.py)
   llm_metadata_file: "metadata_mini.json"  # LLM augment output metadata (Baseline/llm_augment.py)  
 

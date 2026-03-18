@@ -278,6 +278,6 @@ class AgentPipelineConfig:
 
     @property
     def session_checked_dir(self) -> Optional[str]:
-        """Session checked 目录路径，None 表示使用默认值。"""
+        """"""
         return self.config.get("output", {}).get("session_checked_dir")
     

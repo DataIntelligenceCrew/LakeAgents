@@ -626,6 +626,30 @@ Call read_table_index(candidate_ids={candidate_ids_for_run}) to get index entrie
             table_data = extract_relevant_tables_from_full_text(full_table_text)
         relevant_list = table_data.get("relevant_tables", [])
 
+        # Debug: when DEBUG_TABLE_SELECTION=1 or when no tables selected (to diagnose "选不出来")
+        _debug_ts = os.environ.get("DEBUG_TABLE_SELECTION", "").lower() in ("1", "true", "yes") or len(relevant_list) == 0
+        if _debug_ts:
+            _src = "state_delta" if table_data_from_state is not None else "full_text"
+            _preview_len = 2000
+            _preview = (full_table_text[: _preview_len] + "...") if len(full_table_text) > _preview_len else full_table_text
+            _debug_payload = {
+                "location": "orchestrator.table_selection",
+                "source": _src,
+                "full_text_len": len(full_table_text),
+                "full_text_preview": _preview,
+                "table_data_keys": list(table_data.keys()) if isinstance(table_data, dict) else None,
+                "relevant_tables_count": len(relevant_list),
+                "relevant_tables_sample": relevant_list[:5] if relevant_list else [],
+            }
+            print("\n[DEBUG] Table Selection:")
+            print(f"  source={_src}, full_text_len={len(full_table_text)}, relevant_tables_count={len(relevant_list)}")
+            print(f"  full_text_preview (first {min(_preview_len, len(full_table_text))} chars):\n  {repr(_preview[:500])}...")
+            if relevant_list:
+                print(f"  relevant_tables_sample: {_debug_payload['relevant_tables_sample']}")
+            else:
+                print("  relevant_tables is EMPTY — check above: did model call read_table_index? return valid JSON with key 'relevant_tables'?")
+            _debug_log(_debug_payload)
+
         # Normalize: table_id (id), table_name (human-readable name from metadata)
         id_to_name = {}
         for e in merged_index:
@@ -684,7 +708,7 @@ Call read_table_index(candidate_ids={candidate_ids_for_run}) to get index entrie
         # Create sketch for each join column
         if len(join_columns) == 1:
             join_sketch, join_sketch_original_values, _ = bottom_k_sketch_column_with_samples(
-                join_df[join_columns[0]], k=256)  
+                join_df[join_columns[0]], k=1024)  
 
         else:
             join_sketch = {jc: bottom_k_sketch_column(join_df[jc]) for jc in join_columns if jc in join_df.columns}
@@ -710,7 +734,7 @@ Call read_table_index(candidate_ids={candidate_ids_for_run}) to get index entrie
                 run_record["status"].append("success")
                 run_record["reason"].append(None)
                 cols_with_jaccard = select_join_columns_for_candidate(
-                    join_sketch, df, k_columns=topk_join, min_jaccard=0.1
+                    join_sketch, df, k_columns=topk_join, min_jaccard=0.1, sketch_k=1024
                 )
                 cand_col_descs = get_column_descriptions_from_index(cand_name)
 
@@ -828,14 +852,25 @@ Return JSON with selected_columns and reasoning."""
 
         from Classification_regression import preprocess_data, run_classification_task, run_regression_task
 
+        JOIN_KEY_LIMIT = 500
+        jc0 = join_columns[0] if join_columns else None
+        join_df_ml = join_df
+        join_key_filter_500 = None
+        if jc0 and jc0 in join_df.columns:
+            unique_keys = join_df[jc0].dropna().astype(str).str.strip().unique().tolist()
+            if len(unique_keys) > JOIN_KEY_LIMIT:
+                keys_to_keep = set(unique_keys[:JOIN_KEY_LIMIT])
+                join_df_ml = join_df[join_df[jc0].astype(str).str.strip().isin(keys_to_keep)].copy()
+                join_key_filter_500 = unique_keys[:JOIN_KEY_LIMIT]
+
         baseline_metric = None
-        baseline_features = [c for c in join_df.columns 
+        baseline_features = [c for c in join_df_ml.columns 
                             if c != target_column and c not in join_columns]
         if len(baseline_features) == 0:
-            baseline_features = [c for c in join_df.columns if c != target_column]
+            baseline_features = [c for c in join_df_ml.columns if c != target_column]
         metric_name = "r2_score" if task_type == "regression" else "f1_score"  
         if len(baseline_features) > 0:
-            baseline_df = join_df[baseline_features + [target_column]].dropna(subset=[target_column])
+            baseline_df = join_df_ml[baseline_features + [target_column]].dropna(subset=[target_column])
             
             # #region agent log
             import json as _json; _ts = __import__('time').time_ns() // 1000000
@@ -894,19 +929,20 @@ Return JSON with selected_columns and reasoning."""
         # Correlation phase: compute target aggregation and feature correlations per candidate
         print(f"\n📈 Computing correlations with target '{target_column}'...")
         target_agg, target_type = aggregate_target_by_join_key(
-            join_df, join_columns, target_column,
+            join_df_ml, join_columns, target_column,
             base_dir=BASE_DIR, join_table_folder=real_join_table_name,
         )
 
         # Aggregation phase
+        join_key_filter_ml = join_key_filter_500 if join_key_filter_500 is not None else join_sketch_original_values
         print(f"\n📊 Aggregating candidate tables by join key...")
         aggregated_results = aggregate_selected_tables(
             final_selected_tables,
             base_dir=BASE_DIR,
             opendata_domain=domain_for_fetch,
-            join_key_filter=join_sketch_original_values,
+            join_key_filter=join_key_filter_ml,
             query_join_columns=join_columns,
-            llm_join_keys=join_sketch_original_values, 
+            llm_join_keys=join_key_filter_ml, 
             target_agg=target_agg,
             target_column=target_column,
             target_type=target_type,
@@ -965,7 +1001,6 @@ Return JSON with selected_columns and reasoning."""
             candidate_columns = []
             for _, row in corr_df.iterrows():
                 feature_name = row["feature"]
-                # 跳过已经在 query table 中的列
                 if str(feature_name).strip().lower() in existing_columns_lower:
                     continue
 
@@ -1019,7 +1054,7 @@ Select augment columns. Return JSON with selected_augment_columns and reasoning.
             result["augment_reasoning"] = parsed.get("reasoning", "")
 
         # ---- Build augmented table and evaluate metrics ----
-        augmented_df = join_df.copy()
+        augmented_df = join_df_ml.copy()
         from tools.sketch import _normalize_for_hash
         for jc in join_columns:
             if jc in augmented_df.columns:
@@ -1029,7 +1064,6 @@ Select augment columns. Return JSON with selected_augment_columns and reasoning.
             aug_cols = result.get("selected_augment_columns", [])
             if not aug_cols:
                 continue
-            # 重新获取原始表并聚合选中的列
             cand_name = result.get("candidate_table")
             selected_cols = result.get("selected_columns", [])
 

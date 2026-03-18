@@ -225,8 +225,11 @@ def run_all_tokenized_files(
     synonym_path: Union[str, Path],
     threshold: float = 0.85,
     output_dir: Union[str, Path] = None,
+    tables: Optional[List[str]] = None,
 ) -> list:
-    """Process each *_tokenized.json; compute Jaccard per file."""
+    """Process each *_tokenized.json; compute Jaccard per file.
+    tables: If given, only process these table names (e.g. ["Taxi-Chicago", "Traffic_Chicago"]).
+    """
     jaccard_tokenized_dir = Path(jaccard_tokenized_dir)
     synonym_path = Path(synonym_path)
     if output_dir is None:
@@ -235,6 +238,10 @@ def run_all_tokenized_files(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     json_files = sorted(jaccard_tokenized_dir.glob("*_tokenized.json"))
+    if tables is not None:
+        tables_set = set(tables)
+        json_files = [jf for jf in json_files
+                      if jf.stem.replace("_tokenized", "") in tables_set]
     results = []
     for jf in json_files:
         out = output_dir / jf.name.replace("_tokenized.json", "_perturbed.json")
@@ -311,16 +318,23 @@ def map_perturbed_to_query_table(
     output_base: Union[str, Path],
     data_filename: str = "rows.csv",
     beta: Optional[float] = None,
+    tables: Optional[List[str]] = None,
 ) -> None:
     """
     For each *_perturbed.json: load replacements, apply to metadata, save to
     output_base/metadata.json and copy rows.csv. Output dir: {output_base}/{table}/.
+    tables: If given, only process these table names.
     """
     jaccard_perturbed_dir = Path(jaccard_perturbed_dir)
     query_table_dir = Path(query_table_dir)
     output_base = Path(output_base)
 
-    for p in sorted(jaccard_perturbed_dir.glob("*_perturbed.json")):
+    perturbed_files = sorted(jaccard_perturbed_dir.glob("*_perturbed.json"))
+    if tables is not None:
+        tables_set = set(tables)
+        perturbed_files = [p for p in perturbed_files
+                          if p.stem.replace("_perturbed", "") in tables_set]
+    for p in perturbed_files:
         with open(p, "r", encoding="utf-8") as f:
             perturbed = json.load(f)
         table_name = p.stem.replace("_perturbed", "")

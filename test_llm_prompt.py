@@ -517,7 +517,6 @@ def extract_json(text: str) -> Dict[str, Any]:
     if not text:
         return {}
 
-    # 1. 优先从 markdown 代码块中提取 JSON（Llama 等模型常用格式）
     json_str = None
     if "```json" in text:
         parts = text.split("```json", 1)[1].split("```", 1)
@@ -532,13 +531,11 @@ def extract_json(text: str) -> Dict[str, Any]:
         except json.JSONDecodeError:
             pass
 
-    # 2. 尝试直接解析整段文本
     try:
         return json.loads(text)
     except json.JSONDecodeError:
         pass
 
-    # 3. 用正则找 {...} 并解析
     match = re.search(r'\{.*\}', text, flags=re.DOTALL)
     if match:
         json_str = match.group(0)
@@ -551,7 +548,6 @@ def extract_json(text: str) -> Dict[str, Any]:
             except (ValueError, SyntaxError):
                 pass
 
-    # 4. 都没有解析出有效 JSON 时才返回空
     return {"relevant_tables": []}
 
 

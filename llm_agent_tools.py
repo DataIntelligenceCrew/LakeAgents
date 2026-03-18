@@ -1372,7 +1372,7 @@ def _train_and_evaluate(
     # Handle missing values in remaining scalar features
     for col in X.columns:
         if col.endswith('_vector'):
-            continue  # vector 已处理
+            continue
         if pd.api.types.is_numeric_dtype(X[col]):
             X[col] = X[col].fillna(X[col].mean())
         else:

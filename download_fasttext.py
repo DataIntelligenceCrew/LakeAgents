@@ -10,11 +10,10 @@ def download_fasttext():
     target_file = "fasttext.bin"
 
     if os.path.exists(target_file):
-        print(f"✅ {target_file} 已经存在，无需下载。")
+        print(f"✅ {target_file} already exists, skip download.")
         return
 
-    # 1. 下载压缩包
-    print(f"📡 正在从 Facebook 服务器下载模型 (约 4.2GB)...")
+    print(f"📡 Downloading model from Facebook (~4.2GB)...")
     response = requests.get(url, stream=True)
     total_size = int(response.headers.get('content-length', 0))
     
@@ -29,16 +28,14 @@ def download_fasttext():
             size = f.write(data)
             bar.update(size)
 
-    # 2. 解压缩
-    print(f"📦 正在解压文件，请稍候...")
+    print(f"📦 Extracting archive...")
     with gzip.open(compressed_file, 'rb') as f_in:
         with open(target_file, 'wb') as f_out:
             shutil.copyfileobj(f_in, f_out)
 
-    # 3. 清理临时文件
-    print(f"🧹 正在清理临时压缩包...")
+    print(f"🧹 Removing temporary archive...")
     os.remove(compressed_file)
-    print(f"✨ 成功！模型已就绪: {os.path.abspath(target_file)}")
+    print(f"✨ Done. Model ready: {os.path.abspath(target_file)}")
 
 if __name__ == "__main__":
     download_fasttext()

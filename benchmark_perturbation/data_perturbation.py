@@ -123,28 +123,10 @@ def process_numerical_perturb(
     if not rows_path.exists():
         return {"table": table_folder, "status": "skip", "reason": "rows.csv not found"}
     df = pd.read_csv(rows_path, low_memory=False)
-    df = convert_numeric_columns(df)
-    if df.empty:
-        return {"table": table_folder, "status": "skip", "reason": "empty"}
     table_cfg = TABLE_CONFIG.get(table_folder, {})
-    # Limit to first 500 join_keys to match llm_augment (avoid token explosion)
-    join_cols_cfg = table_cfg.get("join_columns", [])
-    if join_cols_cfg:
-        jc = join_cols_cfg[0] if isinstance(join_cols_cfg[0], str) else join_cols_cfg[0]
-        if jc in df.columns:
-            unique_keys = df[jc].dropna().astype(str).str.strip().unique().tolist()
-            if len(unique_keys) > 500:
-                keys_to_keep = set(unique_keys[:500])
-                df = df[df[jc].astype(str).str.strip().isin(keys_to_keep)].copy()
-            if df.empty:
-                return {"table": table_folder, "status": "skip", "reason": "empty after join_key filter"}
-    exclude = table_cfg.get("join_columns", [])
-    num_cols = get_numerical_columns(df, base_dir, table_folder, exclude)
-    if not num_cols:
-        return {"table": table_folder, "status": "ok", "numerical_cols": 0}
-    df_perturbed, df_original = apply_numerical_noise(df, num_cols, beta=beta, random_state=random_state)
-    # df_perturbed = add_freedman_diaconis_bins(df_perturbed, df_original, num_cols)
-    
+    orig_join_cols = table_cfg.get("join_columns", []) or []
+    if isinstance(orig_join_cols, str):
+        orig_join_cols = [orig_join_cols]
     jaccard_perturbed_dir = Path(__file__).resolve().parent / "jaccard_perturbed"
     perturbed_json_path = jaccard_perturbed_dir / f"{table_folder}_perturbed.json"
     replacements_for_this_table = {}
@@ -152,7 +134,18 @@ def process_numerical_perturb(
         with open(perturbed_json_path, "r", encoding="utf-8") as f:
             perturbed_data = json.load(f)
         replacements_for_this_table = perturbed_data.get("replacements", {})
-        
+    exclude = [
+        _get_perturbed_name(c, replacements_for_this_table) for c in orig_join_cols
+    ]
+    df = convert_numeric_columns(df, exclude_columns=exclude)
+    if df.empty:
+        return {"table": table_folder, "status": "skip", "reason": "empty"}
+    num_cols = get_numerical_columns(df, base_dir, table_folder, exclude)
+    if not num_cols:
+        return {"table": table_folder, "status": "ok", "numerical_cols": 0}
+    df_perturbed, df_original = apply_numerical_noise(df, num_cols, beta=beta, random_state=random_state)
+    # df_perturbed = add_freedman_diaconis_bins(df_perturbed, df_original, num_cols)
+
     df_perturbed = shuffle_rows_jointly_on_selected_features(
         df_perturbed,
         table_name=table_folder,
@@ -239,9 +232,9 @@ def shuffle_rows_jointly_on_selected_features(
     # 7. Use the same permutation to rearrange the selected feature submatrix
     permuted_rows_idx = rows_idx.copy()
     rng.shuffle(permuted_rows_idx)
-
+    col_positions = [df.columns.get_loc(c) for c in selected_feats]
     out = df.copy()
-    out.loc[rows_idx, selected_feats] = (
-        df.loc[permuted_rows_idx, selected_feats].to_numpy()
+    out.iloc[rows_idx, col_positions] = (
+        df.iloc[permuted_rows_idx, col_positions].to_numpy()
     )
     return out
