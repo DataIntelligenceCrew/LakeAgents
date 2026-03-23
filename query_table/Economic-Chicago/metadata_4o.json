@@ -1,0 +1,141 @@
+{
+  "resource": {
+    "name": "Economic Chicago",
+    "id": "t68z-cikk",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "This dataset contains selected variables from the 2023 ACS Community Survey aggregated by Chicago Community Area, with additional years to be added as available. Because census tracts and community area boundaries do not perfectly align, values are estimated based on tract overlap proportions. The total population represented is 2,647,621 compared to the ACS 2023 Chicago total of 2,664,452 (-0.632% difference). Hispanic or Latino individuals are counted both within their identified race category and separately, consistent with Census Bureau methodology, including a White Not Hispanic or Latino category. Supporting code and geographic resources are available through the City of Chicago GitHub repository and related boundary datasets.",
+    "attribution": "City of Chicago",
+    "attribution_link": "https://www.chicago.gov",
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2025-02-06T18:14:26.000Z",
+    "createdAt": "2025-01-06T15:56:54.000Z",
+    "metadata_updated_at": "2025-02-06T18:14:26.000Z",
+    "data_updated_at": "2025-01-23T16:10:00.000Z",
+    "page_views": {
+      "page_views_last_week": 354,
+      "page_views_last_month": 1410,
+      "page_views_total": 8324,
+      "page_views_last_week_log": 8.471675214392045,
+      "page_views_last_month_log": 10.462502272597265,
+      "page_views_total_log": 13.023234556845988
+    },
+    "columns_name": [
+      "Under $25,000",
+      "Community Area",
+      "$50,000 to $74,999",
+      "median_income",
+      "unemployment_rate",
+      "education_level_distribution",
+      "poverty_rate",
+      "average_household_size",
+      "housing_cost_burden",
+      "crime_rate",
+      "public_assistance_rate",
+      "healthcare_access",
+      "transportation_accessibility"
+    ],
+    "columns_field_name": [
+      "under_25_000",
+      "community_area",
+      "_50_000_to_74_999",
+      "median_income",
+      "unemployment_rate",
+      "education_level_distribution",
+      "poverty_rate",
+      "average_household_size",
+      "housing_cost_burden",
+      "crime_rate",
+      "public_assistance_rate",
+      "healthcare_access",
+      "transportation_accessibility"
+    ],
+    "columns_datatype": [
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "Total # of Families w/ income under $25,000",
+      "Name of Community Area",
+      "Total # of Families w/ income between $50,000 and $74,999",
+      "Median household income for each Community Area, which can provide insight into the overall economic status and help predict the number of families with income under $25,000.",
+      "Unemployment rate for each Community Area, indicating the percentage of the labor force that is unemployed.",
+      "Distribution of education levels (e.g., high school, bachelor's degree) in each Community Area.",
+      "Poverty rate in each Community Area, indicating the percentage of the population living below the poverty line.",
+      "Average number of people per household in each Community Area.",
+      "Percentage of households spending more than 30% of their income on housing in each Community Area.",
+      "Crime rate in each Community Area, representing the number of crimes per 1,000 residents.",
+      "Percentage of families receiving public assistance in each Community Area.",
+      "Proportion of the population with access to healthcare services in each Community Area.",
+      "Measure of public transportation accessibility in each Community Area."
+    ],
+    "columns_format": [
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      },
+      {},
+      {
+        "decimalSeparator": ".",
+        "groupSeparator": ","
+      }
+    ],
+    "download_count": 3315,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2025-02-06T18:14:26.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Community & Economic Development",
+    "domain_tags": [
+      "census",
+      "community area",
+      "federal",
+      "population"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Metadata_Data-Owner",
+        "value": "Department of Technology and Innovation"
+      },
+      {
+        "key": "Metadata_Time-Period",
+        "value": "As indicated by Year column"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofchicago.org",
+    "license": "See Terms of Use"
+  },
+  "permalink": "https://data.cityofchicago.org/d/t68z-cikk",
+  "link": "https://data.cityofchicago.org/Community-Economic-Development/ACS-5-Year-Data-by-Community-Area/t68z-cikk",
+  "owner": {
+    "id": "qpup-99bh",
+    "user_type": "interactive",
+    "display_name": "Mórrígan Sullivan"
+  },
+  "creator": {
+    "id": "qpup-99bh",
+    "user_type": "interactive",
+    "display_name": "Mórrígan Sullivan"
+  }
+}

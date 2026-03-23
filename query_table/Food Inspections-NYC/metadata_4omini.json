@@ -1,0 +1,181 @@
+{
+  "resource": {
+    "name": "Food Inspections-NYC",
+    "id": "43nn-pn8j",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "The dataset contains every sustained or not yet adjudicated violation citation from every full or special program inspection conducted up to three years prior to the most recent inspection for restaurants and college cafeterias in an active status on the RECORD DATE (date of the data pull). When an inspection results in more than one violation, values for associated fields are repeated for each additional violation record.  Establishments are uniquely identified by their CAMIS (record ID) number. Keep in mind that thousands of restaurants start business and go out of business every year; only restaurants in an active status are included in the dataset. \r\nRecords are also included for each restaurant that has applied for a permit but has not yet been inspected and for inspections resulting in no violations. Establishments with inspection date of 1/1/1900 are new establishments that have not yet received an inspection. Restaurants that received no violations are represented by a single row and coded as having no violations using the ACTION field. \r\nBecause this dataset is compiled from several large administrative data systems, it contains some illogical values that could be a result of data entry or transfer errors. Data may also be missing. \r\nThis dataset and the information on the Health Department’s Restaurant Grading website come from the same data source.  The Health Department’s Restaurant Grading website is here: \r\nhttp://www1.nyc.gov/site/doh/services/restaurant-grades.page\r\nSee the data dictionary file in the Attachments section of the OpenData website for a summary of data fields and allowable values.",
+    "attribution": "Department of Health and Mental Hygiene (DOHMH)",
+    "attribution_link": null,
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2026-03-13T22:14:08.000Z",
+    "createdAt": "2014-08-01T19:10:59.000Z",
+    "metadata_updated_at": "2026-03-13T22:00:09.000Z",
+    "data_updated_at": "2026-03-13T22:14:08.000Z",
+    "page_views": {
+      "page_views_last_week": 1842,
+      "page_views_last_month": 9559,
+      "page_views_total": 370877,
+      "page_views_last_week_log": 10.847840355630714,
+      "page_views_last_month_log": 13.222794902868111,
+      "page_views_total_log": 18.500585166024706
+    },
+    "columns_name": [
+      "SCORE",
+      "GRADE",
+      "VIOLATION DESCRIPTION",
+      "ACTION",
+      "CAMIS",
+      "average_score_last_year",
+      "total_violations_last_year",
+      "inspection_frequency",
+      "average_grade_last_year",
+      "violation_types_count",
+      "time_since_last_inspection",
+      "neighborhood_average_score",
+      "establishment_age",
+      "previous_score",
+      "seasonal_effect",
+      "staff_training_score",
+      "customer_rating",
+      "local_health_code_changes"
+    ],
+    "columns_field_name": [
+      "score",
+      "grade",
+      "violation_description",
+      "action",
+      "camis",
+      "average_score_last_year",
+      "total_violations_last_year",
+      "inspection_frequency",
+      "average_grade_last_year",
+      "violation_types_count",
+      "time_since_last_inspection",
+      "neighborhood_average_score",
+      "establishment_age",
+      "previous_score",
+      "seasonal_effect",
+      "staff_training_score",
+      "customer_rating",
+      "local_health_code_changes"
+    ],
+    "columns_datatype": [
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Text"
+    ],
+    "columns_description": [
+      "Total score for a particular inspection; Scores are updated based on adjudication results",
+      "Grade associated with the inspection; • N = Not Yet Graded• A = Grade A• B = Grade B• C = Grade C• Z = Grade Pending• P= Grade Pending issued on re-opening following an initial inspection that resulted in a closure",
+      "Violation description associated with an establishment  (restaurant) inspection",
+      "This field represents the actions that is associated with each restaurant inspection. ; • Violations were cited in the following area(s). • No violations were recorded at the time of this inspection. • Establishment re-opened by DOHMH • Establishment re-closed by DOHMH • Establishment Closed by DOHMH.  Violations were cited in the following area(s) and those requiring immediate action were addressed. • \"Missing\" = not yet inspected;",
+      "This is an unique identifier for the entity (restaurant); 10-digit integer, static per restaurant permit",
+      "Average inspection score for the restaurant over the last year.",
+      "Total number of violations recorded for the restaurant in the last year.",
+      "Number of inspections conducted for the restaurant in the last year.",
+      "Average grade received by the restaurant in the last year.",
+      "Count of different types of violations recorded for the restaurant.",
+      "Time in days since the last inspection occurred.",
+      "Average inspection score of restaurants in the same neighborhood.",
+      "Age of the restaurant in years since it was established.",
+      "Score from the most recent previous inspection.",
+      "Indicator of the season during which the inspection took place (e.g., summer, winter).",
+      "Score reflecting the level of staff training in food safety practices.",
+      "Average customer rating from online reviews.",
+      "Indicator of any recent changes to local health codes that may affect compliance."
+    ],
+    "columns_format": [
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      },
+      {
+        "align": "left"
+      }
+    ],
+    "download_count": 138615,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2025-10-17T15:43:41.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Health",
+    "domain_tags": [
+      "restaurant",
+      "inspection",
+      "violation",
+      "grade",
+      "adjudication",
+      "fines",
+      "2018od4a-report",
+      "2018od4a-video",
+      "food safety"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Update_Automation",
+        "value": "Yes"
+      },
+      {
+        "key": "Update_Date-Made-Public",
+        "value": "7/10/2015"
+      },
+      {
+        "key": "Update_Update-Frequency",
+        "value": "Daily"
+      },
+      {
+        "key": "Dataset-Information_Agency",
+        "value": "Department of Health and Mental Hygiene (DOHMH)"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofnewyork.us"
+  },
+  "permalink": "https://data.cityofnewyork.us/d/43nn-pn8j",
+  "link": "https://data.cityofnewyork.us/Health/DOHMH-New-York-City-Restaurant-Inspection-Results/43nn-pn8j",
+  "owner": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  },
+  "creator": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  }
+}

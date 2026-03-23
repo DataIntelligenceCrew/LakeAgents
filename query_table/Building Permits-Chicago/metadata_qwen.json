@@ -1,0 +1,172 @@
+{
+  "resource": {
+    "name": "Building Permits-Chicago",
+    "id": "ydr8-5enu",
+    "resource_name": "building-permits",
+    "parent_fxf": [],
+    "description": "Update (October 15, 2025): A new field, PERMIT_CONDITION, is now part of this release.\n\nThe records span Chicago building permits from 2006 onward. Rows cover permits that remained valid after issue; those later voided or revoked are omitted. Permit categories generally require payment of the fee before construction may start—no work should proceed until fees are satisfied.",
+    "attribution": "City of Chicago",
+    "attribution_link": "http://www.cityofchicago.org",
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2026-03-16T12:16:41.000Z",
+    "createdAt": "2011-09-30T12:00:08.000Z",
+    "metadata_updated_at": "2025-10-15T15:16:28.000Z",
+    "data_updated_at": "2026-03-16T12:16:41.000Z",
+    "page_views": {
+      "page_views_last_week": 55320,
+      "page_views_last_month": 512365,
+      "page_views_total": 1480567,
+      "page_views_last_week_log": 15.755539614888209,
+      "page_views_last_month_log": 18.966815217761066,
+      "page_views_total_log": 20.497719321919945
+    },
+    "columns_name": [
+      "PERMIT_STATUS",
+      "ID",
+      "BUILDING_FEE_PAID",
+      "BUILDING_FEE_UNPAID",
+      "permit_amount_total",
+      "permit_issue_date",
+      "permit_category",
+      "permit_duration_days",
+      "permit_application_date",
+      "permit_type",
+      "permit_expiration_date",
+      "permit_condition",
+      "permit_renewal_status",
+      "permit_application_source",
+      "permit_application_count",
+      "permit_fee_paid_ratio",
+      "permit_last_updated_date",
+      "permit_project_duration_months"
+    ],
+    "columns_field_name": [
+      "permit_status",
+      "id",
+      "building_fee_paid",
+      "building_fee_unpaid",
+      "permit_amount_total",
+      "permit_issue_date",
+      "permit_category",
+      "permit_duration_days",
+      "permit_application_date",
+      "permit_type",
+      "permit_expiration_date",
+      "permit_condition",
+      "permit_renewal_status",
+      "permit_application_source",
+      "permit_application_count",
+      "permit_fee_paid_ratio",
+      "permit_last_updated_date",
+      "permit_project_duration_months"
+    ],
+    "columns_datatype": [
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "Current status of permit (not available for all permit types).",
+      "Unique database record identifier",
+      "Amount of building permit fees received",
+      "Amount of building permit fees due",
+      "Total amount of the building permit fee, which includes both paid and unpaid fees.",
+      "Date when the building permit was issued, which can indicate the timeline of the project and its current status.",
+      "Category of the building permit, which can provide context on the type of construction and expected duration.",
+      "Estimated number of days the permit is valid for, which can help predict if the permit is still active.",
+      "Date when the building permit application was submitted, indicating the initial timeline of the project.",
+      "Specific type of building permit, which can provide more detailed context about the nature of the construction.",
+      "Date when the building permit expires, which can help predict if the permit is still valid.",
+      "Condition of the building permit as noted by the issuing authority, providing direct insight into the current status.",
+      "Status of any renewal requests for the building permit, indicating if the permit has been extended or not.",
+      "Source of the building permit application, which can indicate the type of project and its priority.",
+      "Number of times the building permit application has been made, indicating the frequency and persistence of the project.",
+      "Ratio of the building permit fees that have been paid to the total fees, indicating financial progress on the project.",
+      "Date when the last update was made to the building permit record, indicating recent activity or inactivity.",
+      "Estimated duration of the building project in months, based on historical data and permit conditions."
+    ],
+    "columns_format": [
+      {},
+      {},
+      {
+        "precisionStyle": "currency",
+        "precision": "2"
+      },
+      {
+        "precisionStyle": "currency",
+        "precision": "2"
+      }
+    ],
+    "download_count": 138343,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2025-10-14T22:14:12.000Z"
+  },
+  "classification": {
+    "categories": [
+      "economy",
+      "education",
+      "politics"
+    ],
+    "tags": [],
+    "domain_category": "Buildings",
+    "domain_tags": [
+      "buildings",
+      "permits"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Metadata_Frequency",
+        "value": "Data are updated daily"
+      },
+      {
+        "key": "Metadata_Data-Owner",
+        "value": "Department of Buildings"
+      },
+      {
+        "key": "Metadata_Time-Period",
+        "value": "2006 to present"
+      },
+      {
+        "key": "Metadata_Changes-and-Other-Historical-Information-Useful-to-Understanding-This-Dataset",
+        "value": "https://www.google.com/search?as_q=%22Related+dataset+ID+s%22+%22ydr8+5enu%22+inurl%3Astories&as_sitesearch=data.cityofchicago.org"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofchicago.org",
+    "license": "See Terms of Use"
+  },
+  "permalink": "https://data.cityofchicago.org/d/ydr8-5enu",
+  "link": "https://data.cityofchicago.org/Buildings/Building-Permits/ydr8-5enu",
+  "owner": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  },
+  "creator": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "resource": {
+    "name": "Demographic Chicago",
+    "id": "iqnk-2tcu",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "This historical dataset provides 27 public health indicators by Chicago community area, including measures related to birth outcomes, mortality, infectious diseases, lead exposure, and economic conditions. The data reflect the most recent information available at the time of publication. For more recent data, refer to the Chicago Health Atlas.",
+    "attribution": "Illinois Department of Public Health (IDPH) and U.S. Census Bureau",
+    "attribution_link": null,
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2022-02-03T23:20:46.000Z",
+    "createdAt": "2012-05-18T18:25:32.000Z",
+    "metadata_updated_at": "2022-02-03T23:20:46.000Z",
+    "data_updated_at": "2013-05-30T14:08:57.000Z",
+    "page_views": {
+      "page_views_last_week": 99,
+      "page_views_last_month": 366,
+      "page_views_total": 80441,
+      "page_views_last_week_log": 6.643856189774725,
+      "page_views_last_month_log": 8.519636252843213,
+      "page_views_total_log": 16.295661330837323
+    },
+    "columns_name": [
+      "No High School Diploma",
+      "Community Area",
+      "Unemployment",
+      "Below Poverty Level",
+      "Infant Mortality Rate",
+      "Teen Birth Rate",
+      "Preterm Births",
+      "General Fertility Rate",
+      "median_household_income",
+      "crime_rate",
+      "access_to_educational_facilities",
+      "average_class_size",
+      "public_transport_accessibility",
+      "percentage_of_single_parent_households",
+      "healthcare_access_index",
+      "internet_accessibility",
+      "cultural_education_programs",
+      "employment_opportunities"
+    ],
+    "columns_field_name": [
+      "no_high_school_diploma",
+      "community_area",
+      "unemployment",
+      "below_poverty_level",
+      "infant_mortality_rate",
+      "teen_birth_rate",
+      "preterm_births",
+      "general_fertility_rate",
+      "median_household_income",
+      "crime_rate",
+      "access_to_educational_facilities",
+      "average_class_size",
+      "public_transport_accessibility",
+      "percentage_of_single_parent_households",
+      "healthcare_access_index",
+      "internet_accessibility",
+      "cultural_education_programs",
+      "employment_opportunities"
+    ],
+    "columns_datatype": [
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "Median household income in the community area, which can influence educational attainment levels.",
+      "Overall crime rate in the community area, which can impact educational attainment by affecting school attendance and safety.",
+      "Number of educational facilities (schools, libraries) per capita in the community area.",
+      "Average class size in schools within the community area.",
+      "Accessibility of public transport in the community area, measured by the number of stops and routes.",
+      "Percentage of single-parent households in the community area.",
+      "Index measuring access to healthcare services in the community area.",
+      "Percentage of households with internet access in the community area.",
+      "Number of cultural and educational programs available in the community area.",
+      "Number of employment opportunities available in the community area."
+    ],
+    "columns_format": [
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "align": "right"
+      },
+      {
+        "align": "left"
+      }
+    ],
+    "download_count": 16751,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2013-06-04T18:23:42.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Health & Human Services",
+    "domain_tags": [
+      "historical"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Metadata_Data-Owner",
+        "value": "Epidemiology and Public Health Informatics, Chicago Department of Public Health (CDPH)"
+      },
+      {
+        "key": "Metadata_Time-Period",
+        "value": "2005 – 2011"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofchicago.org"
+  },
+  "permalink": "https://data.cityofchicago.org/d/iqnk-2tcu",
+  "link": "https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Selected-public-health-in/iqnk-2tcu",
+  "owner": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  },
+  "creator": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  }
+}

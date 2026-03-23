@@ -1,0 +1,159 @@
+{
+  "resource": {
+    "name": "Food Inspections-Chicago",
+    "id": "4ijn-s7e5",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "This information is derived from inspections of restaurants and other food establishments in Chicago from January 1, 2010 to the present. Inspections are performed by staff from the Chicago Department of Public Health’s Food Protection Program using a standardized procedure. The results of the inspection are inputted into a database, then reviewed and approved by a State of Illinois Licensed Environmental Health Practitioner (LEHP). For descriptions of the data elements included in this set, please click <a href=\"https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF\">here</a>.\n\nNote about 7/1/2018 change to food inspection procedures that affects the data in this dataset: http://bit.ly/2yWd2JB\n\nDisclaimer: Attempts have been made to minimize any and all duplicate inspection reports. However, the dataset may still contain such duplicates and the appropriate precautions should be exercised when viewing or analyzing these data. The result of the inspections (pass, pass with conditions or fail) as well as the violations noted are based on the findings identified and reported by the inspector at the time of the inspection, and may not reflect the findings noted at other times. For more information about Food Inspections, go to https://www.chicago.gov/city/en/depts/cdph/provdrs/food_safety.html.",
+    "attribution": "City of Chicago",
+    "attribution_link": "http://www.cityofchicago.org",
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2026-03-15T09:13:04.000Z",
+    "createdAt": "2011-08-08T21:44:31.000Z",
+    "metadata_updated_at": "2024-12-05T12:42:03.000Z",
+    "data_updated_at": "2026-03-15T09:13:04.000Z",
+    "page_views": {
+      "page_views_last_week": 1640,
+      "page_views_last_month": 5446,
+      "page_views_total": 580264,
+      "page_views_last_week_log": 10.680359523513713,
+      "page_views_last_month_log": 12.411246151840444,
+      "page_views_total_log": 19.146352386527735
+    },
+    "columns_name": [
+      "Risk",
+      "Inspection ID",
+      "Zip",
+      "Inspection_Date",
+      "Previous_Risk_Level",
+      "Number_of_Violations",
+      "Type_of_Establishment",
+      "Inspection_Time_of_Day",
+      "Temperature",
+      "Cleanliness_Score",
+      "Employee_Training_Status",
+      "Complaint_Count",
+      "Inspection_Staff_ID",
+      "Seasonal_Factors",
+      "Neighborhood_Name",
+      "Zip_Code"
+    ],
+    "columns_field_name": [
+      "risk",
+      "inspection_id",
+      "zip",
+      "inspection_date",
+      "previous_risk_level",
+      "number_of_violations",
+      "type_of_establishment",
+      "inspection_time_of_day",
+      "temperature",
+      "cleanliness_score",
+      "employee_training_status",
+      "complaint_count",
+      "inspection_staff_id",
+      "seasonal_factors",
+      "neighborhood_name",
+      "zip_code"
+    ],
+    "columns_datatype": [
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Number"
+    ],
+    "columns_description": [
+      "",
+      "",
+      "",
+      "The date of the inspection, which can indicate trends over time and seasonal variations in food safety practices.",
+      "The risk level of the previous inspection, which can provide context on the trend of the establishment's compliance.",
+      "The number of violations found during the inspection, which directly impacts the risk level.",
+      "The type of food establishment being inspected, which can influence the expected standards and potential risks.",
+      "The time of day the inspection was conducted, which can affect the observed risk level due to varying operational conditions.",
+      "The temperature at the time of inspection, which can affect food safety and hygiene practices.",
+      "A score indicating the overall cleanliness of the establishment, which is a direct indicator of risk.",
+      "The training status of employees, which can influence the adherence to food safety protocols.",
+      "The number of complaints received against the establishment before the inspection, which can indicate potential issues.",
+      "The ID of the inspector who conducted the inspection, which can indicate the quality of the inspection process.",
+      "Factors related to the season, such as weather conditions, which can impact food safety practices.",
+      "The name of the neighborhood where the establishment is located, which can influence local food safety standards and practices.",
+      "The zip code of the establishment, which can provide additional context on the area's food safety standards and practices."
+    ],
+    "columns_format": [
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      }
+    ],
+    "download_count": 190677,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2024-12-05T12:42:03.000Z"
+  },
+  "classification": {
+    "categories": [
+      "health"
+    ],
+    "tags": [],
+    "domain_category": "Health & Human Services",
+    "domain_tags": [
+      "food",
+      "inspections"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Metadata_Frequency",
+        "value": "Updated daily"
+      },
+      {
+        "key": "Metadata_Data-Owner",
+        "value": "Public Health"
+      },
+      {
+        "key": "Metadata_Time-Period",
+        "value": "January 2010 to present"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofchicago.org",
+    "license": "See Terms of Use"
+  },
+  "permalink": "https://data.cityofchicago.org/d/4ijn-s7e5",
+  "link": "https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5",
+  "owner": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  },
+  "creator": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  }
+}

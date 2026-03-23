@@ -1,0 +1,144 @@
+{
+  "resource": {
+    "name": "Education Chicago",
+    "id": "9xs2-f89t",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "This dataset contains school-level performance metrics used to produce the 2011-2012 CPS School Report Cards. It includes survey-based indicators from the 5 Essentials (such as safety, family involvement, environment, instruction, leadership, and teacher collaboration), parent engagement measures, attendance and misconduct rates, IEP compliance, literacy and math benchmarks across grade levels, student growth metrics, standardized test performance (ISAT, EXPLORE, PLAN, ACT), algebra participation and passing rates, college readiness and eligibility measures, graduation and college enrollment rates, Freshman On-Track rate, and related school identifiers. NDA indicates 'No Data Available.'",
+    "attribution": "Chicago Public Schools",
+    "attribution_link": "http://www.cps.edu",
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2018-09-14T21:38:54.000Z",
+    "createdAt": "2011-11-11T19:54:24.000Z",
+    "metadata_updated_at": "2018-09-14T21:38:54.000Z",
+    "data_updated_at": "2018-09-14T21:24:06.000Z",
+    "page_views": {
+      "page_views_last_week": 460,
+      "page_views_last_month": 1804,
+      "page_views_total": 223734,
+      "page_views_last_week_log": 8.848622940429339,
+      "page_views_last_month_log": 10.817783121774534,
+      "page_views_total_log": 17.771431436585672
+    },
+    "columns_name": [
+      "CPS Performance Policy Status",
+      "School ID",
+      "Safety Icon ",
+      "average_student_attendance_rate",
+      "average_teacher_experience_years",
+      "parent_engagement_score",
+      "student_teacher_ratio",
+      "average_standardized_test_score",
+      "graduation_rate",
+      "freshman_on_track_rate",
+      "college_enrollment_rate",
+      "misconduct_rate",
+      "ie_compliance_rate"
+    ],
+    "columns_field_name": [
+      "cps_performance_policy_status",
+      "school_id",
+      "safety_icon_",
+      "average_student_attendance_rate",
+      "average_teacher_experience_years",
+      "parent_engagement_score",
+      "student_teacher_ratio",
+      "average_standardized_test_score",
+      "graduation_rate",
+      "freshman_on_track_rate",
+      "college_enrollment_rate",
+      "misconduct_rate",
+      "ie_compliance_rate"
+    ],
+    "columns_datatype": [
+      "Text",
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "This refl ects whether or not your school is on probation \nthis year. More information on the CPS Performance \nPolicy may be found online at www.cps.edu.\nN/A: Not applicable\nNDA: No data available",
+      "",
+      "Student Perception/Safety category from 5 Essentials survey",
+      "The average attendance rate of students at the school. High attendance rates may correlate with better school performance and lower probation risk.",
+      "The average number of years of experience among teachers at the school. More experienced teachers may contribute to better student outcomes and school performance.",
+      "A score representing the level of parent engagement in school activities. Higher parent engagement can positively affect school performance.",
+      "The ratio of students to teachers at the school. Lower ratios often lead to more personalized attention and potentially better school performance.",
+      "The average score of students on standardized tests such as ISAT, EXPLORE, PLAN, and ACT. Higher scores may indicate better academic performance.",
+      "The percentage of students who graduate from the school. Higher graduation rates are often associated with better school performance.",
+      "The percentage of freshmen on track to graduate. This metric is a strong indicator of future school performance.",
+      "The percentage of graduates who enroll in college. Higher rates may indicate better preparation and school performance.",
+      "The rate of student misconduct incidents at the school. Lower misconduct rates may correlate with better school environments and performance.",
+      "The rate of compliance with Individualized Education Programs (IEP) at the school. Higher compliance rates may indicate better support for students with special needs."
+    ],
+    "columns_format": [
+      {
+        "align": "left"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      },
+      {
+        "align": "left"
+      }
+    ],
+    "download_count": 50484,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2018-09-14T21:38:54.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Education",
+    "domain_tags": [
+      "report cards",
+      "cps"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Metadata_Frequency",
+        "value": "Data is updated annually"
+      },
+      {
+        "key": "Metadata_Data-Owner",
+        "value": "Chicago Public Schools"
+      },
+      {
+        "key": "Metadata_Time-Period",
+        "value": "2011 - 2012 School Year"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofchicago.org"
+  },
+  "permalink": "https://data.cityofchicago.org/d/9xs2-f89t",
+  "link": "https://data.cityofchicago.org/Education/Chicago-Public-Schools-Progress-Report-Cards-2011-/9xs2-f89t",
+  "owner": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  },
+  "creator": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  }
+}

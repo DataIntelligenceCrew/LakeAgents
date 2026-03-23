@@ -1,0 +1,147 @@
+{
+  "resource": {
+    "name": "Food Inspections-Chicago",
+    "id": "4ijn-s7e5",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "This information is derived from inspections of restaurants and other food establishments in Chicago from January 1, 2010 to the present. Inspections are performed by staff from the Chicago Department of Public Health’s Food Protection Program using a standardized procedure. The results of the inspection are inputted into a database, then reviewed and approved by a State of Illinois Licensed Environmental Health Practitioner (LEHP). For descriptions of the data elements included in this set, please click <a href=\"https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF\">here</a>.\n\nNote about 7/1/2018 change to food inspection procedures that affects the data in this dataset: http://bit.ly/2yWd2JB\n\nDisclaimer: Attempts have been made to minimize any and all duplicate inspection reports. However, the dataset may still contain such duplicates and the appropriate precautions should be exercised when viewing or analyzing these data. The result of the inspections (pass, pass with conditions or fail) as well as the violations noted are based on the findings identified and reported by the inspector at the time of the inspection, and may not reflect the findings noted at other times. For more information about Food Inspections, go to https://www.chicago.gov/city/en/depts/cdph/provdrs/food_safety.html.",
+    "attribution": "City of Chicago",
+    "attribution_link": "http://www.cityofchicago.org",
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2026-03-15T09:13:04.000Z",
+    "createdAt": "2011-08-08T21:44:31.000Z",
+    "metadata_updated_at": "2024-12-05T12:42:03.000Z",
+    "data_updated_at": "2026-03-15T09:13:04.000Z",
+    "page_views": {
+      "page_views_last_week": 1640,
+      "page_views_last_month": 5446,
+      "page_views_total": 580264,
+      "page_views_last_week_log": 10.680359523513713,
+      "page_views_last_month_log": 12.411246151840444,
+      "page_views_total_log": 19.146352386527735
+    },
+    "columns_name": [
+      "Risk",
+      "Inspection ID",
+      "Zip",
+      "previous_inspection_outcome",
+      "number_of_previous_violations",
+      "average_violation_severity",
+      "inspection_frequency",
+      "establishment_type",
+      "seasonal_effect",
+      "zip_code_demographics",
+      "weather_conditions",
+      "recent_health_alerts",
+      "inspector_experience_level"
+    ],
+    "columns_field_name": [
+      "risk",
+      "inspection_id",
+      "zip",
+      "previous_inspection_outcome",
+      "number_of_previous_violations",
+      "average_violation_severity",
+      "inspection_frequency",
+      "establishment_type",
+      "seasonal_effect",
+      "zip_code_demographics",
+      "weather_conditions",
+      "recent_health_alerts",
+      "inspector_experience_level"
+    ],
+    "columns_datatype": [
+      "Text",
+      "Number",
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "",
+      "",
+      "",
+      "The outcome of the previous inspection for the same establishment. This can help identify patterns or trends in inspection outcomes over time.",
+      "The total number of violations recorded in previous inspections for the same establishment.",
+      "The average severity of violations from previous inspections for the same establishment.",
+      "The frequency of inspections for the establishment over the past year.",
+      "The type of establishment (e.g., restaurant, grocery store, etc.).",
+      "A categorical indicator of the season during which the inspection took place (e.g., winter, spring, summer, fall).",
+      "Demographic information related to the zip code, such as average income or population density.",
+      "Weather conditions on the day of inspection (e.g., temperature, precipitation).",
+      "The number of recent health alerts or advisories in the area.",
+      "The experience level of the inspector conducting the inspection."
+    ],
+    "columns_format": [
+      {},
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      }
+    ],
+    "download_count": 190677,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2024-12-05T12:42:03.000Z"
+  },
+  "classification": {
+    "categories": [
+      "health"
+    ],
+    "tags": [],
+    "domain_category": "Health & Human Services",
+    "domain_tags": [
+      "food",
+      "inspections"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Metadata_Frequency",
+        "value": "Updated daily"
+      },
+      {
+        "key": "Metadata_Data-Owner",
+        "value": "Public Health"
+      },
+      {
+        "key": "Metadata_Time-Period",
+        "value": "January 2010 to present"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofchicago.org",
+    "license": "See Terms of Use"
+  },
+  "permalink": "https://data.cityofchicago.org/d/4ijn-s7e5",
+  "link": "https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5",
+  "owner": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  },
+  "creator": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  }
+}

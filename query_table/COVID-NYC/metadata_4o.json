@@ -1,0 +1,143 @@
+{
+  "resource": {
+    "name": "COVID-19 NYC",
+    "id": "cwmx-mvra",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "This dataset reports confirmed COVID-19 cases, hospitalizations, and deaths grouped by specimen collection date. All outcomes for a case are assigned to the date the positive test specimen was collected, not the actual hospitalization or death date. For datasets organized by diagnosis, admission, or death dates, refer to the NYC COVID-19 daily counts dataset.",
+    "attribution": "Department of Health and Mental Hygiene (DOHMH)",
+    "attribution_link": null,
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2026-03-01T03:00:10.000Z",
+    "createdAt": "2020-04-28T18:50:27.000Z",
+    "metadata_updated_at": "2026-03-01T03:00:10.000Z",
+    "data_updated_at": "2026-01-22T14:40:43.000Z",
+    "page_views": {
+      "page_views_last_week": 38,
+      "page_views_last_month": 127,
+      "page_views_total": 25431,
+      "page_views_last_week_log": 5.285402218862249,
+      "page_views_last_month_log": 7.0,
+      "page_views_total_log": 14.634357301137978
+    },
+    "columns_name": [
+      "extract_date",
+      "Number_confirmed",
+      "Number_deaths",
+      "number_hospitalizations",
+      "average_age_of_confirmed_cases",
+      "vaccination_rate",
+      "testing_rate",
+      "population_density",
+      "public_health_measures_index",
+      "weather_conditions",
+      "variant_prevalence",
+      "healthcare_capacity"
+    ],
+    "columns_field_name": [
+      "extract_date",
+      "number_confirmed",
+      "number_deaths",
+      "number_hospitalizations",
+      "average_age_of_confirmed_cases",
+      "vaccination_rate",
+      "testing_rate",
+      "population_density",
+      "public_health_measures_index",
+      "weather_conditions",
+      "variant_prevalence",
+      "healthcare_capacity"
+    ],
+    "columns_datatype": [
+      "Calendar date",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Number"
+    ],
+    "columns_description": [
+      "Date of extraction from live disease surveillance database",
+      "Count of patients tested who were confirmed to be COVID-19 cases",
+      "Count of confirmed COVID-19 cases among patients who died",
+      "Count of COVID-19 related hospitalizations on the given date. Hospitalizations are a strong indicator of severe cases, which can lead to higher mortality.",
+      "Average age of confirmed COVID-19 cases on the given date. Older populations are generally at higher risk of severe outcomes, including death.",
+      "Percentage of the population vaccinated against COVID-19 by the given date. Higher vaccination rates can lead to lower mortality rates.",
+      "Number of COVID-19 tests conducted per 1000 people on the given date. Higher testing rates can lead to earlier detection and treatment, potentially reducing mortality.",
+      "Population density of NYC on the given date. Higher density can lead to faster spread of the virus, potentially increasing mortality.",
+      "Index representing the strictness of public health measures (e.g., lockdowns, mask mandates) in place on the given date.",
+      "Weather conditions (e.g., temperature, humidity) on the given date. Certain weather conditions may affect virus transmission rates.",
+      "Prevalence of different COVID-19 variants on the given date. Some variants may be more lethal than others.",
+      "Capacity of healthcare facilities (e.g., ICU beds available) on the given date. Limited capacity can lead to higher mortality rates."
+    ],
+    "columns_format": [
+      {
+        "view": "date"
+      },
+      {},
+      {}
+    ],
+    "download_count": 7654,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2020-04-28T18:50:30.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Health",
+    "domain_tags": [
+      "coronavirus",
+      "sars-cov-2",
+      "covid-19"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Update_Automation",
+        "value": "Yes"
+      },
+      {
+        "key": "Update_Date-Made-Public",
+        "value": "5/19/2020"
+      },
+      {
+        "key": "Update_Update-Frequency",
+        "value": "Daily"
+      },
+      {
+        "key": "Data-Collection_Data-Collection",
+        "value": "COVID-19 Health Data"
+      },
+      {
+        "key": "Dataset-Information_Agency",
+        "value": "Department of Health and Mental Hygiene (DOHMH)"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofnewyork.us"
+  },
+  "permalink": "https://data.cityofnewyork.us/d/cwmx-mvra",
+  "link": "https://data.cityofnewyork.us/Health/COVID-19-Outcomes-by-Testing-Cohorts-Cases-Hospita/cwmx-mvra",
+  "owner": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  },
+  "creator": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  }
+}

@@ -1,0 +1,184 @@
+{
+  "resource": {
+    "name": "Environment_NYC",
+    "id": "uvpi-gqnh",
+    "resource_name": null,
+    "parent_fxf": [],
+    "description": "Street tree records from the 2015 TreesCount! census run by NYC Parks and partners. Fields include species, diameter, and perceived health. Collection ran from May 2015 to October 2016 and covers trees along city streets under Parks jurisdiction; the dataset is a point-in-time snapshot. The census data supports the agency's forestry inventory and management.",
+    "attribution": "Department of Parks and Recreation (DPR)",
+    "attribution_link": null,
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2024-11-12T14:28:19.000Z",
+    "createdAt": "2016-06-03T12:14:58.000Z",
+    "metadata_updated_at": "2024-11-12T14:28:19.000Z",
+    "data_updated_at": "2017-10-04T13:41:26.000Z",
+    "page_views": {
+      "page_views_last_week": 901,
+      "page_views_last_month": 3454,
+      "page_views_total": 127808,
+      "page_views_last_week_log": 9.816983623255382,
+      "page_views_last_month_log": 11.75446999527562,
+      "page_views_total_log": 16.9636299053868
+    },
+    "columns_name": [
+      "health",
+      "tree_id",
+      "tree_dbh",
+      "status",
+      "root_stone",
+      "dbh_category",
+      "age_estimate",
+      "season_of_measurement",
+      "root_problems_count",
+      "surrounding_built_environment",
+      "proximity_to_major_road",
+      "water_accessibility",
+      "soil_quality_assessment",
+      "neighbor_tree_health",
+      "pest_infestation",
+      "weather_extremes",
+      "maintenance_records",
+      "species_commonality"
+    ],
+    "columns_field_name": [
+      "health",
+      "tree_id",
+      "tree_dbh",
+      "status",
+      "root_stone",
+      "dbh_category",
+      "age_estimate",
+      "season_of_measurement",
+      "root_problems_count",
+      "surrounding_built_environment",
+      "proximity_to_major_road",
+      "water_accessibility",
+      "soil_quality_assessment",
+      "neighbor_tree_health",
+      "pest_infestation",
+      "weather_extremes",
+      "maintenance_records",
+      "species_commonality"
+    ],
+    "columns_datatype": [
+      "Text",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Number",
+      "Text",
+      "Number",
+      "Text",
+      "Number",
+      "Text",
+      "Text",
+      "Number",
+      "Text",
+      "Number",
+      "Number",
+      "Number"
+    ],
+    "columns_description": [
+      "Indicates the user's perception of tree health.",
+      "Unique identification number for each tree point.",
+      "Diameter of the tree, measured at approximately 54\" / 137cm above the ground. Data was collected for both living and dead trees; for stumps, use stump_diam",
+      "Indicates whether the tree is alive, standing dead, or a stump.",
+      "Indicates the presence of a root problem caused by paving stones in tree bed",
+      "Categorization of the tree's diameter into small, medium, and large based on typical tree sizes.",
+      "Estimated age of the tree based on its diameter, which can be a strong indicator of overall health.",
+      "The season during which the measurement was taken, as health assessments might vary by season.",
+      "Number of root problems observed, including paving stone issues, which can impact tree health.",
+      "A categorical representation of the built environment surrounding the tree, such as urban, suburban, or rural.",
+      "Distance to the nearest major road, as proximity to roads can increase pollution and stress on trees.",
+      "Indicator of water accessibility, such as proximity to sidewalks or other water sources, which can affect tree hydration.",
+      "Assessment of soil quality, which can be inferred from the presence of certain types of vegetation or soil texture.",
+      "Average health score of neighboring trees, as tree health can be influenced by the health of nearby trees.",
+      "Indicator of pest infestations, which can severely impact tree health.",
+      "Frequency and severity of weather extremes (e.g., drought, flooding) in the area where the tree is located.",
+      "Number of maintenance activities recorded for the tree, indicating ongoing care and intervention.",
+      "Relative abundance of the tree species in the area, which can affect competition for resources and resilience to pests/diseases."
+    ],
+    "columns_format": [
+      {
+        "displayStyle": "plain",
+        "align": "left"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "true",
+        "align": "right"
+      },
+      {
+        "precisionStyle": "standard",
+        "noCommas": "false",
+        "align": "right"
+      },
+      {
+        "displayStyle": "plain",
+        "align": "left"
+      },
+      {
+        "displayStyle": "plain",
+        "align": "left"
+      }
+    ],
+    "download_count": 53122,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2017-10-04T13:56:17.000Z"
+  },
+  "classification": {
+    "categories": [],
+    "tags": [],
+    "domain_category": "Environment",
+    "domain_tags": [
+      "2018od4a-report",
+      "census",
+      "dpr",
+      "nycopendata",
+      "parks",
+      "trees",
+      "treescount"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Update_Automation",
+        "value": "No"
+      },
+      {
+        "key": "Update_Date-Made-Public",
+        "value": "6/3/2016"
+      },
+      {
+        "key": "Update_Update-Frequency",
+        "value": "Historical data"
+      },
+      {
+        "key": "Dataset-Information_Agency",
+        "value": "Department of Parks and Recreation (DPR)"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofnewyork.us"
+  },
+  "permalink": "https://data.cityofnewyork.us/d/uvpi-gqnh",
+  "link": "https://data.cityofnewyork.us/Environment/2015-Street-Tree-Census-Tree-Data/uvpi-gqnh",
+  "owner": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  },
+  "creator": {
+    "id": "5fuc-pqz2",
+    "user_type": "interactive",
+    "display_name": "NYC OpenData"
+  }
+}

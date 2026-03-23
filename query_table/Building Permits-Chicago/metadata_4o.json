@@ -1,0 +1,156 @@
+{
+  "resource": {
+    "name": "Building Permits-Chicago",
+    "id": "ydr8-5enu",
+    "resource_name": "building-permits",
+    "parent_fxf": [],
+    "description": "Update (October 15, 2025): A new field, PERMIT_CONDITION, is now part of this release.\n\nThe records span Chicago building permits from 2006 onward. Rows cover permits that remained valid after issue; those later voided or revoked are omitted. Permit categories generally require payment of the fee before construction may start—no work should proceed until fees are satisfied.",
+    "attribution": "City of Chicago",
+    "attribution_link": "http://www.cityofchicago.org",
+    "contact_email": null,
+    "type": "dataset",
+    "updatedAt": "2026-03-16T12:16:41.000Z",
+    "createdAt": "2011-09-30T12:00:08.000Z",
+    "metadata_updated_at": "2025-10-15T15:16:28.000Z",
+    "data_updated_at": "2026-03-16T12:16:41.000Z",
+    "page_views": {
+      "page_views_last_week": 55320,
+      "page_views_last_month": 512365,
+      "page_views_total": 1480567,
+      "page_views_last_week_log": 15.755539614888209,
+      "page_views_last_month_log": 18.966815217761066,
+      "page_views_total_log": 20.497719321919945
+    },
+    "columns_name": [
+      "PERMIT_STATUS",
+      "ID",
+      "BUILDING_FEE_PAID",
+      "BUILDING_FEE_UNPAID",
+      "permit_issue_date",
+      "permit_category",
+      "applicant_type",
+      "neighborhood",
+      "historical_permit_status",
+      "season_of_issue",
+      "average_processing_time",
+      "economic_conditions_at_issue",
+      "zoning_code",
+      "contractor_reputation_score"
+    ],
+    "columns_field_name": [
+      "permit_status",
+      "id",
+      "building_fee_paid",
+      "building_fee_unpaid",
+      "permit_issue_date",
+      "permit_category",
+      "applicant_type",
+      "neighborhood",
+      "historical_permit_status",
+      "season_of_issue",
+      "average_processing_time",
+      "economic_conditions_at_issue",
+      "zoning_code",
+      "contractor_reputation_score"
+    ],
+    "columns_datatype": [
+      "Text",
+      "Text",
+      "Number",
+      "Number",
+      "Number",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Text",
+      "Number",
+      "Text",
+      "Text",
+      "Number"
+    ],
+    "columns_description": [
+      "Current status of permit (not available for all permit types).",
+      "Unique database record identifier",
+      "Amount of building permit fees received",
+      "Amount of building permit fees due",
+      "The date when the permit was issued, which can help determine the likelihood of a permit being active or completed based on its age.",
+      "The category or type of the permit, such as residential, commercial, or industrial, which directly influences the permit status.",
+      "Type of applicant such as individual, company, or government entity, which might influence the processing and status of the permit.",
+      "The neighborhood or district where the building is located, which might have specific zoning laws affecting permit status.",
+      "The historical status of similar permits in the same area, which can indicate trends or common outcomes for permits.",
+      "The season during which the permit was issued, as construction activity can be seasonal and affect permit status.",
+      "The average time taken to process similar permits, which can indicate the expected status based on elapsed time since issue.",
+      "Economic conditions at the time of permit issue, such as recession or boom, which can affect construction activity and permit status.",
+      "The zoning code applicable to the permit, which can affect the complexity and status of the permit process.",
+      "A score representing the reputation or reliability of the contractor, which might influence the likelihood of permit completion."
+    ],
+    "columns_format": [
+      {},
+      {},
+      {
+        "precisionStyle": "currency",
+        "precision": "2"
+      },
+      {
+        "precisionStyle": "currency",
+        "precision": "2"
+      }
+    ],
+    "download_count": 138343,
+    "provenance": "official",
+    "lens_view_type": "tabular",
+    "lens_display_type": "table",
+    "locked": false,
+    "blob_mime_type": null,
+    "hide_from_data_json": false,
+    "publication_date": "2025-10-14T22:14:12.000Z"
+  },
+  "classification": {
+    "categories": [
+      "economy",
+      "education",
+      "politics"
+    ],
+    "tags": [],
+    "domain_category": "Buildings",
+    "domain_tags": [
+      "buildings",
+      "permits"
+    ],
+    "domain_metadata": [
+      {
+        "key": "Metadata_Frequency",
+        "value": "Data are updated daily"
+      },
+      {
+        "key": "Metadata_Data-Owner",
+        "value": "Department of Buildings"
+      },
+      {
+        "key": "Metadata_Time-Period",
+        "value": "2006 to present"
+      },
+      {
+        "key": "Metadata_Changes-and-Other-Historical-Information-Useful-to-Understanding-This-Dataset",
+        "value": "https://www.google.com/search?as_q=%22Related+dataset+ID+s%22+%22ydr8+5enu%22+inurl%3Astories&as_sitesearch=data.cityofchicago.org"
+      }
+    ]
+  },
+  "metadata": {
+    "domain": "data.cityofchicago.org",
+    "license": "See Terms of Use"
+  },
+  "permalink": "https://data.cityofchicago.org/d/ydr8-5enu",
+  "link": "https://data.cityofchicago.org/Buildings/Building-Permits/ydr8-5enu",
+  "owner": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  },
+  "creator": {
+    "id": "scy9-9wg4",
+    "user_type": "interactive",
+    "display_name": "cocadmin"
+  }
+}
