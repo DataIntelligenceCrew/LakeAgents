@@ -185,7 +185,7 @@ async def suggest_llm_augment_columns(
         task_type=task_type,
         user_intent=user_intent,
     )
-    events = await runner.run_debug(prompt)
+    events = await runner.run_debug(prompt, quiet=True)
     last_text = _extract_last_text_from_events(events)
     parsed = _extract_json(last_text)
     suggested = parsed.get("suggested_augment_columns", [])
@@ -283,7 +283,7 @@ async def generate_llm_augment_values(
         runner = InMemoryRunner(agent=agent)  # Fresh session per join_key to avoid history accumulation
         prompt = _build_generate_prompt(jk, aug_cols, table_context)
         try:
-            events = await runner.run_debug(prompt)
+            events = await runner.run_debug(prompt, quiet=True)
             last_text = _extract_last_text_from_events(events)
             parsed = _extract_json(last_text)
             row_vals = {}

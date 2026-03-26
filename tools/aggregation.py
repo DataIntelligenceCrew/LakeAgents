@@ -481,6 +481,8 @@ def aggregate_selected_tables(
     for tbl in selected_tables:
         cand_name = tbl.get("candidate_table")
         selected_cols = tbl.get("selected_columns", [])
+        use_fuzzy_join = bool(tbl.get("use_fuzzy_join", False))
+        fuzzy_key_mapping = tbl.get("fuzzy_key_mapping", {}) or {}
         
         if not cand_name or not selected_cols:
             continue
@@ -500,6 +502,16 @@ def aggregate_selected_tables(
                     cand_df[col].apply(_normalize_for_hash).isin(key_set)  
                 ].copy()
                 cand_df[col] = cand_df[col].apply(_normalize_for_hash)
+
+        if use_fuzzy_join and len(selected_cols) == 1 and fuzzy_key_mapping:
+            from tools.sketch import _normalize_for_hash
+            col = selected_cols[0]
+            if col in cand_df.columns:
+                cand_df = cand_df.copy()
+                cand_df[col] = cand_df[col].apply(_normalize_for_hash).map(
+                    lambda x: fuzzy_key_mapping.get(x)
+                )
+                cand_df = cand_df[cand_df[col].notna()].copy()
 
         # Aggregate
         try:
@@ -537,6 +549,8 @@ def aggregate_selected_tables(
             results.append({
                 "candidate_table": cand_name,
                 "selected_columns": selected_cols,
+                "use_fuzzy_join": use_fuzzy_join,
+                "fuzzy_key_mapping": fuzzy_key_mapping if use_fuzzy_join else {},
                 "aggregated_df": agg_df,
                 "original_rows": len(cand_df),
                 "aggregated_rows": len(agg_df),

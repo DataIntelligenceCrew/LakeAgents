@@ -9,7 +9,7 @@ from google.adk.tools import FunctionTool
 from google.genai import types
 from google.adk.models.lite_llm import LiteLlm
 
-from llm_agent_tools import confirm_dimension_requirement
+from tools.llm_agent_tools import confirm_dimension_requirement
 
 
 def _load_instruction(prompt_file: str = "prompt/analyze_user_intent_agent_prompt.txt") -> str:

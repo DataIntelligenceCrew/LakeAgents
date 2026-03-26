@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List, Optional
 import pandas as pd
-from llm_agent_tools import find_dataset_dir
+from tools.llm_agent_tools import find_dataset_dir
 from agent_config_loader import load_config
 import json
 import hashlib
@@ -258,93 +258,3 @@ def bottom_k_sketch_df_with_samples(
             )
             result[c] = (sketch, values, name or c)
     return result
-
-# ---- Jaccard similarity ----
-
-def jaccard_similarity_sketches(sketch_a: np.ndarray, sketch_b: np.ndarray) -> float:
-    if len(sketch_a) == 0 and len(sketch_b) == 0:
-        return 0.0
-    inter = np.intersect1d(sketch_a, sketch_b)
-    union_size = len(sketch_a) + len(sketch_b) - len(inter)
-    if union_size == 0:
-        return 0.0
-    return len(inter) / union_size
-
-
-def containment_similarity_sketches(join_sketch: np.ndarray, cand_sketch: np.ndarray) -> float:
-    if len(join_sketch) == 0:
-        return 0.0
-    inter = np.intersect1d(join_sketch, cand_sketch)
-    return len(inter) / len(join_sketch)
-
-
-def jaccard_sketch_with_columns(
-    join_sketch: np.ndarray,
-    candidate_sketches: dict[str, np.ndarray],
-) -> dict[str, float]:
-    return {
-        col: jaccard_similarity_sketches(join_sketch, sketch)
-        for col, sketch in candidate_sketches.items()
-    }
-
-
-def sketch_scores_with_columns(
-    join_sketch: np.ndarray,
-    candidate_sketches: dict[str, np.ndarray],
-) -> dict[str, float]:
-    result = {}
-    for col, cand_sketch in candidate_sketches.items():
-        jaccard = jaccard_similarity_sketches(join_sketch, cand_sketch)
-        containment = containment_similarity_sketches(join_sketch, cand_sketch)
-        score = max(jaccard, containment)
-        result[col] = score
-        print(f"[sketch] column={col} jaccard={jaccard:.6f} containment={containment:.6f} score={score:.6f}")
-    return result
-
-# ---- Top-k Jaccard selection ----
-
-DEFAULT_TOPK_JOIN_COLUMNS = 5
-
-
-def select_topk_jaccard_columns(
-    jaccards: dict[str, float],
-    k: int = DEFAULT_TOPK_JOIN_COLUMNS,
-    min_jaccard: float = 0.5,
-) -> list[tuple[str, float]]:
-    """
-    Select top-k columns by Jaccard similarity.
-    Only includes columns with jaccard >= min_jaccard.
-    Returns list of (column_name, jaccard) sorted by jaccard desc.
-    """
-    eligible = [(col, j) for col, j in jaccards.items() if j >= min_jaccard]
-    eligible.sort(key=lambda x: -x[1])
-    return eligible[:k]
-
-
-def select_join_columns_for_candidate(
-    join_sketch: np.ndarray | dict[str, np.ndarray],
-    cand_df: pd.DataFrame,
-    k_columns: int = DEFAULT_TOPK_JOIN_COLUMNS,
-    min_jaccard: float = 0.5,
-    sketch_k: int = DEFAULT_SKETCH_K,
-    sketch_ratio: Optional[float] = SKETCH_RATIO,
-    sketch_k_max: Optional[int] = SKETCH_K_MAX,
-) -> list[tuple[str, float]] | dict[str, list[tuple[str, float]]]:
-    """
-    Support single column or composite key.
-    - join_sketch is np.ndarray: return [(col, jaccard), ...]
-    - join_sketch is dict: return {join_col: [(col, jaccard), ...], ...}
-    """
-    cand_sketches = bottom_k_sketch_df(
-        cand_df, k=sketch_k, ratio=sketch_ratio, k_max=sketch_k_max
-    )
-    
-    if isinstance(join_sketch, dict):
-        result = {}
-        for join_col, sketch in join_sketch.items():
-            scores = sketch_scores_with_columns(sketch, cand_sketches)
-            result[join_col] = select_topk_jaccard_columns(scores, k=k_columns, min_jaccard=min_jaccard)
-        return result
-    else:
-        scores = sketch_scores_with_columns(join_sketch, cand_sketches)
-        return select_topk_jaccard_columns(scores, k=k_columns, min_jaccard=min_jaccard)

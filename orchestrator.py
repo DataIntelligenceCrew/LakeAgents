@@ -9,23 +9,29 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from google.adk.runners import InMemoryRunner
 from google.genai import types
-from table_selection_agent import build_table_selection_agent
-from join_column_selection_agent import build_join_column_choose_agent
+from Agent.table_selection_collab_orchestrator import run_table_selection_collab_orchestrator
+from Agent.join_column_selection_agent import build_join_column_choose_agent
+from Agent.join_column_fallback import (
+    build_fallback_attempts,
+    evaluate_exact_join_health,
+    evaluate_similarity_gate,
+    evaluate_fuzzy_join_health,
+)
 from callback import JoinValidatorCallback, AugmentValidatorCallback
 import fasttext
 from functools import partial
-from llm_agent_tools import find_dataset_dir, build_opendata_search_params, get_fasttext_sim, _train_and_evaluate
-from augment_column_selection_agent import build_augment_column_selection_agent
+from tools.llm_agent_tools import find_dataset_dir, build_opendata_search_params, get_fasttext_sim, _train_and_evaluate
+from Agent.augment_column_selection_agent import build_augment_column_selection_agent
 from agent_config_loader import AgentPipelineConfig, load_config
-from analyze_user_intent_agent import build_analyze_user_intent_agent
+from Agent.analyze_user_intent_agent import build_analyze_user_intent_agent
 from datalake_client import SocrataDatalakeClient
 from datetime import datetime
 from tools.sketch import (
     get_candidate_table,
     _update_table_access_status,
-    bottom_k_sketch_column,
-    select_join_columns_for_candidate,
+    _normalize_for_hash,
 )
+from tools.join_column_tool import column_profile
 from tools.column_descriptions import (
     get_column_descriptions_from_index,
     get_column_descriptions_from_local_metadata,
@@ -325,7 +331,6 @@ async def run_orchestrator(
     
     # Build agents with config
     analyze_intent_runner = InMemoryRunner(agent=build_analyze_user_intent_agent(config=config))
-    table_runner = InMemoryRunner(agent=build_table_selection_agent(config=config))
     joincol_runner = InMemoryRunner(agent=build_join_column_choose_agent(config=config))
     augment_runner = InMemoryRunner(agent=build_augment_column_selection_agent(config))
 
@@ -354,7 +359,7 @@ Please analyze the user intent and return the result in JSON format according to
 
     # Run agent, call analyze_user_intent
     # Run analyze_user_intent agent and extract result
-    analyze_intent_events = await analyze_intent_runner.run_debug(analyze_intent_prompt)
+    analyze_intent_events = await analyze_intent_runner.run_debug(analyze_intent_prompt, quiet=True)
     last_text = ""
     for event in analyze_intent_events:
         if getattr(event, "content", None) and getattr(event.content, "parts", None):
@@ -580,75 +585,60 @@ Please analyze the user intent and return the result in JSON format according to
         else:
             dims_str = json.dumps(dimension_specifications, ensure_ascii=False)
 
-        table_selection_prompt = f"""Candidate table IDs from Opendata search (call read_table_index with these IDs to load their index):
-candidate_ids = {candidate_ids_for_run}
+        # Build 5-row examples (all columns) per candidate table for table-selection agents.
+        table_examples_by_id: Dict[str, List[Dict[str, Any]]] = {}
+        id_to_domain = {
+            str(e.get("id", "")).strip(): e.get("domain")
+            for e in merged_index if isinstance(e, dict) and e.get("id")
+        }
+        for ds_id in candidate_ids_for_run:
+            ds_id_str = str(ds_id).strip()
+            if not ds_id_str:
+                continue
+            try:
+                rows = client.read_data(
+                    ds_id_str,
+                    id_to_domain.get(ds_id_str) or domain_for_fetch,
+                    max_rows=5,
+                )
+            except Exception:
+                rows = []
+            if not isinstance(rows, list):
+                rows = []
+            # Keep all columns; trim long cell values to reduce prompt size.
+            clean_rows: List[Dict[str, Any]] = []
+            for row in rows[:5]:
+                if not isinstance(row, dict):
+                    continue
+                out_row: Dict[str, Any] = {}
+                for k, v in row.items():
+                    if v is None:
+                        out_row[k] = None
+                    else:
+                        s = str(v)
+                        out_row[k] = s[:120] + "...[truncated]" if len(s) > 120 else s
+                clean_rows.append(out_row)
+            table_examples_by_id[ds_id_str] = clean_rows
 
-User Intent: {user_intent}
+        task_info = {
+            "target_column": target_column,
+            "task_type": task_type,
+            "query_table_name": query_table_display_name,
+            "join_columns": join_column,
+            "query_table_description": query_table_description,
+            "dimension_specifications": dims_str,
+            "table_examples_5rows_all_columns": table_examples_by_id,
+        }
 
-Task Information:
-- Target Column: {target_column}
-- Task Type: {task_type}
-- Query Table: {query_table_display_name}
-- Join Columns(s): {join_column}
-- Query Table Description: {query_table_description}
-- Confirmed dimension specifications: {dims_str}
+        print("\n📋 Running Collaborative Table Selection (datalake)...")
+        collab_result = await run_table_selection_collab_orchestrator(
+            config=config,
+            candidate_ids=candidate_ids_for_run,
+            user_intent=user_intent,
+            task_info=task_info,
+        )
 
-Call read_table_index(candidate_ids={candidate_ids_for_run}) to get index entries, then select relevant tables according to your prompt and return JSON with key "relevant_tables"."""
-
-        print("\n📋 Running Table Selection Agent (datalake)...")
-        table_selection_events = await table_runner.run_debug(table_selection_prompt)
-        full_table_text = ""
-        table_data_from_state = None
-        for event in table_selection_events:
-            # Prefer state_delta (ADK output_key saves agent result here)
-            if getattr(event, "actions", None) and getattr(event.actions, "state_delta", None):
-                delta = event.actions.state_delta
-                if isinstance(delta, dict) and "relevant_tables" in delta:
-                    val = delta["relevant_tables"]
-                    if isinstance(val, dict) and "relevant_tables" in val:
-                        rt = val.get("relevant_tables", [])
-                        if isinstance(rt, list) and len(rt) > 0:
-                            table_data_from_state = val
-                    elif isinstance(val, list) and len(val) > 0:
-                        table_data_from_state = {"relevant_tables": val}
-                    elif isinstance(val, str) and val.strip():
-                        parsed = extract_relevant_tables_from_full_text(val)
-                        if parsed.get("relevant_tables") and len(parsed["relevant_tables"]) > 0:
-                            table_data_from_state = parsed
-            if getattr(event, "content", None) and getattr(event.content, "parts", None):
-                for part in event.content.parts:
-                    t = getattr(part, "text", None)
-                    if t:
-                        full_table_text += t
-        if table_data_from_state is not None:
-            table_data = table_data_from_state
-        else:
-            table_data = extract_relevant_tables_from_full_text(full_table_text)
-        relevant_list = table_data.get("relevant_tables", [])
-
-        # Debug: when DEBUG_TABLE_SELECTION=1 or when no tables selected (to diagnose "选不出来")
-        _debug_ts = os.environ.get("DEBUG_TABLE_SELECTION", "").lower() in ("1", "true", "yes") or len(relevant_list) == 0
-        if _debug_ts:
-            _src = "state_delta" if table_data_from_state is not None else "full_text"
-            _preview_len = 2000
-            _preview = (full_table_text[: _preview_len] + "...") if len(full_table_text) > _preview_len else full_table_text
-            _debug_payload = {
-                "location": "orchestrator.table_selection",
-                "source": _src,
-                "full_text_len": len(full_table_text),
-                "full_text_preview": _preview,
-                "table_data_keys": list(table_data.keys()) if isinstance(table_data, dict) else None,
-                "relevant_tables_count": len(relevant_list),
-                "relevant_tables_sample": relevant_list[:5] if relevant_list else [],
-            }
-            print("\n[DEBUG] Table Selection:")
-            print(f"  source={_src}, full_text_len={len(full_table_text)}, relevant_tables_count={len(relevant_list)}")
-            print(f"  full_text_preview (first {min(_preview_len, len(full_table_text))} chars):\n  {repr(_preview[:500])}...")
-            if relevant_list:
-                print(f"  relevant_tables_sample: {_debug_payload['relevant_tables_sample']}")
-            else:
-                print("  relevant_tables is EMPTY — check above: did model call read_table_index? return valid JSON with key 'relevant_tables'?")
-            _debug_log(_debug_payload)
+        relevant_list = collab_result.get("final_tables", [])
 
         # Normalize: table_id (id), table_name (human-readable name from metadata)
         id_to_name = {}
@@ -695,96 +685,143 @@ Call read_table_index(candidate_ids={candidate_ids_for_run}) to get index entrie
             "status": [],
             "reason": [],
         }
-        topk_jaccard = {}  # table_id -> list of selected column names
+        top5_profile = {}  # table_id -> profile-selected candidate columns
+        join_fallback_record = {}  # table_id -> fallback attempts and join health
         final_selected_tables = []
+        fallback_coverage_threshold = 0.5
+        fallback_explosion_threshold = 2.0
+        fuzzy_score_threshold = 80
+        semantic_score_threshold = 0.8
 
-        # Load join table and create join column sketch
+        # Load join table
         base_path = Path(__file__).resolve().parent / BASE_DIR
         join_df = pd.read_csv(base_path / real_join_table_name / config.data_filename, low_memory=False)
         join_columns = config.join_column if isinstance(config.join_column, list) else [config.join_column]
-        
-        from tools.sketch import bottom_k_sketch_column_with_samples
-
-        # Create sketch for each join column
-        if len(join_columns) == 1:
-            join_sketch, join_sketch_original_values, _ = bottom_k_sketch_column_with_samples(
-                join_df[join_columns[0]], k=1024)  
-
-        else:
-            join_sketch = {jc: bottom_k_sketch_column(join_df[jc]) for jc in join_columns if jc in join_df.columns}
-            join_sketch_original_values = None
+        join_sketch_original_values = None
 
 
         # Join column descriptions
         join_col_descs = get_column_descriptions_from_local_metadata(BASE_DIR, real_join_table_name)
+        topk_join = 5
 
-        topk_join = config.config.get("task", {}).get("topk_join_columns", 5) or 5
+        def _first_non_empty_rows(df: pd.DataFrame, columns: List[str], n: int = 5) -> List[Dict[str, Any]]:
+            if df is None or df.empty:
+                return []
+            cols = [c for c in columns if c in df.columns]
+            if not cols:
+                return []
+            rows = []
+            for _, row in df[cols].iterrows():
+                rec = {}
+                has_non_empty = False
+                for c in cols:
+                    v = row[c]
+                    if pd.notna(v) and str(v).strip():
+                        rec[c] = str(v)
+                        has_non_empty = True
+                    else:
+                        rec[c] = None
+                if has_non_empty:
+                    rows.append(rec)
+                if len(rows) >= n:
+                    break
+            return rows
+
+        query_profiles = {
+            jc: column_profile(join_df[jc], n_samples=5)
+            for jc in join_columns if jc in join_df.columns
+        }
+        query_rows_5 = _first_non_empty_rows(join_df, join_columns, n=5)
 
         for tbl in relevant_list:
             cand_name = tbl.get("table_id")
-            # if not cand_name:
-            #     continue
-            # if cand_name in SKIP_TABLES:
-            #     print(f"   ⏭️  Skipping {cand_name} (in skip list)")
-            #     continue
-            # run_record["table_id"].append(cand_name)
 
             df, status = get_candidate_table(table_id=cand_name, opendata_domain=domain_for_fetch)
             if status["success"]:
                 run_record["status"].append("success")
                 run_record["reason"].append(None)
-                cols_with_jaccard = select_join_columns_for_candidate(
-                    join_sketch, df, k_columns=topk_join, min_jaccard=0.1, sketch_k=1024
-                )
                 cand_col_descs = get_column_descriptions_from_index(cand_name)
+                candidate_profiles = []
+                for col in df.columns:
+                    p = column_profile(df[col], n_samples=5)
+                    p["description"] = cand_col_descs.get(col, "")
+                    candidate_profiles.append(p)
 
-                # Handle composite key vs single key
-                if isinstance(cols_with_jaccard, dict):
-                    # Composite key: {join_col: [(cand_col, jaccard), ...], ...}
-                    join_info = [
-                        {
-                            "join_column": jc,
-                            "description": join_col_descs.get(jc, ""),
-                            "top_candidates": [
-                                {"name": col, "jaccard": round(j, 4), "description": cand_col_descs.get(col, "")}
-                                for col, j in cols_with_jaccard.get(jc, [])
-                            ]
-                        }
-                        for jc in join_columns
-                    ]
-                    jc_prompt = f"""Select the best matching columns for composite join key from candidate table {cand_name}.
-
-Composite join key from query table:
-{json.dumps(join_info, ensure_ascii=False, indent=2)}
-query_table_description: {query_table_description}
-
-For each join_column, select the single best candidate column from top_candidates.
-
-Return JSON:
-{{
-  "selected_columns": {{"join_col1": "cand_col1", "join_col2": "cand_col2"}},
-  "reasoning": "..."
-}}"""
-                    has_candidates = any(len(info["top_candidates"]) > 0 for info in join_info)
-                else:
-                    # Single key: [(col, jaccard), ...]
-                    candidates_for_llm = [
-                        {"name": col, "jaccard": round(j, 4), "description": cand_col_descs.get(col, "")}
-                        for col, j in cols_with_jaccard
-                    ]
-                    jc_prompt = f"""Select the join column for candidate table {cand_name}.
-
-query_join_column: {join_columns[0]}
-query_join_column_description: {join_col_descs.get(join_columns[0], "")}
-query_table_description: {query_table_description}
-candidate_columns: {json.dumps(candidates_for_llm, ensure_ascii=False)}
-
-Return JSON with selected_columns and reasoning."""
-                    has_candidates = len(cols_with_jaccard) > 0
-
-                if has_candidates:
+                top5_by_join_col: Dict[str, List[str]] = {}
+                for jc in join_columns:
+                    step1_payload = {
+                        "task_mode": "profile_top5",
+                        "candidate_table": cand_name,
+                        "query_join_column": jc,
+                        "query_join_column_description": join_col_descs.get(jc, ""),
+                        "query_table_description": query_table_description,
+                        "query_join_column_profile": query_profiles.get(jc, {}),
+                        "candidate_column_profiles": candidate_profiles,
+                        "topk": topk_join,
+                    }
+                    step1_prompt = (
+                        "Select top5 possible join columns by profile only. "
+                        "Return JSON with key top5_candidates.\n"
+                        f"input: {json.dumps(step1_payload, ensure_ascii=False)}"
+                    )
                     try:
-                        jc_events = await joincol_runner.run_debug(jc_prompt)
+                        step1_events = await joincol_runner.run_debug(step1_prompt, quiet=True)
+                        full_step1_text = ""
+                        for event in step1_events:
+                            if getattr(event, "content", None) and getattr(event.content, "parts", None):
+                                for part in event.content.parts:
+                                    t = getattr(part, "text", None)
+                                    if t:
+                                        full_step1_text += t
+                        step1_json = extract_json_by_key_from_full_text(
+                            full_step1_text, "top5_candidates", prefer_non_empty_list=True
+                        ) if full_step1_text.strip() else {}
+                        raw_top5 = step1_json.get("top5_candidates", []) or []
+                        normalized_top5 = []
+                        for item in raw_top5:
+                            if isinstance(item, str):
+                                normalized_top5.append(item)
+                            elif isinstance(item, dict):
+                                name = item.get("name") or item.get("column_name")
+                                if name:
+                                    normalized_top5.append(str(name))
+                        top5_by_join_col[jc] = normalized_top5[:topk_join]
+                    except Exception:
+                        top5_by_join_col[jc] = []
+
+                top5_profile[cand_name] = top5_by_join_col if len(join_columns) > 1 else top5_by_join_col.get(join_columns[0], [])
+
+                candidate_cols_union = []
+                for jc in join_columns:
+                    for c in top5_by_join_col.get(jc, []):
+                        if c not in candidate_cols_union:
+                            candidate_cols_union.append(c)
+
+                if not candidate_cols_union:
+                    selected_cols = []
+                else:
+                    candidate_rows_5 = _first_non_empty_rows(df, candidate_cols_union, n=5)
+                    candidate_profiles_top = [p for p in candidate_profiles if p.get("column_name") in candidate_cols_union]
+                    step2_payload = {
+                        "task_mode": "final_select",
+                        "candidate_table": cand_name,
+                        "query_join_columns": join_columns,
+                        "query_join_column_descriptions": {jc: join_col_descs.get(jc, "") for jc in join_columns},
+                        "query_table_description": query_table_description,
+                        "query_rows_non_empty_5": query_rows_5,
+                        "candidate_rows_non_empty_5": candidate_rows_5,
+                        "query_profiles": query_profiles,
+                        "candidate_profiles_top5": candidate_profiles_top,
+                        "top5_candidates_by_query_col": top5_by_join_col,
+                        "instruction": "Use tools when needed and return selected_columns.",
+                    }
+                    step2_prompt = (
+                        "Choose final join columns from provided top5 candidates. "
+                        "Use tools if needed. Return JSON with key selected_columns.\n"
+                        f"input: {json.dumps(step2_payload, ensure_ascii=False)}"
+                    )
+                    try:
+                        jc_events = await joincol_runner.run_debug(step2_prompt, quiet=True)
                         full_jc_text = ""
                         for event in jc_events:
                             if getattr(event, "content", None) and getattr(event.content, "parts", None):
@@ -795,46 +832,124 @@ Return JSON with selected_columns and reasoning."""
                         jc_json = extract_json_by_key_from_full_text(
                             full_jc_text, "selected_columns", prefer_non_empty_list=True
                         ) if full_jc_text.strip() else {}
-                        
-                        # Parse selected_columns based on composite vs single
-                        if isinstance(cols_with_jaccard, dict):
-                            # Composite: {"BORO": "Borough", "YEAR": "report_year"}
-                            selected_dict = jc_json.get("selected_columns", {})
-                            selected_cols = list(selected_dict.values()) if isinstance(selected_dict, dict) else []
+                        selected_val = jc_json.get("selected_columns", [])
+                        if isinstance(selected_val, dict):
+                            selected_cols = [v for v in selected_val.values() if v]
+                        elif isinstance(selected_val, list):
+                            selected_cols = [v for v in selected_val if v]
+                        elif selected_val:
+                            selected_cols = [selected_val]
                         else:
-                            # Single: ["Borough"]
-                            selected_cols = jc_json.get("selected_columns", []) or []
-                            if not isinstance(selected_cols, list):
-                                selected_cols = [selected_cols] if selected_cols else []
+                            selected_cols = []
                     except Exception as e:
                         print(f"   ⚠️  Join Agent error: {e}")
-                        # Fallback to top jaccard
-                        if isinstance(cols_with_jaccard, dict):
-                            selected_cols = [cols_with_jaccard[jc][0][0] for jc in join_columns if cols_with_jaccard.get(jc)]
-                        else:
-                            selected_cols = [cols_with_jaccard[0][0]] if cols_with_jaccard else []
-                else:
-                    selected_cols = []
+                        selected_cols = [top5_by_join_col[jc][0] for jc in join_columns if top5_by_join_col.get(jc)]
 
-                # Store topk_jaccard for record
-                if isinstance(cols_with_jaccard, dict):
-                    topk_jaccard[cand_name] = {jc: [c for c, _ in cols_with_jaccard[jc]] for jc in cols_with_jaccard}
-                else:
-                    topk_jaccard[cand_name] = [c for c, _ in cols_with_jaccard]
                 if selected_cols:
-                    tbl_with_join = dict(tbl)
-                    tbl_with_join["candidate_table"] = cand_name
-                    tbl_with_join["selected_columns"] = selected_cols
-                    tbl_with_join["join_col_descs"] = join_col_descs
-                    tbl_with_join["cand_col_descs"] = cand_col_descs
-                    final_selected_tables.append(tbl_with_join)
-                    print(f"   ✅ {cand_name}: LLM selected {selected_cols}")
+                    attempts = build_fallback_attempts(
+                        selected_columns=selected_cols,
+                        top5_candidates_by_query_col=top5_by_join_col,
+                        query_join_columns=join_columns,
+                        max_candidates=topk_join,
+                    )
+                    chosen_cols = None
+                    chosen_join_mode = "exact"
+                    chosen_fuzzy_mapping: Dict[str, str] = {}
+                    fallback_logs: List[Dict[str, Any]] = []
+                    for attempt_idx, attempt_cols in enumerate(attempts, start=1):
+                        health = evaluate_exact_join_health(
+                            join_df=join_df,
+                            cand_df=df,
+                            join_columns=join_columns,
+                            selected_columns=attempt_cols,
+                            coverage_threshold=fallback_coverage_threshold,
+                            explosion_threshold=fallback_explosion_threshold,
+                        )
+                        attempt_log: Dict[str, Any] = {
+                            "attempt_index": attempt_idx,
+                            "selected_columns": attempt_cols,
+                            "exact_join_health": health,
+                        }
+                        if not health.get("is_anomaly", True):
+                            chosen_cols = attempt_cols
+                            chosen_join_mode = "exact"
+                            fallback_logs.append(attempt_log)
+                            break
+
+                        similarity_gate = evaluate_similarity_gate(
+                            join_df=join_df,
+                            cand_df=df,
+                            join_columns=join_columns,
+                            selected_columns=attempt_cols,
+                            query_col_descs=join_col_descs,
+                            candidate_col_descs=cand_col_descs,
+                            fuzzy_threshold=fuzzy_score_threshold,
+                            semantic_threshold=semantic_score_threshold,
+                        )
+                        attempt_log["similarity_gate"] = similarity_gate
+
+                        if similarity_gate.get("gate_pass", False):
+                            fuzzy_eval = evaluate_fuzzy_join_health(
+                                join_df=join_df,
+                                cand_df=df,
+                                join_columns=join_columns,
+                                selected_columns=attempt_cols,
+                                coverage_threshold=fallback_coverage_threshold,
+                                explosion_threshold=fallback_explosion_threshold,
+                                fuzzy_threshold=fuzzy_score_threshold,
+                            )
+                            attempt_log["fuzzy_join"] = fuzzy_eval
+                            fuzzy_health = fuzzy_eval.get("health", {})
+                            if not fuzzy_health.get("is_anomaly", True):
+                                chosen_cols = attempt_cols
+                                chosen_join_mode = "fuzzy"
+                                chosen_fuzzy_mapping = fuzzy_eval.get("fuzzy_key_mapping", {}) or {}
+                                fallback_logs.append(attempt_log)
+                                break
+
+                        fallback_logs.append(attempt_log)
+
+                    join_fallback_record[cand_name] = {
+                        "coverage_threshold": fallback_coverage_threshold,
+                        "explosion_threshold": fallback_explosion_threshold,
+                        "fuzzy_score_threshold": fuzzy_score_threshold,
+                        "semantic_score_threshold": semantic_score_threshold,
+                        "attempts": fallback_logs,
+                    }
+
+                    if chosen_cols:
+                        tbl_with_join = dict(tbl)
+                        tbl_with_join["candidate_table"] = cand_name
+                        tbl_with_join["selected_columns"] = chosen_cols
+                        tbl_with_join["join_col_descs"] = join_col_descs
+                        tbl_with_join["cand_col_descs"] = cand_col_descs
+                        tbl_with_join["use_fuzzy_join"] = chosen_join_mode == "fuzzy"
+                        tbl_with_join["fuzzy_key_mapping"] = chosen_fuzzy_mapping if chosen_join_mode == "fuzzy" else {}
+                        final_selected_tables.append(tbl_with_join)
+                        if chosen_join_mode == "fuzzy":
+                            print(
+                                f"   ✅ {cand_name}: fuzzy selected {chosen_cols} "
+                                f"(fuzzy>= {fuzzy_score_threshold} or semantic>= {semantic_score_threshold})"
+                            )
+                        elif chosen_cols != selected_cols:
+                            print(
+                                f"   ✅ {cand_name}: fallback selected {chosen_cols} "
+                                f"(original {selected_cols} abnormal)"
+                            )
+                        else:
+                            print(f"   ✅ {cand_name}: selected {chosen_cols}")
+                    else:
+                        print(
+                            f"   ⚠️  {cand_name}: all top{topk_join} candidates abnormal "
+                            f"(coverage < {fallback_coverage_threshold} or explosion > {fallback_explosion_threshold}), skipped."
+                        )
             else:
                 run_record["status"].append("failed")
                 run_record["reason"].append(status["reason"])
-                topk_jaccard[cand_name] = []
+                top5_profile[cand_name] = []
 
-        run_record["topk_jaccard"] = topk_jaccard
+        run_record["top5_profile"] = top5_profile
+        run_record["join_fallback"] = join_fallback_record
         relevant_list = final_selected_tables
         join_columns_list = config.join_column if isinstance(config.join_column, list) else [config.join_column]
 
@@ -961,9 +1076,9 @@ Return JSON with selected_columns and reasoning."""
             
             for jc in join_columns:
                 if jc in target_agg.columns:
-                    target_agg[jc] = target_agg[jc].astype(str)
+                    target_agg[jc] = target_agg[jc].apply(_normalize_for_hash)
                 if jc in cand_agg.columns:
-                    cand_agg[jc] = cand_agg[jc].astype(str)
+                    cand_agg[jc] = cand_agg[jc].apply(_normalize_for_hash)
 
             merged = merge_target_with_candidate(target_agg, cand_agg, join_columns, target_col=target_column, target_type=target_type)
             
@@ -1055,7 +1170,6 @@ Select augment columns. Return JSON with selected_augment_columns and reasoning.
 
         # ---- Build augmented table and evaluate metrics ----
         augmented_df = join_df_ml.copy()
-        from tools.sketch import _normalize_for_hash
         for jc in join_columns:
             if jc in augmented_df.columns:
                 augmented_df[jc] = augmented_df[jc].apply(_normalize_for_hash)
@@ -1066,6 +1180,8 @@ Select augment columns. Return JSON with selected_augment_columns and reasoning.
                 continue
             cand_name = result.get("candidate_table")
             selected_cols = result.get("selected_columns", [])
+            use_fuzzy_join = bool(result.get("use_fuzzy_join", False))
+            fuzzy_key_mapping = result.get("fuzzy_key_mapping", {}) or {}
 
          
             from tools.aggregation import aggregate_candidate_by_join_key
@@ -1077,6 +1193,13 @@ Select augment columns. Return JSON with selected_augment_columns and reasoning.
             # join columns + augment columns
             cols_needed = selected_cols + [c for c in aug_cols if c in cand_df_full.columns]
             cand_df_subset = cand_df_full[cols_needed]
+            if use_fuzzy_join and len(selected_cols) == 1 and fuzzy_key_mapping:
+                sc = selected_cols[0]
+                cand_df_subset = cand_df_subset.copy()
+                cand_df_subset[sc] = cand_df_subset[sc].apply(_normalize_for_hash).map(
+                    lambda x: fuzzy_key_mapping.get(x)
+                )
+                cand_df_subset = cand_df_subset[cand_df_subset[sc].notna()].copy()
             cand_agg = cand_df_subset
             # cand_agg = aggregate_candidate_by_join_key(cand_df_subset, selected_cols, table_id=cand_name, llm_summarize=False)
             if cand_agg is None or cand_agg.empty:

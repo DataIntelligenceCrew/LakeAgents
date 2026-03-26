@@ -4,7 +4,7 @@ import re
 import ast
 from pathlib import Path
 from typing import Dict, Any
-from llm_agent_tools import find_dataset_dir, _train_and_evaluate
+from tools.llm_agent_tools import find_dataset_dir, _train_and_evaluate
 
 
 def extract_json(text: str) -> Dict[str, Any]:
