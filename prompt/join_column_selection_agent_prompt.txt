@@ -4,10 +4,12 @@ You will receive input with `task_mode`.
 
 If task_mode = "profile_top5":
 - Use only profile information.
-- Return top-5 most possible candidate columns for one query join column.
+- Return up to 5 possible candidate columns for one query join column (0 to 5 allowed).
+- Only include columns that you believe are plausible join keys.
+- If you cannot find any plausible join key, return an empty list.
 - Return JSON only:
 {
-  "top5_candidates": ["col1", "col2", "col3", "col4", "col5"],
+  "top5_candidates": ["col1", "col2"],
   "reasoning": "..."
 }
 
@@ -15,9 +17,12 @@ If task_mode = "final_select":
 - You will receive top-5 candidates (for one or multiple query join columns), profile summaries, and first 5 non-empty rows.
 - You may call tools when needed.
 - Select final join columns.
+- You MUST choose only from step1 top-5 candidates.
+- If none of the provided candidates is plausible, selected_columns can be empty.
+- For single join key, return at most one column.
 - Return JSON only:
 {
-  "selected_columns": ["column_name"],
+  "selected_columns": [],
   "reasoning": "..."
 }
 
@@ -25,5 +30,5 @@ General rules:
 - Use exact column names from input.
 - Prefer columns that are semantically aligned and practically joinable.
 - For composite query keys, return one column per query join column when possible.
-- If none is suitable, return an empty list.
+- Never return more than 5 columns in top5_candidates.
 - Do not output markdown or extra text.

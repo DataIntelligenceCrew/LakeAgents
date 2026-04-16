@@ -13,7 +13,6 @@ from tools.join_column_tool import (
     fuzzy_string_match,
     jaccard_similarity,
     normalized_overlap,
-    semantic_column_similarity,
 )
 
 
@@ -29,7 +28,7 @@ def load_agent_instruction(prompt_file: str = "prompt/join_column_selection_agen
 
 
 def build_join_column_choose_agent(provider: Optional[str] = None, config: Optional[object] = None) -> Agent:
-    """Build a minimal join-column agent with 6 tools."""
+    """Build a minimal join-column agent with 5 tools."""
     if config is not None:
         provider = config.get_provider("join_column_selection")
         retry_config = config.get_retry_config()
@@ -72,7 +71,6 @@ def build_join_column_choose_agent(provider: Optional[str] = None, config: Optio
         FunctionTool(func=normalized_overlap),
         FunctionTool(func=date_normalized_overlap),
         FunctionTool(func=fuzzy_string_match),
-        FunctionTool(func=semantic_column_similarity),
     ]
 
     return Agent(

@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy.typing as npt
 
@@ -67,6 +67,72 @@ def classify_column_type(
             return "numerical"
         return "text"
     return "ignore"
+
+
+def infer_dtype_rule(
+    values: List[Union[str, int, float, bool]],
+    column_name: str = "",
+    metadata_datatype: Optional[str] = None,
+) -> dict:
+    """
+    Rule-based dtype inference tool for LLM agent.
+    Returns dtype_rule, confidence, evidence.
+    """
+    s = pd.Series(values, dtype="object")
+    non_null = s.dropna()
+    n_total = int(len(s))
+    n_non_null = int(len(non_null))
+    unique_non_null = int(non_null.astype(str).nunique()) if n_non_null > 0 else 0
+    unique_ratio = float(unique_non_null / n_non_null) if n_non_null > 0 else 0.0
+
+    numeric_cast = pd.to_numeric(non_null, errors="coerce") if n_non_null > 0 else pd.Series(dtype="float64")
+    numeric_ratio = float(numeric_cast.notna().sum() / n_non_null) if n_non_null > 0 else 0.0
+    avg_strlen = float(non_null.astype(str).str.len().mean()) if n_non_null > 0 else 0.0
+
+    md = (metadata_datatype or "").strip().lower()
+    if md in ("number", "checkbox"):
+        dtype_rule = "numerical"
+        confidence = 0.95
+        evidence = "metadata indicates numeric-like datatype"
+    elif md == "text":
+        dtype_rule = "text"
+        confidence = 0.9
+        evidence = "metadata indicates text datatype"
+    elif unique_non_null <= 1:
+        dtype_rule = "categorical"
+        confidence = 0.98
+        evidence = "single unique non-null value"
+    elif numeric_ratio >= 0.9:
+        dtype_rule = "numerical"
+        confidence = 0.9
+        evidence = f"high numeric cast ratio={numeric_ratio:.2f}"
+    elif unique_ratio < 0.05:
+        dtype_rule = "categorical"
+        confidence = 0.85
+        evidence = f"low unique ratio={unique_ratio:.3f}"
+    elif avg_strlen >= 12 and numeric_ratio < 0.5:
+        dtype_rule = "text"
+        confidence = 0.8
+        evidence = f"long strings avg_len={avg_strlen:.1f}"
+    else:
+        dtype_rule = "text"
+        confidence = 0.6
+        evidence = "fallback to text"
+
+    return {
+        "column_name": column_name,
+        "dtype_rule": dtype_rule,
+        "confidence": round(float(confidence), 4),
+        "evidence": evidence,
+        "stats": {
+            "n_total": n_total,
+            "n_non_null": n_non_null,
+            "unique_non_null": unique_non_null,
+            "unique_ratio": round(unique_ratio, 4),
+            "numeric_ratio": round(numeric_ratio, 4),
+            "avg_strlen": round(avg_strlen, 2),
+        },
+    }
 
 def convert_numeric_columns(
     df: pd.DataFrame,
@@ -463,6 +529,7 @@ def aggregate_selected_tables(
     task_type: Optional[str] = None,
     target_description: Optional[str] = None,
     user_intent: Optional[str] = None,
+    table_overrides: Optional[dict] = None,
 ) -> List[dict]:
     """
     Aggregate all tables from Phase 2 join column selection.
@@ -483,15 +550,24 @@ def aggregate_selected_tables(
         selected_cols = tbl.get("selected_columns", [])
         use_fuzzy_join = bool(tbl.get("use_fuzzy_join", False))
         fuzzy_key_mapping = tbl.get("fuzzy_key_mapping", {}) or {}
+        dq_dropped_columns = tbl.get("dq_dropped_columns", []) or []
+        dq_selected_quality_columns = tbl.get("dq_selected_quality_columns", []) or []
         
         if not cand_name or not selected_cols:
             continue
         
         # Fetch table (might be cached from Phase 2)
-        cand_df, status = get_candidate_table(cand_name, opendata_domain)
-        if not status["success"]:
-            print(f"   ⚠️  Failed to fetch {cand_name}: {status['reason']}")
-            continue
+        if table_overrides is not None and cand_name in table_overrides:
+            cand_df = table_overrides[cand_name].copy()
+            status = {"success": True, "reason": None}
+        else:
+            cand_df, status = get_candidate_table(cand_name, opendata_domain)
+            if not status["success"]:
+                print(f"   ⚠️  Failed to fetch {cand_name}: {status['reason']}")
+                continue
+
+        if dq_dropped_columns:
+            cand_df = cand_df.drop(columns=dq_dropped_columns, errors="ignore")
 
         if join_key_filter is not None and len(selected_cols) == 1:
             from tools.sketch import _normalize_for_hash
@@ -551,6 +627,7 @@ def aggregate_selected_tables(
                 "selected_columns": selected_cols,
                 "use_fuzzy_join": use_fuzzy_join,
                 "fuzzy_key_mapping": fuzzy_key_mapping if use_fuzzy_join else {},
+                "dq_selected_quality_columns": dq_selected_quality_columns,
                 "aggregated_df": agg_df,
                 "original_rows": len(cand_df),
                 "aggregated_rows": len(agg_df),

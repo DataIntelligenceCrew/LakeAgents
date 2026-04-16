@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 
 import pandas as pd
 
-from tools.join_column_tool import fuzzy_string_match, semantic_column_similarity
+from tools.join_column_tool import fuzzy_string_match
 from tools.sketch import _normalize_for_hash
 
 
@@ -24,35 +24,26 @@ def evaluate_exact_join_health(
     join_columns: List[str],
     selected_columns: List[str],
     coverage_threshold: float = 0.5,
-    explosion_threshold: float = 2.0,
 ) -> Dict[str, Any]:
-    """Evaluate exact-join health by coverage and explosion."""
+    """Evaluate exact-join health by coverage only."""
     if not join_columns or not selected_columns:
         return {
             "coverage": 0.0,
-            "explosion": float("inf"),
             "coverage_threshold": coverage_threshold,
-            "explosion_threshold": explosion_threshold,
             "coverage_ok": False,
-            "explosion_ok": False,
             "is_anomaly": True,
             "reason": "missing join columns",
             "matched_rows": 0,
-            "merged_rows": 0,
             "left_rows": int(len(join_df)),
         }
     if len(join_columns) != len(selected_columns):
         return {
             "coverage": 0.0,
-            "explosion": float("inf"),
             "coverage_threshold": coverage_threshold,
-            "explosion_threshold": explosion_threshold,
             "coverage_ok": False,
-            "explosion_ok": False,
             "is_anomaly": True,
             "reason": "join column length mismatch",
             "matched_rows": 0,
-            "merged_rows": 0,
             "left_rows": int(len(join_df)),
         }
 
@@ -63,15 +54,11 @@ def evaluate_exact_join_health(
     if left_rows == 0:
         return {
             "coverage": 0.0,
-            "explosion": 0.0,
             "coverage_threshold": coverage_threshold,
-            "explosion_threshold": explosion_threshold,
             "coverage_ok": False,
-            "explosion_ok": True,
             "is_anomaly": True,
             "reason": "empty left table",
             "matched_rows": 0,
-            "merged_rows": 0,
             "left_rows": 0,
         }
 
@@ -80,34 +67,21 @@ def evaluate_exact_join_health(
     matched_rows = sum(1 for t in left_tuples if t in right_tuples_set)
     coverage = matched_rows / left_rows
 
-    merged_rows = len(pd.merge(left_keys, right_keys, on=list(left_keys.columns), how="inner"))
-    explosion = merged_rows / left_rows
-
     coverage_ok = coverage >= coverage_threshold
-    explosion_ok = explosion <= explosion_threshold
-    is_anomaly = (not coverage_ok) or (not explosion_ok)
+    is_anomaly = not coverage_ok
 
     if is_anomaly:
-        if not coverage_ok and not explosion_ok:
-            reason = "coverage and explosion both abnormal"
-        elif not coverage_ok:
-            reason = "coverage below threshold"
-        else:
-            reason = "explosion above threshold"
+        reason = "coverage below threshold"
     else:
         reason = "healthy exact join"
 
     return {
         "coverage": round(float(coverage), 4),
-        "explosion": round(float(explosion), 4),
         "coverage_threshold": coverage_threshold,
-        "explosion_threshold": explosion_threshold,
         "coverage_ok": coverage_ok,
-        "explosion_ok": explosion_ok,
         "is_anomaly": is_anomaly,
         "reason": reason,
         "matched_rows": int(matched_rows),
-        "merged_rows": int(merged_rows),
         "left_rows": int(left_rows),
     }
 
@@ -180,13 +154,10 @@ def evaluate_similarity_gate(
     cand_df: pd.DataFrame,
     join_columns: List[str],
     selected_columns: List[str],
-    query_col_descs: Dict[str, str],
-    candidate_col_descs: Dict[str, str],
     fuzzy_threshold: int = 80,
-    semantic_threshold: float = 0.8,
     max_values: int = 1500,
 ) -> Dict[str, Any]:
-    """Compute fuzzy + semantic similarity and decide if fuzzy join is allowed."""
+    """Compute fuzzy (RapidFuzz) overlap on join-key samples; gate fuzzy join on threshold."""
     if len(join_columns) != 1 or len(selected_columns) != 1:
         return {
             "supported": False,
@@ -211,30 +182,17 @@ def evaluate_similarity_gate(
         candidate_values=candidate_values,
         threshold=fuzzy_threshold,
     )
-    semantic_result = semantic_column_similarity(
-        query_col_name=q_col,
-        query_col_description=query_col_descs.get(q_col, ""),
-        query_sample_values=query_values[:5],
-        candidate_col_name=c_col,
-        candidate_col_description=candidate_col_descs.get(c_col, ""),
-        candidate_sample_values=candidate_values[:5],
-    )
 
     fuzzy_score = float(fuzzy_result.get("avg_score", 0.0) or 0.0)
-    semantic_score = float(semantic_result.get("semantic_similarity", 0.0) or 0.0)
     fuzzy_pass = fuzzy_score >= float(fuzzy_threshold)
-    semantic_pass = semantic_score >= float(semantic_threshold)
-    gate_pass = fuzzy_pass or semantic_pass
+    gate_pass = fuzzy_pass
 
     return {
         "supported": True,
         "gate_pass": gate_pass,
         "fuzzy_threshold": fuzzy_threshold,
-        "semantic_threshold": semantic_threshold,
         "fuzzy_pass": fuzzy_pass,
-        "semantic_pass": semantic_pass,
         "fuzzy_result": fuzzy_result,
-        "semantic_result": semantic_result,
         "query_samples": query_values[:5],
         "candidate_samples": candidate_values[:5],
     }
@@ -271,25 +229,20 @@ def evaluate_fuzzy_join_health(
     join_columns: List[str],
     selected_columns: List[str],
     coverage_threshold: float = 0.5,
-    explosion_threshold: float = 2.0,
     fuzzy_threshold: int = 80,
 ) -> Dict[str, Any]:
-    """Apply fuzzy key mapping then re-evaluate coverage/explosion."""
+    """Apply fuzzy key mapping then re-evaluate coverage."""
     if len(join_columns) != 1 or len(selected_columns) != 1:
         return {
             "supported": False,
             "fuzzy_key_mapping": {},
             "health": {
                 "coverage": 0.0,
-                "explosion": float("inf"),
                 "coverage_threshold": coverage_threshold,
-                "explosion_threshold": explosion_threshold,
                 "coverage_ok": False,
-                "explosion_ok": False,
                 "is_anomaly": True,
                 "reason": "fuzzy join currently supports single-column join only",
                 "matched_rows": 0,
-                "merged_rows": 0,
                 "left_rows": int(len(join_df)),
             },
         }
@@ -302,15 +255,11 @@ def evaluate_fuzzy_join_health(
             "fuzzy_key_mapping": {},
             "health": {
                 "coverage": 0.0,
-                "explosion": float("inf"),
                 "coverage_threshold": coverage_threshold,
-                "explosion_threshold": explosion_threshold,
                 "coverage_ok": False,
-                "explosion_ok": False,
                 "is_anomaly": True,
                 "reason": "join column not found in data",
                 "matched_rows": 0,
-                "merged_rows": 0,
                 "left_rows": int(len(join_df)),
             },
         }
@@ -335,7 +284,6 @@ def evaluate_fuzzy_join_health(
         join_columns=join_columns,
         selected_columns=selected_columns,
         coverage_threshold=coverage_threshold,
-        explosion_threshold=explosion_threshold,
     )
     return {
         "supported": True,

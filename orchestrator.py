@@ -1,260 +1,87 @@
+import asyncio
 import json
-import re
 import os
-import pandas as pd
-import asyncio # Required for running the async entry point
 import time
-import yaml
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
+
+import yaml
 from google.adk.runners import InMemoryRunner
-from google.genai import types
-from Agent.table_selection_collab_orchestrator import run_table_selection_collab_orchestrator
-from Agent.join_column_selection_agent import build_join_column_choose_agent
-from Agent.join_column_fallback import (
-    build_fallback_attempts,
-    evaluate_exact_join_health,
-    evaluate_similarity_gate,
-    evaluate_fuzzy_join_health,
-)
-from callback import JoinValidatorCallback, AugmentValidatorCallback
-import fasttext
-from functools import partial
-from tools.llm_agent_tools import find_dataset_dir, build_opendata_search_params, get_fasttext_sim, _train_and_evaluate
-from Agent.augment_column_selection_agent import build_augment_column_selection_agent
-from agent_config_loader import AgentPipelineConfig, load_config
+
 from Agent.analyze_user_intent_agent import build_analyze_user_intent_agent
-from datalake_client import SocrataDatalakeClient
-from datetime import datetime
-from tools.sketch import (
-    get_candidate_table,
-    _update_table_access_status,
-    _normalize_for_hash,
+from Agent.augment_column_selection_agent import build_augment_column_selection_agent
+from Agent.data_quality_agent import build_data_quality_agent
+from Agent.join_column_selection_agent import build_join_column_choose_agent
+from Pipeline.context import PipelineContext
+from Pipeline.phase_augment import _evaluate_metric, run_augment
+from Pipeline.phase_data_quality import run_data_quality
+from Pipeline.phase_intent_and_dimensions import run_intent_and_dimensions
+from Pipeline.phase_join_columns import run_join_columns
+from Pipeline.phase_table_selection import run_table_selection
+from Pipeline.logging_utils import (
+    build_task_id,
+    classify_outcome,
+    compute_config_version,
+    init_decision_log,
 )
-from tools.join_column_tool import column_profile
-from tools.column_descriptions import (
-    get_column_descriptions_from_index,
-    get_column_descriptions_from_local_metadata,
-)
-from tools.aggregation import aggregate_selected_tables, aggregate_target_by_join_key
-from tools.correlation import merge_target_with_candidate, compute_feature_correlations
+from Pipeline.utils import close_runner_safely
+from agent_config_loader import AgentPipelineConfig, load_config
 from benchmark_perturbation.benchmark_perturbation import get_perturbed_pipeline_config
-from agent_config_loader import AgentPipelineConfig
-
-# Local cache for opendata dataset metadata (skip re-fetch if already read)
-OPENDATA_METADATA_CACHE_DIR = Path(__file__).resolve().parent / "opendata_metadata_cache"
-SESSION_CHECKED_DIR = Path(__file__).resolve().parent / "session_checked"
-
-SKIP_TABLES = {}
+from tools.llm_agent_tools import find_dataset_dir
 
 
-    
-def _session_checked_path(session_id: str, base_dir: Optional[Path] = None) -> Path:
-    """Sanitize session_id for use as filename."""
-    safe = re.sub(r"[^\w\-]", "_", str(session_id).strip()) or "default"
-    return (base_dir or SESSION_CHECKED_DIR) / f"{safe}.json"
-
-def _load_session_checked(session_id: Optional[str], base_dir: Optional[Path] = None) -> tuple:
-    """Load checked table for this session. Returns (checked_set, checked_table).
-    checked_set: set of IDs for exclude_tables. checked_table: list of full entries (dict with id, description, possible_join_column, etc.).
-    Old format (list of IDs only) -> checked_table=[], checked_set=those IDs."""
-    if not session_id:
-        return set(), []
-    path = _session_checked_path(session_id, base_dir)
-    if not path.exists():
-        return set(), []
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except Exception:
-        return set(), []
-    if isinstance(data, list) and data:
-        if isinstance(data[0], dict) and data[0].get("id") is not None:
-            checked_table = [e for e in data if e and isinstance(e, dict) and e.get("id")]
-            checked_set = {str(e.get("id")).strip() for e in checked_table}
-            return checked_set, checked_table
-        ids = [i for i in data if i is not None]
-        checked_set = {str(i).strip() for i in ids}
-        return checked_set, []
-    if isinstance(data, dict) and data.get("checked_tables"):
-        tbl = data["checked_tables"]
-        if tbl and isinstance(tbl[0], dict):
-            checked_table = [e for e in tbl if e and isinstance(e, dict) and e.get("id")]
-            checked_set = {str(e.get("id")).strip() for e in checked_table}
-            return checked_set, checked_table
-        checked_set = {str(i).strip() for i in tbl if i}
-        return checked_set, []
-    return set(), []
-
-def _save_session_checked(session_id: Optional[str], checked_table: list, base_dir: Optional[Path] = None) -> None:
-    """Save checked table (list of full entries) for this session."""
-    if not session_id:
-        return
-    path = _session_checked_path(session_id, base_dir)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(checked_table, f, indent=2, ensure_ascii=False)
-    except Exception:
-        pass
-
-def _metadata_cache_path(domain: str, dataset_id: str) -> Path:
-    safe_id = re.sub(r"[^\w\-]", "_", dataset_id)
-    return OPENDATA_METADATA_CACHE_DIR / domain.replace(".", "_") / f"{safe_id}.json"
-
-def _load_metadata_from_cache(domain: str, dataset_id: str) -> Optional[Dict[str, Any]]:
-    path = _metadata_cache_path(domain, dataset_id)
-    if not path.exists():
-        return None
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return None
-
-def _save_metadata_to_cache(domain: str, dataset_id: str, data: Dict[str, Any]) -> None:
-    path = _metadata_cache_path(domain, dataset_id)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-    except Exception:
-        pass
-
-def _debug_log(payload: Dict[str, Any]) -> None:
-    try:
-        payload.setdefault("timestamp", int(time.time() * 1000))
-        with open("/localdisk3/ytang49/opendata/.cursor/debug.log", "a") as debug_file:
-            debug_file.write(json.dumps(payload) + "\n")
-    except Exception:
-        pass
-
-# Environment setup
 for key in ["GOOGLE_API_KEY", "OPENAI_API_KEY"]:
     val = os.getenv(key)
-    if val: os.environ[key] = val
-
-def extract_json(text: str) -> Dict[str, Any]:
-    """Extract JSON from model output."""
-    # Check if text looks like markdown (agent might be waiting for approval)
-    if text.strip().startswith("###") or ("**" in text and "{" not in text):
-        # Agent is likely showing chain-of-thoughts, not final JSON
-        # Return empty structure
-        return {"relevant_tables": []}
-    
-    try:
-        # First try standard JSON parsing
-        return json.loads(text)
-    except json.JSONDecodeError:
-        # Try to extract JSON-like structure (handle Python dict with single quotes)
-        try:
-            # Use ast.literal_eval for Python dict syntax
-            import ast
-            return ast.literal_eval(text)
-        except (ValueError, SyntaxError):
-            # Try regex to find JSON object
-            match = re.search(r'\{.*\}', text, flags=re.DOTALL)
-            if match:
-                json_str = match.group(0)
-                try:
-                    # Try standard JSON first
-                    return json.loads(json_str)
-                except json.JSONDecodeError:
-                    # Try replacing single quotes with double quotes
-                    json_str_fixed = json_str.replace("'", '"')
-                    try:
-                        return json.loads(json_str_fixed)
-                    except json.JSONDecodeError:
-                        # Last resort: use ast.literal_eval
-                        try:
-                            return ast.literal_eval(json_str)
-                        except (ValueError, SyntaxError):
-                            pass
-            # If no JSON found, return empty structure
-            return {"relevant_tables": []}
+    if val:
+        os.environ[key] = val
 
 
-def extract_relevant_tables_from_full_text(text: str) -> Dict[str, Any]:
-    """Search full model output for JSON containing relevant_tables (handles multi-part
-    output where final JSON may appear before hallucinated error messages)."""
-    if not text or not text.strip():
-        return {"relevant_tables": []}
-
-    candidates = []
-    i = 0
-    while i < len(text):
-        pos = text.find("{", i)
-        if pos < 0:
-            break
-        depth = 0
-        start = pos
-        for j in range(pos, len(text)):
-            if text[j] == "{":
-                depth += 1
-            elif text[j] == "}":
-                depth -= 1
-                if depth == 0:
-                    try:
-                        obj = json.loads(text[start : j + 1])
-                        if "relevant_tables" in obj:
-                            candidates.append(obj)
-                    except json.JSONDecodeError:
-                        pass
-                    break
-        i = pos + 1
-
-    if not candidates:
-        return {"relevant_tables": []}
-    # Prefer non-empty relevant_tables; otherwise use last (most likely final answer)
-    for c in candidates:
-        rt = c.get("relevant_tables", [])
-        if isinstance(rt, list) and len(rt) > 0:
-            return c
-    return candidates[-1]
-
-
-def extract_json_by_key_from_full_text(
-    text: str, key: str, prefer_non_empty_list: bool = True
-) -> Dict[str, Any]:
-    """Search full model output for JSON containing the given key (handles multi-part
-    output where valid JSON may appear before hallucinated error messages)."""
-    if not text or not text.strip():
-        return {}
-
-    candidates = []
-    i = 0
-    while i < len(text):
-        pos = text.find("{", i)
-        if pos < 0:
-            break
-        depth = 0
-        start = pos
-        for j in range(pos, len(text)):
-            if text[j] == "{":
-                depth += 1
-            elif text[j] == "}":
-                depth -= 1
-                if depth == 0:
-                    try:
-                        obj = json.loads(text[start : j + 1])
-                        if key in obj:
-                            candidates.append(obj)
-                    except json.JSONDecodeError:
-                        pass
-                    break
-        i = pos + 1
-
-    if not candidates:
-        return {}
-    if prefer_non_empty_list:
-        val = candidates[0].get(key)
-        if isinstance(val, list) and len(val) > 0:
-            return candidates[0]
-        for c in candidates:
-            v = c.get(key)
-            if isinstance(v, list) and len(v) > 0:
-                return c
-    return candidates[-1]
+def _finalize_pipeline_timeout(ctx: PipelineContext, *, skipped_phases: List[str]) -> None:
+    """Skip remaining phases; join keys stay in decision_log; augment columns left empty."""
+    decision_log = ctx.state.get("decision_log")
+    if isinstance(decision_log, dict):
+        decision_log["timeout"] = {
+            "skipped_phases": skipped_phases,
+            "result_quality": "degraded_due_to_timeout",
+            "stopped_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        }
+    metric_name = "r2_score" if ctx.task_type == "regression" else "f1_score"
+    join_columns = ctx.state.get("join_columns") or []
+    if isinstance(join_columns, str):
+        join_columns = [join_columns]
+    join_df = ctx.state.get("join_df")
+    baseline_metric = None
+    augmented_metric = None
+    if join_df is not None and join_columns:
+        baseline_metric = _evaluate_metric(join_df, ctx.target_column, list(join_columns), ctx.task_type)
+    augment_results: List[Dict[str, Any]] = []
+    for tbl in ctx.state.get("final_selected_tables") or []:
+        cand = tbl.get("candidate_table") or "?"
+        selected_join = tbl.get("selected_columns") or []
+        reasoning = (
+            "pipeline_timeout; candidate join columns from log: "
+            + ", ".join(str(c) for c in selected_join)
+            if selected_join
+            else "pipeline_timeout_skipped_remaining_phases"
+        )
+        augment_results.append(
+            {
+                "candidate_table": cand,
+                "selected_augment_columns": [],
+                "ranked_candidates": [],
+                "column_decisions": [],
+                "early_stop_log": [],
+                "reasoning": reasoning,
+            }
+        )
+    ctx.state["output"] = {
+        "augment_results": augment_results,
+        "baseline_metric": baseline_metric,
+        "augmented_metric": augmented_metric,
+        "metric_name": metric_name,
+        "pipeline_timings_seconds": ctx.pipeline_timings,
+        "stop_reason": "pipeline_timeout_fallback",
+    }
 
 
 async def run_orchestrator(
@@ -262,33 +89,16 @@ async def run_orchestrator(
     join_column: Optional[List[str]] = None,
     target_column: Optional[str] = None,
     task_type: Optional[str] = None,
-    user_intent: Optional[str] = None,  
+    user_intent: Optional[str] = None,
     session_id: Optional[str] = None,
     config_path: Optional[str] = None,
-    config: Optional[AgentPipelineConfig] = None
+    config: Optional[AgentPipelineConfig] = None,
+    reuse_context: Optional[Dict[str, Any]] = None,
+    timeout_seconds: Optional[float] = None,
 ) -> Dict[str, Any]:
-    """
-    Run the multi-agent data augmentation pipeline.
-    
-    Args:
-        join_table_name: Name of base/join table. If None, uses config.
-        join_column: Join columns. If None, uses config.
-        target_column: Target column for prediction. If None, uses config.
-        task_type: Task type ("regression" or "classification"). If None, uses config.
-        user_intent: User's intent/prediction goal (e.g., "predict the shooting count in each borough"). 
-                     If None, will be constructed from target_column.
-        session_id: Unique session identifier. If None, will be generated.
-        config_path: Path to config file. If None, uses default.
-        config: AgentPipelineConfig object. If provided, uses this instead of loading from file.
-    
-    Returns:
-        Dictionary with pipeline results.
-    """
-    # Load config if not provided
     if config is None:
         config = AgentPipelineConfig(config_path)
-    
-    # Use config values if parameters not provided
+
     if join_table_name is None:
         join_table_name = config.join_table_name
     if join_column is None:
@@ -297,26 +107,14 @@ async def run_orchestrator(
         target_column = config.target_column
     if task_type is None:
         task_type = config.task_type
-    
-    # Handle user_intent: prioritize parameter, then config, then construct default
     if user_intent is None:
-        user_intent = getattr(config, 'user_intent', None)
-    if user_intent is None:
-        user_intent = f"predict the {target_column}"  # Default fallback
-    
+        user_intent = getattr(config, "user_intent", None) or f"predict the {target_column}"
     session_id = session_id if session_id is not None else config.session_id
-    BASE_DIR = config.base_dir
+    task_id = build_task_id(session_id)
 
-    _session_dir: Optional[Path] = None
-    if getattr(config, "session_checked_dir", None):
-        _p = config.session_checked_dir
-        _session_dir = Path(_p)
-        if not _session_dir.is_absolute():
-            _session_dir = (Path(__file__).resolve().parent / _p).resolve()
-
-    # Resolve display name for LLM: use metadata resource.name (perturbed) if available, else folder name
-    real_join_table_name = find_dataset_dir(join_table_name, BASE_DIR)
-    base_path_obj = Path(__file__).resolve().parent / BASE_DIR
+    base_dir = config.base_dir
+    real_join_table_name = find_dataset_dir(join_table_name, base_dir)
+    base_path_obj = Path(__file__).resolve().parent / base_dir
     join_meta_path = base_path_obj / real_join_table_name / "metadata.json"
     query_table_display_name = join_table_name
     if join_meta_path.exists():
@@ -328,1032 +126,216 @@ async def run_orchestrator(
                 query_table_display_name = display
         except Exception:
             pass
-    
-    # Build agents with config
-    analyze_intent_runner = InMemoryRunner(agent=build_analyze_user_intent_agent(config=config))
-    joincol_runner = InMemoryRunner(agent=build_join_column_choose_agent(config=config))
-    augment_runner = InMemoryRunner(agent=build_augment_column_selection_agent(config))
 
-    base_path = Path(BASE_DIR)
-    candidate_names = [
-        item.name for item in base_path.iterdir()
-        if item.is_dir() and (item / "metadata.json").exists()
+    ctx = PipelineContext(
+        config=config,
+        session_id=session_id,
+        join_table_name=join_table_name,
+        target_column=target_column,
+        task_type=task_type,
+        user_intent=user_intent,
+        base_dir=base_dir,
+        real_join_table_name=real_join_table_name,
+        query_table_display_name=query_table_display_name,
+        base_path_obj=base_path_obj,
+        join_meta_path=join_meta_path,
+    )
+    config_dict = config.config if isinstance(config.config, dict) else {}
+    config_version = compute_config_version(config_dict)
+    threshold_snapshot = {
+        "perturbation": (config_dict.get("perturbation") or {}),
+        "datalake": (config_dict.get("data", {}).get("datalake", {}) if isinstance(config_dict.get("data"), dict) else {}),
+    }
+    ctx.state["task_id"] = task_id
+    ctx.state["decision_log"] = init_decision_log(
+        task_id=task_id,
+        session_id=session_id,
+        join_table_name=join_table_name,
+        task_type=task_type,
+        target_column=target_column,
+        config_version=config_version,
+        threshold_snapshot=threshold_snapshot,
+    )
+    ctx.state["join_column"] = join_column
+    if isinstance(reuse_context, dict):
+        reused_dims = reuse_context.get("dimension_specifications")
+        reused_table_selection = reuse_context.get("table_selection")
+        reused_augment = reuse_context.get("inherited_augment_columns")
+        if isinstance(reused_dims, dict) and reused_dims:
+            ctx.state["reuse_dimension_specifications"] = reused_dims
+        if isinstance(reused_table_selection, dict) and reused_table_selection:
+            ctx.state["reuse_table_selection"] = reused_table_selection
+        if isinstance(reused_augment, dict) and reused_augment:
+            ctx.state["inherited_augment_columns"] = reused_augment
+    ctx.state["analyze_intent_runner"] = InMemoryRunner(agent=build_analyze_user_intent_agent(config=config))
+    ctx.state["joincol_runner"] = InMemoryRunner(agent=build_join_column_choose_agent(config=config))
+    ctx.state["augment_runner"] = InMemoryRunner(agent=build_augment_column_selection_agent(config))
+    ctx.state["data_quality_runner"] = InMemoryRunner(agent=build_data_quality_agent(config=config))
+
+    deadline: Optional[float] = None
+    if timeout_seconds is not None:
+        deadline = time.perf_counter() + float(timeout_seconds)
+
+    def _past_deadline() -> bool:
+        return deadline is not None and time.perf_counter() >= deadline
+
+    pipeline_steps: List[Tuple[str, Any]] = [
+        ("intent_and_dimensions", run_intent_and_dimensions),
+        ("table_selection", run_table_selection),
+        ("join_column_selection", run_join_columns),
+        ("data_quality", run_data_quality),
+        ("augment", run_augment),
     ]
 
-#---- Phase 1: Table Selection ----
+    t0 = time.perf_counter()
+    try:
+        for idx, (_, phase_fn) in enumerate(pipeline_steps):
+            await phase_fn(ctx)
+            if _past_deadline():
+                skipped = [n for n, _ in pipeline_steps[idx + 1 :]]
+                if skipped:
+                    _finalize_pipeline_timeout(ctx, skipped_phases=skipped)
+                break
+    finally:
+        ctx.pipeline_timings["00_total_wall_seconds"] = time.perf_counter() - t0
+        await close_runner_safely(ctx.state.get("analyze_intent_runner"))
+        await close_runner_safely(ctx.state.get("joincol_runner"))
+        await close_runner_safely(ctx.state.get("augment_runner"))
+        await close_runner_safely(ctx.state.get("data_quality_runner"))
 
-    print("🚀 Running Table Selection Agent...")
-    print(f"📝 User Intent: {user_intent}")
+    if ctx.run_record_path is not None:
+        run_record = ctx.state.get("run_record", {})
+        run_record["pipeline_timings_seconds"] = dict(sorted(ctx.pipeline_timings.items()))
+        try:
+            with open(ctx.run_record_path, "w", encoding="utf-8") as f:
+                json.dump(run_record, f, indent=2, ensure_ascii=False)
+            print(f"[Run Record] Updated with pipeline timings: {ctx.run_record_path}")
+        except Exception:
+            pass
 
-    analyze_intent_prompt = f"""
-User Intent: {user_intent}
-
-Task Information:
-- Target Column: {target_column}
-- Task Type: {task_type}
-- Join Table: {query_table_display_name}
-- Join Columns: {join_column}
-
-Please analyze the user intent and return the result in JSON format according to the prompt.
-"""
-
-    # Run agent, call analyze_user_intent
-    # Run analyze_user_intent agent and extract result
-    analyze_intent_events = await analyze_intent_runner.run_debug(analyze_intent_prompt, quiet=True)
-    last_text = ""
-    for event in analyze_intent_events:
-        if getattr(event, "content", None) and getattr(event.content, "parts", None):
-            for part in event.content.parts:
-                t = getattr(part, "text", None)
-                if t:
-                    last_text = t
-    analyzed_intent = extract_json(last_text) if "domain_field" in last_text else None
-
-    dimension_specifications = {}
-
-    for dim_key, dim_display_name in [
-        ("domain_field", "Domain/Field"),
-        ("geographic", "Geographic"),
-        ("temporal", "Temporal"),
-        ("population_group", "Population Group"),
-    ]:
-        dim_info = analyzed_intent.get(dim_key) if analyzed_intent else None
-        if not isinstance(dim_info, dict):
-            continue
-        is_explicitly_mentioned = dim_info.get("is_explicitly_mentioned") is True
-        explicitly_mentioned_value = dim_info.get("explicitly_mentioned_value")
-
-        if is_explicitly_mentioned:
-            raw = explicitly_mentioned_value
-            if isinstance(raw, list):
-                value_str = ", ".join(str(x) for x in raw) if raw else ""
-            else:
-                value_str = str(raw) if raw else ""
-            print(f"\nDimension '{dim_display_name}' is set to: {value_str}")
-            print("Reply 'done' to confirm, or type the correct value.")
-            user_input = input("Your reply: ").strip()
-            if user_input.lower() == "done":
-                confirmed_value = explicitly_mentioned_value
-            else:
-                confirmed_value = user_input
-            dimension_specifications[dim_display_name] = [confirmed_value] if not isinstance(confirmed_value, list) else (confirmed_value if isinstance(confirmed_value, list) else [confirmed_value])
-        else:
-            suggested = dim_info.get("suggested_values") or []
-            sug_str = f" Suggested: {', '.join(str(x) for x in suggested)}." if suggested else ""
-            print(f"\nDimension '{dim_display_name}' was not specified in your intent.")
-            print(f"Enter a value{sug_str} or type 'skip' to skip.")
-            user_input = input("Your reply: ").strip()
-            if user_input.lower() != "skip" and user_input:
-                dimension_specifications[dim_display_name] = [user_input]
-            else:
-                dimension_specifications[dim_display_name] = ['all'] 
-    print("="*40, "Dimension Specifications", "="*40)
-    print(dimension_specifications)
-
-    # Call Opendata API when data_source is datalake
-    opendata_metadata = None
-    data_source = config.config.get("data", {}).get("data_source", "local")
-    if data_source == "datalake":
-        join_column = ", ".join(join_column) if isinstance(join_column, list) else join_column
-        target_column = str(target_column).strip() if target_column else None
-        search_domains, search_q = build_opendata_search_params(dimension_specifications, join_column, target_column)
-        print("="*80)        
-        print(f"Search Domains: {search_domains}")
-        print(f"Search Query: {search_q}")
-        print("="*80)        
-        datalake_config = config.config.get("data", {}).get("datalake", {})
-        client = SocrataDatalakeClient(datalake_config)
-        max_tables = datalake_config.get("max_tables") or 10
-        domain_for_fetch = (search_domains[0] if search_domains else None) or (datalake_config.get("domains") or [None])[0]
-        join_columns_list = config.join_column if isinstance(config.join_column, list) else [config.join_column]
-        join_columns_set = {str(j).strip().lower() for j in join_columns_list if j}
-        index_path = Path(__file__).resolve().parent / "opendata_table_index.json"
-        exclude_base = [join_table_name] if join_table_name else []
-        checked_set, checked_table = _load_session_checked(session_id, _session_dir)
-
-        # Load existing index (cumulative)
-        existing_index = []
-        if index_path.exists():
-            try:
-                with open(index_path, "r", encoding="utf-8") as f:
-                    existing_index = json.load(f)
-                if not isinstance(existing_index, list):
-                    existing_index = []
-            except Exception:
-                existing_index = []
-        existing_id_set = {str(e.get("id")).strip() for e in existing_index if e and e.get("id")}
-
-        new_entries = []
-        candidate_ids_for_run = []
-        api_fetch_limit = 10000
-
-        if domain_for_fetch:
-            # exclude_tables = exclude_base + list(checked_set)
-            exclude_tables = exclude_base
-            opendata_metadata = client.read_metadata(
-                search_domains=search_domains,
-                search_q=search_q if search_q.strip() else None,
-                exclude_tables=exclude_tables,
-                limit=api_fetch_limit,
-                offset=0,
-            )
-            batch = list((opendata_metadata.get("metadata_by_dataset") or {}).keys())
-            print(f"[Opendata] One-time fetch: {len(batch)} tables (API limit={api_fetch_limit}, user max_tables={max_tables})")
-
-            for ds_id in batch:
-                if len(candidate_ids_for_run) >= max_tables:
-                    break
-                ds_id_str = str(ds_id).strip()
-                if ds_id_str in checked_set:
-                    continue
-                if ds_id_str in existing_id_set:
-                    candidate_ids_for_run.append(ds_id_str)
-                    if session_id:
-                        for entry in existing_index:
-                            if entry and str(entry.get("id")).strip() == ds_id_str:
-                                cols_name = entry.get("columns_name") or []
-                                possible = [c for c in cols_name if c and str(c).strip().lower() in join_columns_set]
-                                session_entry = dict(entry)
-                                session_entry["possible_join_column"] = possible
-                                checked_table.append(session_entry)
-                                break
-                        checked_set.add(ds_id_str)
-                        _save_session_checked(session_id, checked_table, _session_dir)
-                    continue
-                full_meta = _load_metadata_from_cache(domain_for_fetch, ds_id)
-                if full_meta is None:
-                    full_meta = client.get_dataset_metadata(ds_id, domain_for_fetch)
-                    if "error" not in full_meta:
-                        _save_metadata_to_cache(domain_for_fetch, ds_id, full_meta)
-                if full_meta and "error" not in full_meta:
-                    res = full_meta.get("resource") or {}
-                    meta_id = full_meta.get("id") or res.get("id")
-                    meta_desc = full_meta.get("description") or res.get("description") or ""
-                    meta_attr = full_meta.get("attribution") or res.get("attribution")
-                    cols_name = list(res.get("columns_name") or [])
-                    cols_desc = [str((c.get("description") or "")).strip() for c in full_meta.get("columns") if isinstance(c, dict)]
-                    if not cols_name:
-                        for col in full_meta.get("columns") or []:
-                            if isinstance(col, dict) and col.get("name"):
-                                cols_name.append(col["name"])
-                    possible = [c for c in cols_name if c and str(c).strip().lower() in join_columns_set]
-                    entry = {"id": meta_id, "name": res.get("name") or "", "description": meta_desc, "attribution": meta_attr}
-                    # entry["columns_name"] = res.get("columns_name") or cols_name
-                    # entry["columns_description"] = cols_desc 
-                    # raw_class = full_meta.get("classification") or {}
-
-                    entry["columns_name"] = res.get("columns_name") or cols_name
-                    entry["columns_description"] = cols_desc
-                    # columns_datatype: name -> dataTypeName from Socrata metadata
-                    col_list = full_meta.get("columns") or []
-                    name_to_dtype = {
-                        str(c.get("name", "")).strip(): str(c.get("dataTypeName") or "").strip() or "unknown"
-                        for c in col_list if isinstance(c, dict) and c.get("name")
-                    }
-                    entry["columns_datatype"] = [
-                        name_to_dtype.get(str(n).strip(), "unknown") for n in entry["columns_name"]
-                    ]
-                    raw_class = full_meta.get("classification") or {}
-
-                    if not raw_class and (full_meta.get("category") is not None or full_meta.get("tags")):
-                        raw_class = {
-                            "categories": [],
-                            "tags": list(full_meta.get("tags") or []),
-                            "domain_category": str(full_meta.get("category") or "").strip(),
-                            "domain_tags": [],
-                        }
-
-                    entry["classification"] = {
-                        "categories": raw_class.get("categories") if isinstance(raw_class, dict) else [],
-                        "tags": raw_class.get("tags") if isinstance(raw_class, dict) else [],
-                        "domain_category": raw_class.get("domain_category") or "",
-                        "domain_tags": raw_class.get("domain_tags") or [],
-                    }   
-
-                    entry["domain"] = (full_meta.get("metadata") or {}).get("domain") or domain_for_fetch
-                    new_entries.append(entry)
-                    existing_id_set.add(str(meta_id).strip())
-                    candidate_ids_for_run.append(ds_id_str)
-                    if session_id:
-                        session_entry = dict(entry)
-                        session_entry["possible_join_column"] = possible
-                        session_entry["possible_join_column_is_true"] = bool(possible)
-                        checked_table.append(session_entry)
-                        checked_set.add(ds_id_str)
-                        _save_session_checked(session_id, checked_table, _session_dir)
-
-        merged_index = existing_index + new_entries
-        # Ensure every entry has "name" (table_name) before writing
-        for e in merged_index:
-            if not e or not e.get("id"):
-                continue
-            if (e.get("name") or "").strip():
-                continue
-            domain = e.get("domain")
-            if domain:
-                meta = _load_metadata_from_cache(domain, str(e.get("id", "")).strip())
-                if meta:
-                    name = ((meta.get("resource") or {}).get("name") or meta.get("name") or "").strip()
-                    if name:
-                        e["name"] = name
-        with open(index_path, "w", encoding="utf-8") as f:
-            json.dump(merged_index, f, indent=2, ensure_ascii=False)
-        print(f"[Index] cumulative: {len(existing_index)} existing + {len(new_entries)} new = {len(merged_index)} total, {len(candidate_ids_for_run)} for this run (limit={max_tables})")
-        
-        real_join_table_name = find_dataset_dir(join_table_name, BASE_DIR)
-        base_path = Path(__file__).resolve().parent / BASE_DIR 
-        join_meta_path = base_path / real_join_table_name / "metadata.json"
-        query_table_description = ""
-        if join_meta_path.exists():
-            try:
-                with open(join_meta_path, "r", encoding="utf-8") as f:
-                    join_meta = json.load(f)
-                query_table_description = (join_meta.get("resource") or {}).get("description", "") or ""
-            except Exception:
-                pass
-
-        # Apply prompt truncation when enabled (unified switch)
-        trunc_cfg = config.config.get("agents", {}).get("prompt_truncation", {}) if config else {}
-        if trunc_cfg.get("enabled"):
-            max_desc = trunc_cfg.get("max_query_table_description_chars", 400)
-            if query_table_description and len(query_table_description) > max_desc:
-                query_table_description = query_table_description[:max_desc] + "...[truncated]"
-            max_dims = trunc_cfg.get("max_dimension_specs_chars", 300)
-            dims_str = json.dumps(dimension_specifications, ensure_ascii=False)
-            if len(dims_str) > max_dims:
-                dims_str = dims_str[:max_dims] + "...[truncated]"
-        else:
-            dims_str = json.dumps(dimension_specifications, ensure_ascii=False)
-
-        # Build 5-row examples (all columns) per candidate table for table-selection agents.
-        table_examples_by_id: Dict[str, List[Dict[str, Any]]] = {}
-        id_to_domain = {
-            str(e.get("id", "")).strip(): e.get("domain")
-            for e in merged_index if isinstance(e, dict) and e.get("id")
-        }
-        for ds_id in candidate_ids_for_run:
-            ds_id_str = str(ds_id).strip()
-            if not ds_id_str:
-                continue
-            try:
-                rows = client.read_data(
-                    ds_id_str,
-                    id_to_domain.get(ds_id_str) or domain_for_fetch,
-                    max_rows=5,
-                )
-            except Exception:
-                rows = []
-            if not isinstance(rows, list):
-                rows = []
-            # Keep all columns; trim long cell values to reduce prompt size.
-            clean_rows: List[Dict[str, Any]] = []
-            for row in rows[:5]:
-                if not isinstance(row, dict):
-                    continue
-                out_row: Dict[str, Any] = {}
-                for k, v in row.items():
-                    if v is None:
-                        out_row[k] = None
-                    else:
-                        s = str(v)
-                        out_row[k] = s[:120] + "...[truncated]" if len(s) > 120 else s
-                clean_rows.append(out_row)
-            table_examples_by_id[ds_id_str] = clean_rows
-
-        task_info = {
-            "target_column": target_column,
-            "task_type": task_type,
-            "query_table_name": query_table_display_name,
-            "join_columns": join_column,
-            "query_table_description": query_table_description,
-            "dimension_specifications": dims_str,
-            "table_examples_5rows_all_columns": table_examples_by_id,
-        }
-
-        print("\n📋 Running Collaborative Table Selection (datalake)...")
-        collab_result = await run_table_selection_collab_orchestrator(
-            config=config,
-            candidate_ids=candidate_ids_for_run,
-            user_intent=user_intent,
-            task_info=task_info,
+    output = ctx.state.get(
+        "output",
+        {
+            "augment_results": [],
+            "baseline_metric": None,
+            "augmented_metric": None,
+            "metric_name": "r2_score" if task_type == "regression" else "f1_score",
+            "pipeline_timings_seconds": ctx.pipeline_timings,
+        },
+    )
+    decision_log = ctx.state.get("decision_log", {})
+    if isinstance(decision_log, dict):
+        decision_log["pipeline_timings_seconds"] = dict(sorted(ctx.pipeline_timings.items()))
+        decision_log["outcome"] = classify_outcome(
+            output.get("baseline_metric"),
+            output.get("augmented_metric"),
         )
-
-        relevant_list = collab_result.get("final_tables", [])
-
-        # Normalize: table_id (id), table_name (human-readable name from metadata)
-        id_to_name = {}
-        for e in merged_index:
-            if not e or not e.get("id"):
-                continue
-            eid = str(e.get("id", "")).strip()
-            name = (e.get("name") or "").strip()
-            if not name and e.get("domain"):
-                meta = _load_metadata_from_cache(e.get("domain"), eid)
-                if meta:
-                    name = ((meta.get("resource") or {}).get("name") or meta.get("name") or "").strip()
-            id_to_name[eid] = name
-        for tbl in relevant_list:
-            table_id = tbl.get("table_id") or tbl.get("table_name") or tbl.get("id")
-            if table_id:
-                table_id = str(table_id).strip()
-                tbl["table_id"] = table_id
-                tbl["table_name"] = id_to_name.get(table_id, "")
-
-        # Exclude join table from relevant_list (table_id must not equal join table id)
-
-        join_table_id = None
-        if join_meta_path.exists():
-            try:
-                with open(join_meta_path, "r", encoding="utf-8") as f:
-                    join_meta = json.load(f)
-                join_table_id = (join_meta.get("resource") or {}).get("id") or join_meta.get("id")
-            except Exception:
-                pass
-
-        print(f"[Table Selection] {len(relevant_list)} tables selected")
-        for i, tbl in enumerate(relevant_list[:10], 1):
-            name = tbl.get("table_name", "") or tbl.get("table_id", "?")
-            print(f"   {i}. {name} (id={tbl.get('table_id', '?')})")
-        if len(relevant_list) > 10:
-            print(f"   ... and {len(relevant_list) - 10} more")
-
-        #---- Phase 2: Join Column Selection ----
-
-        run_start_time = datetime.now()
-        run_record = {
-            "table_id": [],
-            "status": [],
-            "reason": [],
-        }
-        top5_profile = {}  # table_id -> profile-selected candidate columns
-        join_fallback_record = {}  # table_id -> fallback attempts and join health
-        final_selected_tables = []
-        fallback_coverage_threshold = 0.5
-        fallback_explosion_threshold = 2.0
-        fuzzy_score_threshold = 80
-        semantic_score_threshold = 0.8
-
-        # Load join table
-        base_path = Path(__file__).resolve().parent / BASE_DIR
-        join_df = pd.read_csv(base_path / real_join_table_name / config.data_filename, low_memory=False)
-        join_columns = config.join_column if isinstance(config.join_column, list) else [config.join_column]
-        join_sketch_original_values = None
-
-
-        # Join column descriptions
-        join_col_descs = get_column_descriptions_from_local_metadata(BASE_DIR, real_join_table_name)
-        topk_join = 5
-
-        def _first_non_empty_rows(df: pd.DataFrame, columns: List[str], n: int = 5) -> List[Dict[str, Any]]:
-            if df is None or df.empty:
-                return []
-            cols = [c for c in columns if c in df.columns]
-            if not cols:
-                return []
-            rows = []
-            for _, row in df[cols].iterrows():
-                rec = {}
-                has_non_empty = False
-                for c in cols:
-                    v = row[c]
-                    if pd.notna(v) and str(v).strip():
-                        rec[c] = str(v)
-                        has_non_empty = True
-                    else:
-                        rec[c] = None
-                if has_non_empty:
-                    rows.append(rec)
-                if len(rows) >= n:
-                    break
-            return rows
-
-        query_profiles = {
-            jc: column_profile(join_df[jc], n_samples=5)
-            for jc in join_columns if jc in join_df.columns
-        }
-        query_rows_5 = _first_non_empty_rows(join_df, join_columns, n=5)
-
-        for tbl in relevant_list:
-            cand_name = tbl.get("table_id")
-
-            df, status = get_candidate_table(table_id=cand_name, opendata_domain=domain_for_fetch)
-            if status["success"]:
-                run_record["status"].append("success")
-                run_record["reason"].append(None)
-                cand_col_descs = get_column_descriptions_from_index(cand_name)
-                candidate_profiles = []
-                for col in df.columns:
-                    p = column_profile(df[col], n_samples=5)
-                    p["description"] = cand_col_descs.get(col, "")
-                    candidate_profiles.append(p)
-
-                top5_by_join_col: Dict[str, List[str]] = {}
-                for jc in join_columns:
-                    step1_payload = {
-                        "task_mode": "profile_top5",
-                        "candidate_table": cand_name,
-                        "query_join_column": jc,
-                        "query_join_column_description": join_col_descs.get(jc, ""),
-                        "query_table_description": query_table_description,
-                        "query_join_column_profile": query_profiles.get(jc, {}),
-                        "candidate_column_profiles": candidate_profiles,
-                        "topk": topk_join,
-                    }
-                    step1_prompt = (
-                        "Select top5 possible join columns by profile only. "
-                        "Return JSON with key top5_candidates.\n"
-                        f"input: {json.dumps(step1_payload, ensure_ascii=False)}"
-                    )
-                    try:
-                        step1_events = await joincol_runner.run_debug(step1_prompt, quiet=True)
-                        full_step1_text = ""
-                        for event in step1_events:
-                            if getattr(event, "content", None) and getattr(event.content, "parts", None):
-                                for part in event.content.parts:
-                                    t = getattr(part, "text", None)
-                                    if t:
-                                        full_step1_text += t
-                        step1_json = extract_json_by_key_from_full_text(
-                            full_step1_text, "top5_candidates", prefer_non_empty_list=True
-                        ) if full_step1_text.strip() else {}
-                        raw_top5 = step1_json.get("top5_candidates", []) or []
-                        normalized_top5 = []
-                        for item in raw_top5:
-                            if isinstance(item, str):
-                                normalized_top5.append(item)
-                            elif isinstance(item, dict):
-                                name = item.get("name") or item.get("column_name")
-                                if name:
-                                    normalized_top5.append(str(name))
-                        top5_by_join_col[jc] = normalized_top5[:topk_join]
-                    except Exception:
-                        top5_by_join_col[jc] = []
-
-                top5_profile[cand_name] = top5_by_join_col if len(join_columns) > 1 else top5_by_join_col.get(join_columns[0], [])
-
-                candidate_cols_union = []
-                for jc in join_columns:
-                    for c in top5_by_join_col.get(jc, []):
-                        if c not in candidate_cols_union:
-                            candidate_cols_union.append(c)
-
-                if not candidate_cols_union:
-                    selected_cols = []
-                else:
-                    candidate_rows_5 = _first_non_empty_rows(df, candidate_cols_union, n=5)
-                    candidate_profiles_top = [p for p in candidate_profiles if p.get("column_name") in candidate_cols_union]
-                    step2_payload = {
-                        "task_mode": "final_select",
-                        "candidate_table": cand_name,
-                        "query_join_columns": join_columns,
-                        "query_join_column_descriptions": {jc: join_col_descs.get(jc, "") for jc in join_columns},
-                        "query_table_description": query_table_description,
-                        "query_rows_non_empty_5": query_rows_5,
-                        "candidate_rows_non_empty_5": candidate_rows_5,
-                        "query_profiles": query_profiles,
-                        "candidate_profiles_top5": candidate_profiles_top,
-                        "top5_candidates_by_query_col": top5_by_join_col,
-                        "instruction": "Use tools when needed and return selected_columns.",
-                    }
-                    step2_prompt = (
-                        "Choose final join columns from provided top5 candidates. "
-                        "Use tools if needed. Return JSON with key selected_columns.\n"
-                        f"input: {json.dumps(step2_payload, ensure_ascii=False)}"
-                    )
-                    try:
-                        jc_events = await joincol_runner.run_debug(step2_prompt, quiet=True)
-                        full_jc_text = ""
-                        for event in jc_events:
-                            if getattr(event, "content", None) and getattr(event.content, "parts", None):
-                                for part in event.content.parts:
-                                    t = getattr(part, "text", None)
-                                    if t:
-                                        full_jc_text += t
-                        jc_json = extract_json_by_key_from_full_text(
-                            full_jc_text, "selected_columns", prefer_non_empty_list=True
-                        ) if full_jc_text.strip() else {}
-                        selected_val = jc_json.get("selected_columns", [])
-                        if isinstance(selected_val, dict):
-                            selected_cols = [v for v in selected_val.values() if v]
-                        elif isinstance(selected_val, list):
-                            selected_cols = [v for v in selected_val if v]
-                        elif selected_val:
-                            selected_cols = [selected_val]
-                        else:
-                            selected_cols = []
-                    except Exception as e:
-                        print(f"   ⚠️  Join Agent error: {e}")
-                        selected_cols = [top5_by_join_col[jc][0] for jc in join_columns if top5_by_join_col.get(jc)]
-
-                if selected_cols:
-                    attempts = build_fallback_attempts(
-                        selected_columns=selected_cols,
-                        top5_candidates_by_query_col=top5_by_join_col,
-                        query_join_columns=join_columns,
-                        max_candidates=topk_join,
-                    )
-                    chosen_cols = None
-                    chosen_join_mode = "exact"
-                    chosen_fuzzy_mapping: Dict[str, str] = {}
-                    fallback_logs: List[Dict[str, Any]] = []
-                    for attempt_idx, attempt_cols in enumerate(attempts, start=1):
-                        health = evaluate_exact_join_health(
-                            join_df=join_df,
-                            cand_df=df,
-                            join_columns=join_columns,
-                            selected_columns=attempt_cols,
-                            coverage_threshold=fallback_coverage_threshold,
-                            explosion_threshold=fallback_explosion_threshold,
-                        )
-                        attempt_log: Dict[str, Any] = {
-                            "attempt_index": attempt_idx,
-                            "selected_columns": attempt_cols,
-                            "exact_join_health": health,
-                        }
-                        if not health.get("is_anomaly", True):
-                            chosen_cols = attempt_cols
-                            chosen_join_mode = "exact"
-                            fallback_logs.append(attempt_log)
-                            break
-
-                        similarity_gate = evaluate_similarity_gate(
-                            join_df=join_df,
-                            cand_df=df,
-                            join_columns=join_columns,
-                            selected_columns=attempt_cols,
-                            query_col_descs=join_col_descs,
-                            candidate_col_descs=cand_col_descs,
-                            fuzzy_threshold=fuzzy_score_threshold,
-                            semantic_threshold=semantic_score_threshold,
-                        )
-                        attempt_log["similarity_gate"] = similarity_gate
-
-                        if similarity_gate.get("gate_pass", False):
-                            fuzzy_eval = evaluate_fuzzy_join_health(
-                                join_df=join_df,
-                                cand_df=df,
-                                join_columns=join_columns,
-                                selected_columns=attempt_cols,
-                                coverage_threshold=fallback_coverage_threshold,
-                                explosion_threshold=fallback_explosion_threshold,
-                                fuzzy_threshold=fuzzy_score_threshold,
-                            )
-                            attempt_log["fuzzy_join"] = fuzzy_eval
-                            fuzzy_health = fuzzy_eval.get("health", {})
-                            if not fuzzy_health.get("is_anomaly", True):
-                                chosen_cols = attempt_cols
-                                chosen_join_mode = "fuzzy"
-                                chosen_fuzzy_mapping = fuzzy_eval.get("fuzzy_key_mapping", {}) or {}
-                                fallback_logs.append(attempt_log)
-                                break
-
-                        fallback_logs.append(attempt_log)
-
-                    join_fallback_record[cand_name] = {
-                        "coverage_threshold": fallback_coverage_threshold,
-                        "explosion_threshold": fallback_explosion_threshold,
-                        "fuzzy_score_threshold": fuzzy_score_threshold,
-                        "semantic_score_threshold": semantic_score_threshold,
-                        "attempts": fallback_logs,
-                    }
-
-                    if chosen_cols:
-                        tbl_with_join = dict(tbl)
-                        tbl_with_join["candidate_table"] = cand_name
-                        tbl_with_join["selected_columns"] = chosen_cols
-                        tbl_with_join["join_col_descs"] = join_col_descs
-                        tbl_with_join["cand_col_descs"] = cand_col_descs
-                        tbl_with_join["use_fuzzy_join"] = chosen_join_mode == "fuzzy"
-                        tbl_with_join["fuzzy_key_mapping"] = chosen_fuzzy_mapping if chosen_join_mode == "fuzzy" else {}
-                        final_selected_tables.append(tbl_with_join)
-                        if chosen_join_mode == "fuzzy":
-                            print(
-                                f"   ✅ {cand_name}: fuzzy selected {chosen_cols} "
-                                f"(fuzzy>= {fuzzy_score_threshold} or semantic>= {semantic_score_threshold})"
-                            )
-                        elif chosen_cols != selected_cols:
-                            print(
-                                f"   ✅ {cand_name}: fallback selected {chosen_cols} "
-                                f"(original {selected_cols} abnormal)"
-                            )
-                        else:
-                            print(f"   ✅ {cand_name}: selected {chosen_cols}")
-                    else:
-                        print(
-                            f"   ⚠️  {cand_name}: all top{topk_join} candidates abnormal "
-                            f"(coverage < {fallback_coverage_threshold} or explosion > {fallback_explosion_threshold}), skipped."
-                        )
-            else:
-                run_record["status"].append("failed")
-                run_record["reason"].append(status["reason"])
-                top5_profile[cand_name] = []
-
-        run_record["top5_profile"] = top5_profile
-        run_record["join_fallback"] = join_fallback_record
-        relevant_list = final_selected_tables
-        join_columns_list = config.join_column if isinstance(config.join_column, list) else [config.join_column]
-
+        decision_log["metric_name"] = output.get("metric_name")
+        decision_log["baseline_metric"] = output.get("baseline_metric")
+        decision_log["augmented_metric"] = output.get("augmented_metric")
+        decision_log["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
         data_dir = Path(__file__).resolve().parent / "data"
         data_dir.mkdir(parents=True, exist_ok=True)
-        safe_sid = re.sub(r"[^\w\-]", "_", str(session_id or "default").strip()) or "default"
-        filename = run_start_time.strftime("%Y-%m-%d_%H-%M-%S") + f"_{safe_sid}.json"
-        filepath = data_dir / filename
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(run_record, f, indent=2, ensure_ascii=False)
-        print(f"[Run Record] Saved to {filepath}")
+        decision_log_path = data_dir / f"{task_id}_decision_log.json"
+        try:
+            with open(decision_log_path, "w", encoding="utf-8") as f:
+                json.dump(decision_log, f, indent=2, ensure_ascii=False)
+            output["decision_log_path"] = str(decision_log_path)
+        except Exception:
+            pass
 
+    # Keep a compact reuse payload for outer-loop rounds.
+    decision_log_dict = decision_log if isinstance(decision_log, dict) else {}
+    output["_reuse_context"] = {
+        "dimension_specifications": ctx.state.get("dimension_specifications", {}),
+        "table_selection": {
+            "selected_tables": ((decision_log_dict.get("phases", {}) or {}).get("table_selection", {}) or {}).get("selected_tables", []),
+            "excluded_tables": ((decision_log_dict.get("phases", {}) or {}).get("table_selection", {}) or {}).get("excluded_tables", []),
+            "candidate_ids_for_run": ctx.state.get("table_selection_candidate_ids", []),
+            "domain_for_fetch": ctx.state.get("domain_for_fetch"),
+            "query_table_description": ctx.state.get("query_table_description", ""),
+        },
+    }
 
-# ---- Phase 3: Augment Column Selection ----
+    print("\n⏱ Pipeline phase timings (seconds, descending):")
+    for name, sec in sorted(ctx.pipeline_timings.items(), key=lambda x: -x[1]):
+        print(f"   {name}: {sec:.3f}")
 
-        from Classification_regression import preprocess_data, run_classification_task, run_regression_task
-
-        JOIN_KEY_LIMIT = 500
-        jc0 = join_columns[0] if join_columns else None
-        join_df_ml = join_df
-        join_key_filter_500 = None
-        if jc0 and jc0 in join_df.columns:
-            unique_keys = join_df[jc0].dropna().astype(str).str.strip().unique().tolist()
-            if len(unique_keys) > JOIN_KEY_LIMIT:
-                keys_to_keep = set(unique_keys[:JOIN_KEY_LIMIT])
-                join_df_ml = join_df[join_df[jc0].astype(str).str.strip().isin(keys_to_keep)].copy()
-                join_key_filter_500 = unique_keys[:JOIN_KEY_LIMIT]
-
-        baseline_metric = None
-        baseline_features = [c for c in join_df_ml.columns 
-                            if c != target_column and c not in join_columns]
-        if len(baseline_features) == 0:
-            baseline_features = [c for c in join_df_ml.columns if c != target_column]
-        metric_name = "r2_score" if task_type == "regression" else "f1_score"  
-        if len(baseline_features) > 0:
-            baseline_df = join_df_ml[baseline_features + [target_column]].dropna(subset=[target_column])
-            
-            # #region agent log
-            import json as _json; _ts = __import__('time').time_ns() // 1000000
-            with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_J1","timestamp":_ts,"location":"orchestrator.py:683","message":"baseline_df before preprocess","data":{"shape":[int(x) for x in baseline_df.shape],"columns":list(baseline_df.columns),"dtypes":{col:str(dtype) for col,dtype in baseline_df.dtypes.items()},"target_column":target_column,"baseline_features":baseline_features},"hypothesisId":"J,M"}) + '\n')
-            # #endregion
-            metric_name = "r2_score" if task_type == "regression" else "f1_score"  
-            try:
-                X, y, target_encoder, scaler = preprocess_data(baseline_df, target_column, task_type)
-                
-                # #region agent log
-                import json as _json; _ts = __import__('time').time_ns() // 1000000
-                if X is not None and y is not None:
-                    _y_sample = [float(v) if hasattr(v,'item') else v for v in (y[:5] if len(y)>0 else [])]
-                    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_K1","timestamp":_ts,"location":"orchestrator.py:693","message":"baseline X,y after preprocess","data":{"X_shape":[int(x) for x in X.shape],"X_columns":list(X.columns),"X_dtypes":{col:str(dtype) for col,dtype in X.dtypes.items()},"y_shape":[int(x) for x in y.shape] if hasattr(y,'shape') else [len(y)],"y_dtype":str(y.dtype) if hasattr(y,'dtype') else str(type(y)),"y_sample":_y_sample},"hypothesisId":"K,L"}) + '\n')
-                # #endregion
-                if X is not None and len(X) > 0:
-                    # #region agent log
-                    import json as _json; _ts = __import__('time').time_ns() // 1000000
-                    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_P1","timestamp":_ts,"location":"orchestrator.py:699","message":"before running task","data":{"task_type":task_type,"X_shape":[int(x) for x in X.shape]},"hypothesisId":"P,Q"}) + '\n')
-                    # #endregion
-                    
-                    if task_type == 'classification':
-                        metrics = run_classification_task(X, y, target_encoder)
-                        
-                        # #region agent log
-                        import json as _json; _ts = __import__('time').time_ns() // 1000000
-                        with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_Q1","timestamp":_ts,"location":"orchestrator.py:709","message":"metrics returned","data":{"metrics_keys":list(metrics.keys()),"metrics_types":{k:str(type(v).__name__) for k,v in metrics.items()}},"hypothesisId":"Q"}) + '\n')
-                        # #endregion
-                        
-                        baseline_metric = metrics['f1_score']
-                        metric_name = "f1_score"
-                        
-                        # #region agent log
-                        import json as _json; _ts = __import__('time').time_ns() // 1000000
-                        _bm_type = type(baseline_metric).__name__
-                        _bm_val = float(baseline_metric) if hasattr(baseline_metric,'item') else baseline_metric
-                        with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_Q2","timestamp":_ts,"location":"orchestrator.py:720","message":"baseline_metric extracted","data":{"baseline_metric_type":_bm_type,"baseline_metric_value":_bm_val},"hypothesisId":"Q"}) + '\n')
-                        # #endregion
-                    elif task_type == 'regression':
-                        metrics = run_regression_task(X, y)
-                        baseline_metric = metrics['r2_score']
-                        metric_name = "r2_score"
-                    if baseline_metric is not None:
-                        print(f"\n📊 Baseline ({metric_name}): {baseline_metric:.4f}")
-                    else:
-                        print(f"\n📊 Baseline ({metric_name}): N/A (no valid data)")
-            except Exception as e:
-                # #region agent log
-                import json as _json; _ts = __import__('time').time_ns() // 1000000
-                import traceback as _tb
-                with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_P2","timestamp":_ts,"location":"orchestrator.py:732","message":"baseline computation exception","data":{"error":str(e),"error_type":type(e).__name__,"traceback":_tb.format_exc()},"hypothesisId":"P,Q"}) + '\n')
-                # #endregion
-                print(f"\n📊 Baseline failed: {e}")
-                
-
-        # Correlation phase: compute target aggregation and feature correlations per candidate
-        print(f"\n📈 Computing correlations with target '{target_column}'...")
-        target_agg, target_type = aggregate_target_by_join_key(
-            join_df_ml, join_columns, target_column,
-            base_dir=BASE_DIR, join_table_folder=real_join_table_name,
-        )
-
-        # Aggregation phase
-        join_key_filter_ml = join_key_filter_500 if join_key_filter_500 is not None else join_sketch_original_values
-        print(f"\n📊 Aggregating candidate tables by join key...")
-        aggregated_results = aggregate_selected_tables(
-            final_selected_tables,
-            base_dir=BASE_DIR,
-            opendata_domain=domain_for_fetch,
-            join_key_filter=join_key_filter_ml,
-            query_join_columns=join_columns,
-            llm_join_keys=join_key_filter_ml, 
-            target_agg=target_agg,
-            target_column=target_column,
-            target_type=target_type,
-        )
-
-        for result in aggregated_results:
-            cand_agg = result.get("aggregated_df")
-            if cand_agg is None or cand_agg.empty:
-                result["correlation_table"] = pd.DataFrame(columns=["feature", "metric", "value"])
-                continue
-            # Align join column names: candidate uses selected_columns, query uses join_columns
-            selected_cols = result.get("selected_columns", [])
-            if selected_cols and len(selected_cols) == len(join_columns):
-                rename_map = dict(zip(selected_cols, join_columns))
-                cand_agg = cand_agg.rename(columns=rename_map)
-            
-            for jc in join_columns:
-                if jc in target_agg.columns:
-                    target_agg[jc] = target_agg[jc].apply(_normalize_for_hash)
-                if jc in cand_agg.columns:
-                    cand_agg[jc] = cand_agg[jc].apply(_normalize_for_hash)
-
-            merged = merge_target_with_candidate(target_agg, cand_agg, join_columns, target_col=target_column, target_type=target_type)
-            
-            # #region agent log
-            import json as _json; _ts = __import__('time').time_ns() // 1000000
-            _merged_dtypes = {col: str(dtype) for col, dtype in merged.dtypes.items()}
-            _merged_sample = {col: str(merged[col].iloc[0]) if len(merged) > 0 else None for col in list(merged.columns)[:15]}
-            with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_J1","timestamp":_ts,"location":"orchestrator.py:745","message":"merged_df before correlation","data":{"shape":[int(x) for x in merged.shape],"dtypes":_merged_dtypes,"sample":_merged_sample,"target_column":target_column,"target_type":target_type,"join_columns":join_columns},"hypothesisId":"J,M"}) + '\n')
-            # #endregion
-            
-            corr_df = compute_feature_correlations(
-                merged, join_columns, target_column, target_type
-            )
-            result["correlation_table"] = corr_df
-            cand_name = result.get("candidate_table", "?")
-            print(f"   {cand_name}: {len(corr_df)} features with correlation/distance")
-            print(corr_df.to_string(index=False))
-            print()
-
-        for result in aggregated_results:
-            cand_name = result.get("candidate_table", "?")
-            corr_df = result.get("correlation_table", pd.DataFrame())
-            if corr_df.empty:
-                result["selected_augment_columns"] = []
-                result["augment_reasoning"] = "No correlation data."
-                continue
-            
-            cand_descs = get_column_descriptions_from_index(cand_name)
-            target_desc = join_col_descs.get(target_column, "")  # get target column description from join table metadata
-            
-            cand_agg = result.get("aggregated_df")
-
-            # construct candidate_columns
-            existing_columns_lower = {str(c).strip().lower() for c in join_df.columns} 
-            candidate_columns = []
-            for _, row in corr_df.iterrows():
-                feature_name = row["feature"]
-                if str(feature_name).strip().lower() in existing_columns_lower:
-                    continue
-
-                entry = {
-                    "feature": feature_name,
-                    "metric": row["metric"],
-                    "value": float(row["value"]) if pd.notna(row["value"]) else None,
-                    "description": cand_descs.get(row["feature"], ""),
-                    "feature_type": row.get("feature_type", "unknown"),
-                }
-                feat_type = row.get("feature_type", "unknown")
-                if feat_type == "text" and cand_agg is not None:
-                    summary_col = f"{row['feature']}_summary"
-                    if summary_col in cand_agg.columns:
-                        parts = []
-                        for _, r in cand_agg.iterrows():
-                            jk = " | ".join(str(r[c]) for c in join_columns if c in cand_agg.columns)
-                            s = r.get(summary_col, "")
-                            if pd.notna(s) and str(s).strip():
-                                parts.append(f"{jk}: {s}")
-                        entry["summary"] = "\n".join(parts) if parts else ""
-                    else:
-                        entry["summary"] = ""
-                else:
-                    entry["summary"] = ""
-                candidate_columns.append(entry)
-
-            prompt = f"""
-task_type: "{task_type}"
-target_column: "{target_column}"
-target_column_description: "{target_desc}"
-user_intent: "{user_intent}"
-candidate_table: "{cand_name}"
-query_table_description: "{query_table_description}"
-candidate_columns: {json.dumps(candidate_columns, ensure_ascii=False, indent=2)}
-
-Select augment columns. Return JSON with selected_augment_columns and reasoning.
-"""
-            events = await augment_runner.run_debug(prompt, quiet=True)
-            full_aug_text = ""
-            for event in events:
-                if getattr(event, "content", None) and getattr(event.content, "parts", None):
-                    for part in event.content.parts:
-                        t = getattr(part, "text", None)
-                        if t:
-                            full_aug_text += t
-            parsed = extract_json_by_key_from_full_text(
-                full_aug_text, "selected_augment_columns", prefer_non_empty_list=True
-            ) if full_aug_text.strip() else {}
-            result["selected_augment_columns"] = parsed.get("selected_augment_columns", [])
-            result["augment_reasoning"] = parsed.get("reasoning", "")
-
-        # ---- Build augmented table and evaluate metrics ----
-        augmented_df = join_df_ml.copy()
-        for jc in join_columns:
-            if jc in augmented_df.columns:
-                augmented_df[jc] = augmented_df[jc].apply(_normalize_for_hash)
-        for result in aggregated_results:
-
-            aug_cols = result.get("selected_augment_columns", [])
-            if not aug_cols:
-                continue
-            cand_name = result.get("candidate_table")
-            selected_cols = result.get("selected_columns", [])
-            use_fuzzy_join = bool(result.get("use_fuzzy_join", False))
-            fuzzy_key_mapping = result.get("fuzzy_key_mapping", {}) or {}
-
-         
-            from tools.aggregation import aggregate_candidate_by_join_key
-
-            cand_df_full, status = get_candidate_table(cand_name, domain_for_fetch)
-            if not status["success"]:
-                continue
-
-            # join columns + augment columns
-            cols_needed = selected_cols + [c for c in aug_cols if c in cand_df_full.columns]
-            cand_df_subset = cand_df_full[cols_needed]
-            if use_fuzzy_join and len(selected_cols) == 1 and fuzzy_key_mapping:
-                sc = selected_cols[0]
-                cand_df_subset = cand_df_subset.copy()
-                cand_df_subset[sc] = cand_df_subset[sc].apply(_normalize_for_hash).map(
-                    lambda x: fuzzy_key_mapping.get(x)
-                )
-                cand_df_subset = cand_df_subset[cand_df_subset[sc].notna()].copy()
-            cand_agg = cand_df_subset
-            # cand_agg = aggregate_candidate_by_join_key(cand_df_subset, selected_cols, table_id=cand_name, llm_summarize=False)
-            if cand_agg is None or cand_agg.empty:
-                continue
-            selected_cols = result.get("selected_columns", [])
-            if selected_cols and len(selected_cols) == len(join_columns):
-                rename_map = dict(zip(selected_cols, join_columns))
-                cand_agg = cand_agg.rename(columns=rename_map)
-            cols_to_add = [c for c in aug_cols if c in cand_agg.columns]
-            if not cols_to_add:
-                continue
-            to_merge = cand_agg[join_columns + cols_to_add].drop_duplicates(subset=join_columns)
-            
-            # Normalize join columns in to_merge to match augmented_df
-            for jc in join_columns:
-                if jc in to_merge.columns:
-                    to_merge[jc] = to_merge[jc].apply(_normalize_for_hash)
-            
-            # Rename duplicate columns in to_merge to avoid merge conflicts
-            cand_name = result.get("candidate_table", "unknown")
-            cand_suffix = f"_{cand_name.replace('-', '_')}"
-            rename_map = {}
-            for col in cols_to_add:
-                if col in augmented_df.columns:
-                    new_name = f"{col}{cand_suffix}"
-                    rename_map[col] = new_name
-            if rename_map:
-                to_merge = to_merge.rename(columns=rename_map)
-            
-            # #region agent log
-            import json as _json; _ts = __import__('time').time_ns() // 1000000
-            with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_F2","timestamp":_ts,"location":"orchestrator.py:835","message":"before merge","data":{"candidate_table":result.get("candidate_table","?"),"augmented_df_columns":list(augmented_df.columns),"to_merge_columns":list(to_merge.columns),"cols_to_add":cols_to_add,"rename_map":rename_map},"hypothesisId":"F,G,H"}) + '\n')
-            # #endregion
-            
-            augmented_df = augmented_df.merge(to_merge, on=join_columns, how="left")
-
- 
-
-            # #region agent log
-            import json as _json; _ts = __import__('time').time_ns() // 1000000
-            with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_FIX2","timestamp":_ts,"location":"orchestrator.py:862","message":"after merge","data":{"candidate_table":cand_name,"augmented_df_columns":list(augmented_df.columns)},"hypothesisId":"FIX"}) + '\n')
-            # #endregion
-
-        # Evaluate augmented metric
-        augmented_metric = None
-        aug_features = [c for c in augmented_df.columns if c != target_column and c not in join_columns]
-        if len(aug_features) > 0:
-            aug_df = augmented_df[aug_features + [target_column]].dropna(subset=[target_column])
-
-
-            # #region agent log
-            import json as _json; _ts = __import__('time').time_ns() // 1000000
-            with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_N1","timestamp":_ts,"location":"orchestrator.py:866","message":"aug_df before preprocess","data":{"shape":[int(x) for x in aug_df.shape],"columns":list(aug_df.columns),"dtypes":{col:str(dtype) for col,dtype in aug_df.dtypes.items()},"target_column":target_column,"aug_features":aug_features},"hypothesisId":"N,M"}) + '\n')
-            # #endregion
-            
-            if len(aug_df) >= 10:
-                try:
-                    X, y, target_encoder, scaler = preprocess_data(aug_df, target_column, task_type)
-
-                    # #region agent log
-                    import json as _json; _ts = __import__('time').time_ns() // 1000000
-                    if X is not None and y is not None:
-                        _y_sample = [float(v) if hasattr(v,'item') else v for v in (y[:5] if len(y)>0 else [])]
-                        with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_K2","timestamp":_ts,"location":"orchestrator.py:878","message":"augmented X,y after preprocess","data":{"X_shape":[int(x) for x in X.shape],"X_columns":list(X.columns),"X_dtypes":{col:str(dtype) for col,dtype in X.dtypes.items()},"y_shape":[int(x) for x in y.shape] if hasattr(y,'shape') else [len(y)],"y_dtype":str(y.dtype) if hasattr(y,'dtype') else str(type(y)),"y_sample":_y_sample},"hypothesisId":"K,L"}) + '\n')
-                    # #endregion
-                    if X is not None and len(X) > 0:
-                        
-                        if task_type == 'classification':
-                            metrics = run_classification_task(X, y, target_encoder)
-                            
-                            augmented_metric = metrics['f1_score']
-                        elif task_type == 'regression':
-                            metrics = run_regression_task(X, y)
-                            augmented_metric = metrics['r2_score']
-
-                    metric_name = "r2_score" if task_type == "regression" else "f1_score"
-                    print(f"\n📊 Augmented ({metric_name}): {augmented_metric:.4f}")
-                    if baseline_metric is not None:
-                        print(f"\n📊 Augmented ({metric_name}): {augmented_metric:.4f}")
-                        improvement = augmented_metric - baseline_metric
-                        pct = (improvement / abs(baseline_metric) * 100) if baseline_metric != 0 else 0
-                        print(f"   Improvement: {improvement:+.4f} ({pct:+.1f}%)")
-                except Exception as e:
-                    print(f"\n📊 Augmented ({metric_name}): N/A (no valid data)")
-
-        augment_output = [
-            {
-                "candidate_table": r.get("candidate_table", "?"),
-                "selected_augment_columns": r.get("selected_augment_columns", []),
-                "reasoning": r.get("augment_reasoning", ""),
-            }
-            for r in aggregated_results
-        ]
-        metric_name = "r2_score" if task_type == "regression" else "f1_score"
-        return {
-            "augment_results": augment_output,
-            "baseline_metric": baseline_metric,
-            "augmented_metric": augmented_metric,
-            "metric_name": metric_name,
-        }
+    return output
 
 
 if __name__ == "__main__":
     import argparse
-    
-    parser = argparse.ArgumentParser(description='Run multi-agent data augmentation pipeline')
-    parser.add_argument('--user-intent', type=str, 
-                       help='User intent/prediction goal (e.g., "I would like to predict the crime rate in New York City")')
-    parser.add_argument('--config', type=str, default=None,
-                       help='Path to config file')
-    parser.add_argument('--join-table', type=str, default=None,
-                       help='Join table name')
-    parser.add_argument('--target-column', type=str, default=None,
-                       help='Target column to predict')
-    parser.add_argument('--task-type', type=str, default=None,
-                       choices=['regression', 'classification'],
-                       help='Task type')
-    parser.add_argument('--session-id', type=str, default=None,
-                       help='Session ID for this query task (for per-session checked dataset)')    
-    parser.add_argument('--use-original', action='store_true',
-                    help='Use original (unperturbed) data instead of perturbed data')
-    parser.add_argument('--base-dir', type=str, default=None,
-                    help='Override data base directory (e.g. perturbed_0.85_0.1)')
-    parser.add_argument('--data-filename', type=str, default=None,
-                        help='Override data filename (e.g. rows_original.csv)')
 
+    parser = argparse.ArgumentParser(description="Run multi-agent data augmentation pipeline")
+    parser.add_argument(
+        "--user-intent",
+        type=str,
+        help='User intent/prediction goal (e.g., "I would like to predict the crime rate in New York City")',
+    )
+    parser.add_argument("--config", type=str, default=None, help="Path to config file")
+    parser.add_argument("--join-table", type=str, default=None, help="Join table name")
+    parser.add_argument("--target-column", type=str, default=None, help="Target column to predict")
+    parser.add_argument(
+        "--task-type",
+        type=str,
+        default=None,
+        choices=["regression", "classification"],
+        help="Task type",
+    )
+    parser.add_argument(
+        "--session-id",
+        type=str,
+        default=None,
+        help="Session ID for this query task (for per-session checked dataset)",
+    )
+    parser.add_argument(
+        "--use-original",
+        action="store_true",
+        help="Use original (unperturbed) data instead of perturbed data",
+    )
+    parser.add_argument(
+        "--base-dir",
+        type=str,
+        default=None,
+        help="Override data base directory (e.g. perturbed_0.85_0.1)",
+    )
+    parser.add_argument(
+        "--data-filename",
+        type=str,
+        default=None,
+        help="Override data filename (e.g. rows_original.csv)",
+    )
+    parser.add_argument(
+        "--timeout-seconds",
+        type=float,
+        default=None,
+        help="Soft wall-clock limit; remaining phases are skipped and output is built from current logs (e.g. 1800 for 30 minutes).",
+    )
     args = parser.parse_args()
+
     try:
         if args.use_original:
             config = AgentPipelineConfig(args.config)
             config.config["data"] = {**config.config.get("data", {}), "base_dir": "query_table"}
         else:
-    
-            from benchmark_perturbation.data_perturbation import load_perturbation_config
-            full_perturb = load_perturbation_config  
             perturb_path = Path(__file__).resolve().parent / "configs" / "perturbation.yaml"
             perturb_cfg = {}
             if perturb_path.exists():
-                with open(perturb_path) as f:
+                with open(perturb_path, "r", encoding="utf-8") as f:
                     p = (yaml.safe_load(f) or {}).get("perturbation", {})
                     perturb_cfg = {"threshold": p.get("threshold", 0.85), "beta": p.get("beta", 0.1)}
-
             table_folder = args.join_table
             if table_folder is None:
                 base_cfg = load_config(args.config)
                 table_folder = (base_cfg.get("task") or {}).get("join_table_name")
-
             cfg_dict = get_perturbed_pipeline_config(
                 table_folder=table_folder,
                 threshold=perturb_cfg.get("threshold", 0.85),
                 beta=perturb_cfg.get("beta", 0.1),
             )
             config = AgentPipelineConfig(config_dict=cfg_dict)
-        
+
         if args.base_dir is not None:
             config.config.setdefault("data", {})
             config.config["data"]["base_dir"] = args.base_dir
@@ -1361,17 +343,18 @@ if __name__ == "__main__":
             config.config.setdefault("data", {})
             config.config["data"]["data_filename"] = args.data_filename
 
-            
-        output = asyncio.run(run_orchestrator(
-            config=config,
-            user_intent=args.user_intent,
-            session_id=args.session_id,
-            join_table_name=None,     
-            target_column=None,
-            task_type=args.task_type,
-        ))
- 
-            
+        output = asyncio.run(
+            run_orchestrator(
+                config=config,
+                user_intent=args.user_intent,
+                session_id=args.session_id,
+                join_table_name=None,
+                target_column=None,
+                task_type=args.task_type,
+                timeout_seconds=args.timeout_seconds,
+            )
+        )
+
         print("\n--- Final Results ---")
         if output:
             metric_name = output.get("metric_name", "r2_score")
@@ -1385,21 +368,23 @@ if __name__ == "__main__":
                 improvement = augmented - baseline
                 pct = (improvement / abs(baseline) * 100) if baseline != 0 else 0
                 print(f"   Improvement: {improvement:+.4f} ({pct:+.1f}%)")
+
         if config.save_results:
-            # Save results to file
             output_file = Path(config.results_file)
-            with open(output_file, 'w') as f:
-                json.dump(output, f, indent=2)
+            with open(output_file, "w", encoding="utf-8") as f:
+                json.dump(output, f, indent=2, ensure_ascii=False)
             print(f"Results saved to {output_file}")
-        
+
         if config.print_results and output:
             for item in output.get("augment_results", []):
                 payload = {
-                    "selected_augment_columns": item["selected_augment_columns"],
-                    "reasoning": item["reasoning"]
+                    "selected_augment_columns": item.get("selected_augment_columns", []),
+                    "reasoning": item.get("reasoning", ""),
                 }
                 print("\nAugmentColumnSelectionAgent >", json.dumps(payload, indent=2, ensure_ascii=False))
     except Exception as e:
         print(f"Workflow failed: {e}")
         import traceback
+
         traceback.print_exc()
+

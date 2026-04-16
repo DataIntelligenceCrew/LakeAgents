@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 TASKS_ORDER = [
     "COVID-Chicago", "COVID-NYC", "Demo-Chicago", "Demo-NYC",
     "Economic-Chicago", "Economic-NYC", "Education-Chicago", "Education-NYC",
+    "Food Inspections-Chicago", "Food Inspections-NYC", "Building Permits-Chicago", "Environment_NYC",
 ]
 
 
@@ -49,7 +50,7 @@ def build_improvement_matrix(entries: list[dict], join_table: str) -> tuple[np.n
 
 def main():
     parser = argparse.ArgumentParser(description="Plot 2×4 improvement heatmaps from experiment log")
-    parser.add_argument("log_file", type=str, default="experiments/experiment_log_mini.json", nargs="?",
+    parser.add_argument("log_file", type=str, default="experiments/experiment_log_qwen.json", nargs="?",
                         help="Path to experiment log (JSONL)")
     parser.add_argument("--output", "-o", type=str, default=None, help="Output figure path")
     parser.add_argument("--title", type=str, default="Improvement by (τ, β)", help="Overall figure title")
@@ -62,7 +63,7 @@ def main():
 
     entries = load_entries(str(log_path))
 
-    fig, axes = plt.subplots(2, 4, figsize=(16, 8))
+    fig, axes = plt.subplots(3, 4, figsize=(16, 8))
     axes = axes.flatten()
 
     for idx, task in enumerate(TASKS_ORDER):

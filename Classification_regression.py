@@ -15,10 +15,12 @@ from pathlib import Path
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import xgboost as xgb
 from Data_preparation import load_verified_tables_from_file, get_verified_tables
+from tools.text_integration import embed_texts_with_fasttext
 
 # Set random seed for reproducibility
 RANDOM_SEED = 42
@@ -179,15 +181,32 @@ def preprocess_data(df, target_column,task_type):
         print(f"    Error: No valid samples after removing NaN")
         return None, None, None, None
     
-    # Encode categorical variables in features
+    # Encode categorical variables in features.
+    # For date-like string columns, use FastText embeddings (same style as manual experiment).
     object_columns = X.select_dtypes(include=['object']).columns
     for col in object_columns:
-        numeric_vals = pd.to_numeric(X[col], errors='coerce')
+        col_text = X[col].fillna('Unknown').astype(str)
+        parsed_dates = pd.to_datetime(col_text, errors='coerce')
+        date_like_ratio = float(parsed_dates.notna().mean()) if len(col_text) > 0 else 0.0
+        if date_like_ratio >= 0.5:
+            try:
+                model_path = str(Path(__file__).resolve().parent / "fasttext.bin")
+                emb = embed_texts_with_fasttext(col_text.tolist(), model_path=model_path)
+                emb_cols = [f"{col}__ft_{i}" for i in range(emb.shape[1])]
+                emb_df = pd.DataFrame(emb, columns=emb_cols, index=X.index)
+                X = X.drop(columns=[col])
+                X = pd.concat([X, emb_df], axis=1)
+                continue
+            except Exception:
+                # Fallback to previous behavior if FastText model is unavailable.
+                pass
+
+        numeric_vals = pd.to_numeric(col_text, errors='coerce')
         if numeric_vals.notna().mean() > 0.5:
             X[col] = numeric_vals.fillna(numeric_vals.mean())
         else:
             le = LabelEncoder()
-            X[col] = le.fit_transform(X[col].fillna('Unknown').astype(str))
+            X[col] = le.fit_transform(col_text)
     
     # #region agent log
     import json as _json; _ts = __import__('time').time_ns() // 1000000
@@ -270,7 +289,7 @@ def preprocess_data(df, target_column,task_type):
     return X, y_encoded, target_encoder, scaler
 
 def run_classification_task(X, y, target_encoder):
-    """Run classification task using XGBoost"""
+    """Run classification task using a shallow Decision Tree."""
     # Determine number of classes
     n_classes = len(np.unique(y))
     
@@ -285,19 +304,13 @@ def run_classification_task(X, y, target_encoder):
         )
 
     
-    # XGBoost parameters
-    xgb_params = {
-        'objective': 'multi:softprob' if n_classes > 2 else 'binary:logistic',
-        'random_state': 42,
-        'eval_metric': 'mlogloss' if n_classes > 2 else 'logloss',
-        'verbosity': 0
-    }
-    
-    if n_classes > 2:
-        xgb_params['num_class'] = n_classes
-    
-    # Train model
-    model = xgb.XGBClassifier(**xgb_params)
+    # Use shallow trees to keep greedy feature evaluation fast.
+    max_depth = 5 if n_classes > 2 else 3
+    model = DecisionTreeClassifier(
+        max_depth=max_depth,
+        min_samples_leaf=10,
+        random_state=42,
+    )
     model.fit(X_train, y_train)
     
     # Predict
@@ -314,6 +327,45 @@ def run_classification_task(X, y, target_encoder):
         'precision': precision,
         'recall': recall,
         'f1_score': f1
+    }
+
+
+def run_classification_task_xgboost(X, y, target_encoder):
+    """Run classification task using XGBoost (for final full evaluation)."""
+    n_classes = len(np.unique(y))
+
+    try:
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.3, random_state=42, stratify=y
+        )
+    except ValueError:
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.3, random_state=42
+        )
+
+    xgb_params = {
+        'objective': 'multi:softprob' if n_classes > 2 else 'binary:logistic',
+        'random_state': 42,
+        'eval_metric': 'mlogloss' if n_classes > 2 else 'logloss',
+        'verbosity': 0,
+    }
+    if n_classes > 2:
+        xgb_params['num_class'] = n_classes
+
+    model = xgb.XGBClassifier(**xgb_params)
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred, average='weighted', zero_division=0)
+    recall = recall_score(y_test, y_pred, average='weighted', zero_division=0)
+    f1 = f1_score(y_test, y_pred, average='weighted', zero_division=0)
+
+    return {
+        'accuracy': accuracy,
+        'precision': precision,
+        'recall': recall,
+        'f1_score': f1,
     }
 
 def run_regression_task(X, y):

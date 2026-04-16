@@ -36,13 +36,19 @@ task:
   # session:
   #   session_id: "206"
   
-  join_table_name: "Food Inspections-Chicago"
-  join_column: "Inspection ID"
-  target_column: "Risk"
-  task_type: "classification"  # Options: "regression" or "classification"
+  join_table_name: "COVID-NYC"
+  join_column: "extract_date"
+  target_column: "Number_deaths"
+  task_type: "regression"  # Options: "regression" or "classification"
   session:
-    session_id: "210"
+    session_id: "0011"
 
+  # join_table_name: "COVID-Chicago"
+  # join_column: "Date"
+  # target_column: "Deaths - Total"
+  # task_type: "regression"  # Options: "regression" or "classification"
+  # session:
+  #   session_id: "0012"
 # Validation thresholds
 validation:
   match_rate_threshold: 0.1  # Minimum match rate for join validation (0.0 - 1.0)
@@ -54,7 +60,6 @@ sampling:
   sample_size: 500  # Number of rows to sample for ML model training/evaluation
   # Used in:
   #   - compute_feature_importance (FI calculation)
-  #   - AugmentValidatorCallback (baseline and augmented metric calculation)
 
 # LLM Agent settings
 agents:
@@ -92,6 +97,8 @@ agents:
     table_selection: prompt/table_selection_agent_prompt.txt
     join_column_selection: prompt/join_column_selection_agent_prompt.txt
     augment_column_selection: prompt/augment_column_selection_agent_prompt.txt
+    log_analysis: prompt/log_analysis_agent_prompt.txt
+    modification: prompt/modification_agent_prompt.txt
   
   # Per-agent provider overrides (optional)
   provider_overrides:
@@ -145,6 +152,41 @@ output:
   experiment_log_file: "experiments/experiment_log_qwen.json"
   llm_rows_file: "rows_mini.csv"  # LLM augment output CSV (Baseline/llm_augment.py)
   llm_metadata_file: "metadata_mini.json"  # LLM augment output metadata (Baseline/llm_augment.py)  
+  config_history_file: "data/config_history.jsonl"
+
+# Phase-level thresholds (move hard-coded constants here)
+pipeline_thresholds:
+  join:
+    fallback_coverage_threshold: 0.35
+    fuzzy_score_threshold: 80
+    topk_candidates: 5
+    hard_dq_missing_threshold: 0.30
+    hard_dq_top1_ratio_threshold: 0.90
+  data_quality:
+    coarse_preselect_topk: 20
+    coarse_input_max_cols: 80
+  augment:
+    top_corr_k: 5
+    bottom_corr_k: 5
+    max_ranked_steps: 10
+    min_metric_gain_delta: 0.001
+
+# Outer-loop adaptation controls
+adaptation:
+  enabled: true
+  max_rounds: 3
+  improvement_threshold_pct: 50.0
+  no_gain_abort_streak: 2
+  max_actions_per_round: 2
+  # Discrete option space for modification agent
+  discrete_options:
+    data_max_tables: [10, 15, 20, 30, 40]
+    join_fallback_coverage_threshold: [0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45]
+    join_fuzzy_score_threshold: [65, 70, 75, 80, 85, 90, 95]
+    join_hard_dq_missing_threshold: [0.20, 0.25, 0.30, 0.35, 0.40, 0.50]
+    join_hard_dq_top1_ratio_threshold: [0.80, 0.85, 0.90, 0.93, 0.95, 0.97]
+    dq_coarse_preselect_topk: [10, 15, 20, 30, 40, 60]
+    augment_min_metric_gain_delta: [0.0005, 0.001, 0.002, 0.005, 0.01]
 
 
 # Advanced settings

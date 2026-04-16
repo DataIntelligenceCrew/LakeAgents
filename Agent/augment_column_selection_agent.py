@@ -5,7 +5,9 @@ from pathlib import Path
 from google.adk.agents import Agent
 from google.adk.models.google_llm import Gemini
 from google.adk.models.lite_llm import LiteLlm
+from google.adk.tools import FunctionTool
 from google.genai import types
+from tools.aggregation import infer_dtype_rule
 
 
 def load_instruction(prompt_file: str) -> str:
@@ -39,6 +41,7 @@ def build_augment_column_selection_agent(config=None) -> Agent:
         name="AugmentColumnSelectionAgent",
         model=llm,
         instruction=instruction,
+        tools=[FunctionTool(func=infer_dtype_rule)],
         output_key="augment_selection_result",
         generate_content_config=types.GenerateContentConfig(temperature=0.3),
     )

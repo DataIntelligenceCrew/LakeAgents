@@ -6,7 +6,6 @@ Provides 5 tool functions for join column matching:
 3. normalized_overlap          - overlap after lowercase/trim/number normalization
 4. date_normalized_overlap     - overlap after date format unification
 5. fuzzy_string_match          - approximate string matching via rapidfuzz
-6. semantic_column_similarity  - embedding-based similarity (sentence-transformers)
 
 Also provides:
 - select_join_columns_for_candidate: sketch-based prefilter (moved from sketch.py)
@@ -305,46 +304,3 @@ def fuzzy_string_match(
         "matched_count": matched,
         "total_query": len(query_strs),
     }
-
-
-# ---------------------------------------------------------------------------
-# Tool 5: Semantic column similarity (sentence-transformers)
-# ---------------------------------------------------------------------------
-
-_st_model = None
-
-
-def semantic_column_similarity(
-    query_col_name: str,
-    query_col_description: str,
-    query_sample_values: List[str],
-    candidate_col_name: str,
-    candidate_col_description: str,
-    candidate_sample_values: List[str],
-    model_name: str = "BAAI/bge-small-en-v1.5",
-) -> Dict[str, Any]:
-    """Compute semantic similarity between two columns using sentence-transformers."""
-    global _st_model
-    try:
-        if _st_model is None:
-            from sentence_transformers import SentenceTransformer
-            _st_model = SentenceTransformer(model_name)
-
-        def _build_text(name: str, desc: str, samples: List[str]) -> str:
-            parts = [name]
-            if desc:
-                parts.append(desc)
-            if samples:
-                parts.append("values: " + ", ".join(str(s) for s in samples[:5]))
-            return " | ".join(parts)
-
-        text_q = _build_text(query_col_name, query_col_description, query_sample_values)
-        text_c = _build_text(candidate_col_name, candidate_col_description, candidate_sample_values)
-
-        embeddings = _st_model.encode([text_q, text_c], normalize_embeddings=True)
-        sim = float(np.dot(embeddings[0], embeddings[1]))
-        return {"semantic_similarity": round(sim, 4)}
-    except ImportError:
-        return {"semantic_similarity": 0.0, "error": "sentence-transformers not installed"}
-    except Exception as e:
-        return {"semantic_similarity": 0.0, "error": str(e)}

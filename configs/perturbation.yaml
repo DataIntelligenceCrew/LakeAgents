@@ -64,5 +64,5 @@ tables:
     - Inspection ID
     target_column: Risk
 perturbation:
-  threshold: 0.1
-  beta: 0.1
+  threshold: 0.9
+  beta: 0.9

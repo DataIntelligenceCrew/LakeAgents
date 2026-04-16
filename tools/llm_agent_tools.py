@@ -686,7 +686,6 @@ def compute_integration_quality(
     if missing_candidate:
         raise ValueError(f"Join columns {missing_candidate} not found in candidate table")
 
-    # Before merge - normalize for case-insensitive matching (same as JoinValidatorCallback)
     base_df_copy = base_df.copy()
     cand_df_copy = candidate_df.copy()
     for col in base_join_columns:
@@ -806,7 +805,6 @@ def compute_feature_importance(
                 "feature_importance": 0.0
             }
         
-        # Before merge - normalize for case-insensitive matching (same as JoinValidatorCallback)
         base_df_copy = base_df.copy()
         cand_df_copy = candidate_df.copy()
         for col in base_join_columns:
