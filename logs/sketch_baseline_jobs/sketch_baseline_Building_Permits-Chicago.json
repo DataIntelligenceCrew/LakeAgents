@@ -1,0 +1,16 @@
+{
+  "mode": "sketch_baseline_multi_table_positive_top10_ml",
+  "project_root": "/localdisk3/ytang49/opendata-clean",
+  "pick_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel",
+  "corr_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel",
+  "tables": {
+    "Building Permits-Chicago": {
+      "task_type": "classification",
+      "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Building_Permits-Chicago.json",
+      "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Building_Permits-Chicago.json",
+      "cells": [],
+      "status": "error",
+      "error": "missing pick or corr json (pj.exists()=False cj.exists()=False)"
+    }
+  }
+}

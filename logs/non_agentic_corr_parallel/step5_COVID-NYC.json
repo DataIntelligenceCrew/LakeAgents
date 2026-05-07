@@ -1,0 +1,254 @@
+{
+  "mode": "top10_numerical_correlation",
+  "tables": {
+    "COVID-NYC": {
+      "candidates": [
+        {
+          "candidate_table_id": "rc75-m7u3",
+          "pick_join_column": "date_of_interest",
+          "n_num_cols": 54,
+          "cand_agg_rows": 2054,
+          "merged_rows": 2054,
+          "corr_df_rows": 54,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "sj3k-gzyx",
+          "pick_join_column": "date",
+          "n_num_cols": 3,
+          "cand_agg_rows": 470,
+          "merged_rows": 470,
+          "corr_df_rows": 1,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "xwtc-hedq",
+          "pick_join_column": "date",
+          "n_num_cols": 6,
+          "cand_agg_rows": 277,
+          "merged_rows": 277,
+          "corr_df_rows": 6,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "a4qt-mpr5",
+          "pick_join_column": "EditDate",
+          "n_num_cols": 8,
+          "cand_agg_rows": 773,
+          "merged_rows": 773,
+          "corr_df_rows": 8,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "7434-7ua6",
+          "pick_join_column": "date",
+          "n_num_cols": 4,
+          "cand_agg_rows": 470,
+          "merged_rows": 470,
+          "corr_df_rows": 4,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "pvvr-75zk",
+          "pick_join_column": "Approx Date Reopened",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "i5n2-q8ck",
+          "pick_join_column": "Approx Date Closed",
+          "n_num_cols": 2,
+          "cand_agg_rows": 423,
+          "merged_rows": 423,
+          "corr_df_rows": 2,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "tkzt-zfpz",
+          "pick_join_column": "EditDate",
+          "n_num_cols": 5,
+          "cand_agg_rows": 181,
+          "merged_rows": 181,
+          "corr_df_rows": 5,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "cqhz-kkvd",
+          "pick_join_column": "WEEKDATE",
+          "n_num_cols": 3,
+          "cand_agg_rows": 116,
+          "merged_rows": 116,
+          "corr_df_rows": 3,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "g3xg-qtbc",
+          "pick_join_column": "Approx Date Nets/Rims/Goals Added",
+          "n_num_cols": 6,
+          "cand_agg_rows": 87,
+          "merged_rows": 86,
+          "corr_df_rows": 6,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "vwpc-kje2",
+          "pick_join_column": "BATCH_DATE",
+          "n_num_cols": 1,
+          "cand_agg_rows": 1079,
+          "merged_rows": 1079,
+          "corr_df_rows": 1,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "wswf-9pts",
+          "pick_join_column": "Approx Date Closed",
+          "n_num_cols": 1,
+          "cand_agg_rows": 45,
+          "merged_rows": 45,
+          "corr_df_rows": 1,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "f7dc-2q9f",
+          "pick_join_column": "Test date",
+          "n_num_cols": 3,
+          "cand_agg_rows": 530,
+          "merged_rows": 529,
+          "corr_df_rows": 3,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "vajk-p37e",
+          "pick_join_column": "NUM_PEOP_POS",
+          "n_num_cols": 3,
+          "cand_agg_rows": 4,
+          "merged_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "merged_too_small"
+        },
+        {
+          "candidate_table_id": "sp4a-vevi",
+          "pick_join_column": "Accessibility",
+          "n_num_cols": 5,
+          "cand_agg_rows": 3,
+          "merged_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "merged_too_small"
+        },
+        {
+          "candidate_table_id": "bhau-5xgs",
+          "pick_join_column": "NUM_PEOP_POS",
+          "n_num_cols": 3,
+          "cand_agg_rows": 2,
+          "merged_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "merged_too_small"
+        },
+        {
+          "candidate_table_id": "ke6f-vhnd",
+          "pick_join_column": "Date",
+          "n_num_cols": 44,
+          "cand_agg_rows": 359,
+          "merged_rows": 359,
+          "corr_df_rows": 44,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "6qs8-44ki",
+          "pick_join_column": "Borough Boundaries",
+          "n_num_cols": 12,
+          "cand_agg_rows": 5,
+          "merged_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "merged_too_small"
+        },
+        {
+          "candidate_table_id": "5ery-qagt",
+          "pick_join_column": "BBL",
+          "n_num_cols": 11,
+          "cand_agg_rows": 2130,
+          "merged_rows": 2,
+          "corr_df_rows": 7,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "cwy2-px8b",
+          "pick_join_column": "Created Date",
+          "n_num_cols": 13,
+          "cand_agg_rows": 90891,
+          "merged_rows": 90891,
+          "corr_df_rows": 7,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "wnhd-n675",
+          "pick_join_column": "Borough",
+          "n_num_cols": 3,
+          "cand_agg_rows": 4,
+          "merged_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "merged_too_small"
+        }
+      ],
+      "target_agg_rows": 532,
+      "query_join_column": "extract_date",
+      "target_column": "Number_deaths",
+      "target_type": "categorical",
+      "status": "ok"
+    }
+  }
+}

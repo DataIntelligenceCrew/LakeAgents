@@ -1,0 +1,2906 @@
+{
+  "mode": "sketch_baseline_multi_table_positive_top10_ml",
+  "project_root": "/localdisk3/ytang49/opendata-clean",
+  "pick_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel",
+  "corr_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel",
+  "tables": {
+    "Economic-Chicago": {
+      "task_type": "regression",
+      "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Economic-Chicago.json",
+      "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Economic-Chicago.json",
+      "cells": [
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.1/Economic-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "Under $25,000",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 19,
+            "join_after_synonym_rules": "neighborhood region",
+            "target_after_synonym_rules": "Under $25,000",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "neighborhood region",
+          "target_column": "Under $25,000",
+          "baseline_metrics": {
+            "r2_score": 0.53112239363373
+          },
+          "augmented_metrics": {
+            "r2_score": 0.5803371533952906
+          },
+          "improvement": 0.049214759761560534,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "kn9c-c2s2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "COMMUNITY AREA NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "HARDSHIP INDEX",
+                  "value": 0.42535060197776287
+                },
+                {
+                  "feature": "PERCENT OF HOUSING CROWDED",
+                  "value": 0.37733333595049484
+                },
+                {
+                  "feature": "PERCENT HOUSEHOLDS BELOW POVERTY",
+                  "value": 0.36509123024083967
+                },
+                {
+                  "feature": "PERCENT AGED 25+ WITHOUT HIGH SCHOOL DIPLOMA",
+                  "value": 0.33757298371713784
+                },
+                {
+                  "feature": "PERCENT AGED 16+ UNEMPLOYED",
+                  "value": 0.32206999300679084
+                },
+                {
+                  "feature": "PERCENT AGED UNDER 18 OR OVER 64",
+                  "value": 0.129570157023505
+                }
+              ],
+              "columns_merged": [
+                "aug_kn9c-c2s2__HARDSHIP_INDEX",
+                "aug_kn9c-c2s2__PERCENT_OF_HOUSING_CROWDED",
+                "aug_kn9c-c2s2__PERCENT_HOUSEHOLDS_BELOW_POVERTY",
+                "aug_kn9c-c2s2__PERCENT_AGED_25+_WITHOUT_HIGH_SCHOOL_DIPLOMA",
+                "aug_kn9c-c2s2__PERCENT_AGED_16+_UNEMPLOYED",
+                "aug_kn9c-c2s2__PERCENT_AGED_UNDER_18_OR_OVER_64"
+              ]
+            },
+            {
+              "candidate_table_id": "g5i5-yz37",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Building ID",
+                  "value": 0.1416868267919591
+                }
+              ],
+              "columns_merged": [
+                "aug_g5i5-yz37__Building_ID"
+              ]
+            },
+            {
+              "candidate_table_id": "28me-84fj",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "AREA",
+              "positive_top10_columns": [
+                {
+                  "feature": "SAFETY",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_AFRICAN_AMERICAN",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_ASIAN_AMERICAN",
+                  "value": 1.0
+                }
+              ],
+              "columns_merged": [
+                "aug_28me-84fj__SAFETY",
+                "aug_28me-84fj__S_AGE_HIGH",
+                "aug_28me-84fj__S_AGE_LOW",
+                "aug_28me-84fj__S_EDUCATION_HIGH",
+                "aug_28me-84fj__S_EDUCATION_MEDIUM",
+                "aug_28me-84fj__S_INCOME_HIGH",
+                "aug_28me-84fj__S_INCOME_LOW",
+                "aug_28me-84fj__S_INCOME_MEDIUM",
+                "aug_28me-84fj__S_RACE_AFRICAN_AMERICAN",
+                "aug_28me-84fj__S_RACE_ASIAN_AMERICAN"
+              ]
+            },
+            {
+              "candidate_table_id": "umwj-yc4m",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Financing Costs",
+                  "value": 0.2233729002083942
+                },
+                {
+                  "feature": "Job Training",
+                  "value": 0.0001226436650245382
+                }
+              ],
+              "columns_merged": [
+                "aug_umwj-yc4m__Financing_Costs",
+                "aug_umwj-yc4m__Job_Training"
+              ]
+            },
+            {
+              "candidate_table_id": "9xs2-f89t",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Rate of Misconducts (per 100 students) ",
+                  "value": 0.3476399548855675
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09990044901004665
+                }
+              ],
+              "columns_merged": [
+                "aug_9xs2-f89t__Rate_of_Misconducts_(per_100_students)_",
+                "aug_9xs2-f89t__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "xq83-jr8c",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area",
+              "positive_top10_columns": [
+                {
+                  "feature": "Exempt From Chicago Energy Rating",
+                  "value": 0.20565714240581695
+                },
+                {
+                  "feature": "ID",
+                  "value": 0.12709319547678827
+                }
+              ],
+              "columns_merged": [
+                "aug_xq83-jr8c__Exempt_From_Chicago_Energy_Rating",
+                "aug_xq83-jr8c__ID"
+              ]
+            },
+            {
+              "candidate_table_id": "hu6v-hsqb",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.44331838814968494
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.1968547204674512
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.04431920340807001
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.04213124435115603
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.03804018452266916
+                }
+              ],
+              "columns_merged": [
+                "aug_hu6v-hsqb__Historical_Wards_2003-2015",
+                "aug_hu6v-hsqb__Boundaries_-_ZIP_Codes",
+                "aug_hu6v-hsqb__LATITUDE",
+                "aug_hu6v-hsqb__Census_Tracts",
+                "aug_hu6v-hsqb__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "qm7s-3ctt",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Municipal - Cumulative",
+                  "value": 0.25536011738416725
+                },
+                {
+                  "feature": "Municipal - Current",
+                  "value": 0.20815044673654423
+                },
+                {
+                  "feature": "Net Income",
+                  "value": 0.117795344979314
+                }
+              ],
+              "columns_merged": [
+                "aug_qm7s-3ctt__Municipal_-_Cumulative",
+                "aug_qm7s-3ctt__Municipal_-_Current",
+                "aug_qm7s-3ctt__Net_Income"
+              ]
+            },
+            {
+              "candidate_table_id": "i8y3-ytj4",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.5056198460076262
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.30977269614027053
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.12388348960015273
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.11951305414375388
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09973418163591766
+                }
+              ],
+              "columns_merged": [
+                "aug_i8y3-ytj4__Historical_Wards_2003-2015",
+                "aug_i8y3-ytj4__Boundaries_-_ZIP_Codes",
+                "aug_i8y3-ytj4__LATITUDE",
+                "aug_i8y3-ytj4__Census_Tracts",
+                "aug_i8y3-ytj4__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "ir7v-8mc8",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.11986818153086537
+                }
+              ],
+              "columns_merged": [
+                "aug_ir7v-8mc8__LATITUDE"
+              ]
+            },
+            {
+              "candidate_table_id": "u9xt-hiju",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "ROW ID",
+                  "value": 0.042399386765960334
+                }
+              ],
+              "columns_merged": [
+                "aug_u9xt-hiju__ROW_ID"
+              ]
+            }
+          ],
+          "n_augment_tables": 11,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Economic-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Economic-Chicago.json",
+          "tau": 0.1,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.5/Economic-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "Under $25,000",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 20,
+            "join_after_synonym_rules": "dist dist",
+            "target_after_synonym_rules": "Under $25,000",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "dist dist",
+          "target_column": "Under $25,000",
+          "baseline_metrics": {
+            "r2_score": 0.4423356150103832
+          },
+          "augmented_metrics": {
+            "r2_score": 0.5290711916091211
+          },
+          "improvement": 0.08673557659873787,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "kn9c-c2s2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "COMMUNITY AREA NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "HARDSHIP INDEX",
+                  "value": 0.42535060197776287
+                },
+                {
+                  "feature": "PERCENT OF HOUSING CROWDED",
+                  "value": 0.37733333595049484
+                },
+                {
+                  "feature": "PERCENT HOUSEHOLDS BELOW POVERTY",
+                  "value": 0.36509123024083967
+                },
+                {
+                  "feature": "PERCENT AGED 25+ WITHOUT HIGH SCHOOL DIPLOMA",
+                  "value": 0.33757298371713784
+                },
+                {
+                  "feature": "PERCENT AGED 16+ UNEMPLOYED",
+                  "value": 0.32206999300679084
+                },
+                {
+                  "feature": "PERCENT AGED UNDER 18 OR OVER 64",
+                  "value": 0.129570157023505
+                }
+              ],
+              "columns_merged": [
+                "aug_kn9c-c2s2__HARDSHIP_INDEX",
+                "aug_kn9c-c2s2__PERCENT_OF_HOUSING_CROWDED",
+                "aug_kn9c-c2s2__PERCENT_HOUSEHOLDS_BELOW_POVERTY",
+                "aug_kn9c-c2s2__PERCENT_AGED_25+_WITHOUT_HIGH_SCHOOL_DIPLOMA",
+                "aug_kn9c-c2s2__PERCENT_AGED_16+_UNEMPLOYED",
+                "aug_kn9c-c2s2__PERCENT_AGED_UNDER_18_OR_OVER_64"
+              ]
+            },
+            {
+              "candidate_table_id": "g5i5-yz37",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Building ID",
+                  "value": 0.1416868267919591
+                }
+              ],
+              "columns_merged": [
+                "aug_g5i5-yz37__Building_ID"
+              ]
+            },
+            {
+              "candidate_table_id": "28me-84fj",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "AREA",
+              "positive_top10_columns": [
+                {
+                  "feature": "SAFETY",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_AFRICAN_AMERICAN",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_ASIAN_AMERICAN",
+                  "value": 1.0
+                }
+              ],
+              "columns_merged": [
+                "aug_28me-84fj__SAFETY",
+                "aug_28me-84fj__S_AGE_HIGH",
+                "aug_28me-84fj__S_AGE_LOW",
+                "aug_28me-84fj__S_EDUCATION_HIGH",
+                "aug_28me-84fj__S_EDUCATION_MEDIUM",
+                "aug_28me-84fj__S_INCOME_HIGH",
+                "aug_28me-84fj__S_INCOME_LOW",
+                "aug_28me-84fj__S_INCOME_MEDIUM",
+                "aug_28me-84fj__S_RACE_AFRICAN_AMERICAN",
+                "aug_28me-84fj__S_RACE_ASIAN_AMERICAN"
+              ]
+            },
+            {
+              "candidate_table_id": "umwj-yc4m",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Financing Costs",
+                  "value": 0.2233729002083942
+                },
+                {
+                  "feature": "Job Training",
+                  "value": 0.0001226436650245382
+                }
+              ],
+              "columns_merged": [
+                "aug_umwj-yc4m__Financing_Costs",
+                "aug_umwj-yc4m__Job_Training"
+              ]
+            },
+            {
+              "candidate_table_id": "9xs2-f89t",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Rate of Misconducts (per 100 students) ",
+                  "value": 0.3476399548855675
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09990044901004665
+                }
+              ],
+              "columns_merged": [
+                "aug_9xs2-f89t__Rate_of_Misconducts_(per_100_students)_",
+                "aug_9xs2-f89t__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "xq83-jr8c",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area",
+              "positive_top10_columns": [
+                {
+                  "feature": "Exempt From Chicago Energy Rating",
+                  "value": 0.20565714240581695
+                },
+                {
+                  "feature": "ID",
+                  "value": 0.12709319547678827
+                }
+              ],
+              "columns_merged": [
+                "aug_xq83-jr8c__Exempt_From_Chicago_Energy_Rating",
+                "aug_xq83-jr8c__ID"
+              ]
+            },
+            {
+              "candidate_table_id": "hu6v-hsqb",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.44331838814968494
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.1968547204674512
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.04431920340807001
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.04213124435115603
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.03804018452266916
+                }
+              ],
+              "columns_merged": [
+                "aug_hu6v-hsqb__Historical_Wards_2003-2015",
+                "aug_hu6v-hsqb__Boundaries_-_ZIP_Codes",
+                "aug_hu6v-hsqb__LATITUDE",
+                "aug_hu6v-hsqb__Census_Tracts",
+                "aug_hu6v-hsqb__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "qm7s-3ctt",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Municipal - Cumulative",
+                  "value": 0.25536011738416725
+                },
+                {
+                  "feature": "Municipal - Current",
+                  "value": 0.20815044673654423
+                },
+                {
+                  "feature": "Net Income",
+                  "value": 0.117795344979314
+                }
+              ],
+              "columns_merged": [
+                "aug_qm7s-3ctt__Municipal_-_Cumulative",
+                "aug_qm7s-3ctt__Municipal_-_Current",
+                "aug_qm7s-3ctt__Net_Income"
+              ]
+            },
+            {
+              "candidate_table_id": "i8y3-ytj4",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.5056198460076262
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.30977269614027053
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.12388348960015273
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.11951305414375388
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09973418163591766
+                }
+              ],
+              "columns_merged": [
+                "aug_i8y3-ytj4__Historical_Wards_2003-2015",
+                "aug_i8y3-ytj4__Boundaries_-_ZIP_Codes",
+                "aug_i8y3-ytj4__LATITUDE",
+                "aug_i8y3-ytj4__Census_Tracts",
+                "aug_i8y3-ytj4__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "ir7v-8mc8",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.11986818153086537
+                }
+              ],
+              "columns_merged": [
+                "aug_ir7v-8mc8__LATITUDE"
+              ]
+            },
+            {
+              "candidate_table_id": "u9xt-hiju",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "ROW ID",
+                  "value": 0.042399386765960334
+                }
+              ],
+              "columns_merged": [
+                "aug_u9xt-hiju__ROW_ID"
+              ]
+            }
+          ],
+          "n_augment_tables": 11,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Economic-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Economic-Chicago.json",
+          "tau": 0.1,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.9/Economic-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "Under $25,000",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 20,
+            "join_after_synonym_rules": "neighborhood region",
+            "target_after_synonym_rules": "Under $25,000",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "neighborhood region",
+          "target_column": "Under $25,000",
+          "baseline_metrics": {
+            "r2_score": 0.27801119060504664
+          },
+          "augmented_metrics": {
+            "r2_score": 0.3811463627014372
+          },
+          "improvement": 0.10313517209639056,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "kn9c-c2s2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "COMMUNITY AREA NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "HARDSHIP INDEX",
+                  "value": 0.42535060197776287
+                },
+                {
+                  "feature": "PERCENT OF HOUSING CROWDED",
+                  "value": 0.37733333595049484
+                },
+                {
+                  "feature": "PERCENT HOUSEHOLDS BELOW POVERTY",
+                  "value": 0.36509123024083967
+                },
+                {
+                  "feature": "PERCENT AGED 25+ WITHOUT HIGH SCHOOL DIPLOMA",
+                  "value": 0.33757298371713784
+                },
+                {
+                  "feature": "PERCENT AGED 16+ UNEMPLOYED",
+                  "value": 0.32206999300679084
+                },
+                {
+                  "feature": "PERCENT AGED UNDER 18 OR OVER 64",
+                  "value": 0.129570157023505
+                }
+              ],
+              "columns_merged": [
+                "aug_kn9c-c2s2__HARDSHIP_INDEX",
+                "aug_kn9c-c2s2__PERCENT_OF_HOUSING_CROWDED",
+                "aug_kn9c-c2s2__PERCENT_HOUSEHOLDS_BELOW_POVERTY",
+                "aug_kn9c-c2s2__PERCENT_AGED_25+_WITHOUT_HIGH_SCHOOL_DIPLOMA",
+                "aug_kn9c-c2s2__PERCENT_AGED_16+_UNEMPLOYED",
+                "aug_kn9c-c2s2__PERCENT_AGED_UNDER_18_OR_OVER_64"
+              ]
+            },
+            {
+              "candidate_table_id": "g5i5-yz37",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Building ID",
+                  "value": 0.1416868267919591
+                }
+              ],
+              "columns_merged": [
+                "aug_g5i5-yz37__Building_ID"
+              ]
+            },
+            {
+              "candidate_table_id": "28me-84fj",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "AREA",
+              "positive_top10_columns": [
+                {
+                  "feature": "SAFETY",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_AFRICAN_AMERICAN",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_ASIAN_AMERICAN",
+                  "value": 1.0
+                }
+              ],
+              "columns_merged": [
+                "aug_28me-84fj__SAFETY",
+                "aug_28me-84fj__S_AGE_HIGH",
+                "aug_28me-84fj__S_AGE_LOW",
+                "aug_28me-84fj__S_EDUCATION_HIGH",
+                "aug_28me-84fj__S_EDUCATION_MEDIUM",
+                "aug_28me-84fj__S_INCOME_HIGH",
+                "aug_28me-84fj__S_INCOME_LOW",
+                "aug_28me-84fj__S_INCOME_MEDIUM",
+                "aug_28me-84fj__S_RACE_AFRICAN_AMERICAN",
+                "aug_28me-84fj__S_RACE_ASIAN_AMERICAN"
+              ]
+            },
+            {
+              "candidate_table_id": "umwj-yc4m",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Financing Costs",
+                  "value": 0.2233729002083942
+                },
+                {
+                  "feature": "Job Training",
+                  "value": 0.0001226436650245382
+                }
+              ],
+              "columns_merged": [
+                "aug_umwj-yc4m__Financing_Costs",
+                "aug_umwj-yc4m__Job_Training"
+              ]
+            },
+            {
+              "candidate_table_id": "9xs2-f89t",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Rate of Misconducts (per 100 students) ",
+                  "value": 0.3476399548855675
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09990044901004665
+                }
+              ],
+              "columns_merged": [
+                "aug_9xs2-f89t__Rate_of_Misconducts_(per_100_students)_",
+                "aug_9xs2-f89t__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "xq83-jr8c",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area",
+              "positive_top10_columns": [
+                {
+                  "feature": "Exempt From Chicago Energy Rating",
+                  "value": 0.20565714240581695
+                },
+                {
+                  "feature": "ID",
+                  "value": 0.12709319547678827
+                }
+              ],
+              "columns_merged": [
+                "aug_xq83-jr8c__Exempt_From_Chicago_Energy_Rating",
+                "aug_xq83-jr8c__ID"
+              ]
+            },
+            {
+              "candidate_table_id": "hu6v-hsqb",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.44331838814968494
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.1968547204674512
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.04431920340807001
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.04213124435115603
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.03804018452266916
+                }
+              ],
+              "columns_merged": [
+                "aug_hu6v-hsqb__Historical_Wards_2003-2015",
+                "aug_hu6v-hsqb__Boundaries_-_ZIP_Codes",
+                "aug_hu6v-hsqb__LATITUDE",
+                "aug_hu6v-hsqb__Census_Tracts",
+                "aug_hu6v-hsqb__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "qm7s-3ctt",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Municipal - Cumulative",
+                  "value": 0.25536011738416725
+                },
+                {
+                  "feature": "Municipal - Current",
+                  "value": 0.20815044673654423
+                },
+                {
+                  "feature": "Net Income",
+                  "value": 0.117795344979314
+                }
+              ],
+              "columns_merged": [
+                "aug_qm7s-3ctt__Municipal_-_Cumulative",
+                "aug_qm7s-3ctt__Municipal_-_Current",
+                "aug_qm7s-3ctt__Net_Income"
+              ]
+            },
+            {
+              "candidate_table_id": "i8y3-ytj4",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.5056198460076262
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.30977269614027053
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.12388348960015273
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.11951305414375388
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09973418163591766
+                }
+              ],
+              "columns_merged": [
+                "aug_i8y3-ytj4__Historical_Wards_2003-2015",
+                "aug_i8y3-ytj4__Boundaries_-_ZIP_Codes",
+                "aug_i8y3-ytj4__LATITUDE",
+                "aug_i8y3-ytj4__Census_Tracts",
+                "aug_i8y3-ytj4__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "ir7v-8mc8",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.11986818153086537
+                }
+              ],
+              "columns_merged": [
+                "aug_ir7v-8mc8__LATITUDE"
+              ]
+            },
+            {
+              "candidate_table_id": "u9xt-hiju",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "ROW ID",
+                  "value": 0.042399386765960334
+                }
+              ],
+              "columns_merged": [
+                "aug_u9xt-hiju__ROW_ID"
+              ]
+            }
+          ],
+          "n_augment_tables": 11,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Economic-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Economic-Chicago.json",
+          "tau": 0.1,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.1/Economic-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "Under $25,000",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 20,
+            "join_after_synonym_rules": "neighborhood dist",
+            "target_after_synonym_rules": "Under $25,000",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "neighborhood dist",
+          "target_column": "Under $25,000",
+          "baseline_metrics": {
+            "r2_score": 0.53112239363373
+          },
+          "augmented_metrics": {
+            "r2_score": 0.5803371533952906
+          },
+          "improvement": 0.049214759761560534,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "kn9c-c2s2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "COMMUNITY AREA NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "HARDSHIP INDEX",
+                  "value": 0.42535060197776287
+                },
+                {
+                  "feature": "PERCENT OF HOUSING CROWDED",
+                  "value": 0.37733333595049484
+                },
+                {
+                  "feature": "PERCENT HOUSEHOLDS BELOW POVERTY",
+                  "value": 0.36509123024083967
+                },
+                {
+                  "feature": "PERCENT AGED 25+ WITHOUT HIGH SCHOOL DIPLOMA",
+                  "value": 0.33757298371713784
+                },
+                {
+                  "feature": "PERCENT AGED 16+ UNEMPLOYED",
+                  "value": 0.32206999300679084
+                },
+                {
+                  "feature": "PERCENT AGED UNDER 18 OR OVER 64",
+                  "value": 0.129570157023505
+                }
+              ],
+              "columns_merged": [
+                "aug_kn9c-c2s2__HARDSHIP_INDEX",
+                "aug_kn9c-c2s2__PERCENT_OF_HOUSING_CROWDED",
+                "aug_kn9c-c2s2__PERCENT_HOUSEHOLDS_BELOW_POVERTY",
+                "aug_kn9c-c2s2__PERCENT_AGED_25+_WITHOUT_HIGH_SCHOOL_DIPLOMA",
+                "aug_kn9c-c2s2__PERCENT_AGED_16+_UNEMPLOYED",
+                "aug_kn9c-c2s2__PERCENT_AGED_UNDER_18_OR_OVER_64"
+              ]
+            },
+            {
+              "candidate_table_id": "g5i5-yz37",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Building ID",
+                  "value": 0.1416868267919591
+                }
+              ],
+              "columns_merged": [
+                "aug_g5i5-yz37__Building_ID"
+              ]
+            },
+            {
+              "candidate_table_id": "28me-84fj",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "AREA",
+              "positive_top10_columns": [
+                {
+                  "feature": "SAFETY",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_AFRICAN_AMERICAN",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_ASIAN_AMERICAN",
+                  "value": 1.0
+                }
+              ],
+              "columns_merged": [
+                "aug_28me-84fj__SAFETY",
+                "aug_28me-84fj__S_AGE_HIGH",
+                "aug_28me-84fj__S_AGE_LOW",
+                "aug_28me-84fj__S_EDUCATION_HIGH",
+                "aug_28me-84fj__S_EDUCATION_MEDIUM",
+                "aug_28me-84fj__S_INCOME_HIGH",
+                "aug_28me-84fj__S_INCOME_LOW",
+                "aug_28me-84fj__S_INCOME_MEDIUM",
+                "aug_28me-84fj__S_RACE_AFRICAN_AMERICAN",
+                "aug_28me-84fj__S_RACE_ASIAN_AMERICAN"
+              ]
+            },
+            {
+              "candidate_table_id": "umwj-yc4m",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Financing Costs",
+                  "value": 0.2233729002083942
+                },
+                {
+                  "feature": "Job Training",
+                  "value": 0.0001226436650245382
+                }
+              ],
+              "columns_merged": [
+                "aug_umwj-yc4m__Financing_Costs",
+                "aug_umwj-yc4m__Job_Training"
+              ]
+            },
+            {
+              "candidate_table_id": "9xs2-f89t",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Rate of Misconducts (per 100 students) ",
+                  "value": 0.3476399548855675
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09990044901004665
+                }
+              ],
+              "columns_merged": [
+                "aug_9xs2-f89t__Rate_of_Misconducts_(per_100_students)_",
+                "aug_9xs2-f89t__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "xq83-jr8c",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area",
+              "positive_top10_columns": [
+                {
+                  "feature": "Exempt From Chicago Energy Rating",
+                  "value": 0.20565714240581695
+                },
+                {
+                  "feature": "ID",
+                  "value": 0.12709319547678827
+                }
+              ],
+              "columns_merged": [
+                "aug_xq83-jr8c__Exempt_From_Chicago_Energy_Rating",
+                "aug_xq83-jr8c__ID"
+              ]
+            },
+            {
+              "candidate_table_id": "hu6v-hsqb",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.44331838814968494
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.1968547204674512
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.04431920340807001
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.04213124435115603
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.03804018452266916
+                }
+              ],
+              "columns_merged": [
+                "aug_hu6v-hsqb__Historical_Wards_2003-2015",
+                "aug_hu6v-hsqb__Boundaries_-_ZIP_Codes",
+                "aug_hu6v-hsqb__LATITUDE",
+                "aug_hu6v-hsqb__Census_Tracts",
+                "aug_hu6v-hsqb__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "qm7s-3ctt",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Municipal - Cumulative",
+                  "value": 0.25536011738416725
+                },
+                {
+                  "feature": "Municipal - Current",
+                  "value": 0.20815044673654423
+                },
+                {
+                  "feature": "Net Income",
+                  "value": 0.117795344979314
+                }
+              ],
+              "columns_merged": [
+                "aug_qm7s-3ctt__Municipal_-_Cumulative",
+                "aug_qm7s-3ctt__Municipal_-_Current",
+                "aug_qm7s-3ctt__Net_Income"
+              ]
+            },
+            {
+              "candidate_table_id": "i8y3-ytj4",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.5056198460076262
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.30977269614027053
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.12388348960015273
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.11951305414375388
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09973418163591766
+                }
+              ],
+              "columns_merged": [
+                "aug_i8y3-ytj4__Historical_Wards_2003-2015",
+                "aug_i8y3-ytj4__Boundaries_-_ZIP_Codes",
+                "aug_i8y3-ytj4__LATITUDE",
+                "aug_i8y3-ytj4__Census_Tracts",
+                "aug_i8y3-ytj4__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "ir7v-8mc8",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.11986818153086537
+                }
+              ],
+              "columns_merged": [
+                "aug_ir7v-8mc8__LATITUDE"
+              ]
+            },
+            {
+              "candidate_table_id": "u9xt-hiju",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "ROW ID",
+                  "value": 0.042399386765960334
+                }
+              ],
+              "columns_merged": [
+                "aug_u9xt-hiju__ROW_ID"
+              ]
+            }
+          ],
+          "n_augment_tables": 11,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Economic-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Economic-Chicago.json",
+          "tau": 0.5,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.5/Economic-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "Under $25,000",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 19,
+            "join_after_synonym_rules": "neighborhood region",
+            "target_after_synonym_rules": "Under $25,000",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "neighborhood region",
+          "target_column": "Under $25,000",
+          "baseline_metrics": {
+            "r2_score": 0.4423356150103832
+          },
+          "augmented_metrics": {
+            "r2_score": 0.5290711916091211
+          },
+          "improvement": 0.08673557659873787,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "kn9c-c2s2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "COMMUNITY AREA NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "HARDSHIP INDEX",
+                  "value": 0.42535060197776287
+                },
+                {
+                  "feature": "PERCENT OF HOUSING CROWDED",
+                  "value": 0.37733333595049484
+                },
+                {
+                  "feature": "PERCENT HOUSEHOLDS BELOW POVERTY",
+                  "value": 0.36509123024083967
+                },
+                {
+                  "feature": "PERCENT AGED 25+ WITHOUT HIGH SCHOOL DIPLOMA",
+                  "value": 0.33757298371713784
+                },
+                {
+                  "feature": "PERCENT AGED 16+ UNEMPLOYED",
+                  "value": 0.32206999300679084
+                },
+                {
+                  "feature": "PERCENT AGED UNDER 18 OR OVER 64",
+                  "value": 0.129570157023505
+                }
+              ],
+              "columns_merged": [
+                "aug_kn9c-c2s2__HARDSHIP_INDEX",
+                "aug_kn9c-c2s2__PERCENT_OF_HOUSING_CROWDED",
+                "aug_kn9c-c2s2__PERCENT_HOUSEHOLDS_BELOW_POVERTY",
+                "aug_kn9c-c2s2__PERCENT_AGED_25+_WITHOUT_HIGH_SCHOOL_DIPLOMA",
+                "aug_kn9c-c2s2__PERCENT_AGED_16+_UNEMPLOYED",
+                "aug_kn9c-c2s2__PERCENT_AGED_UNDER_18_OR_OVER_64"
+              ]
+            },
+            {
+              "candidate_table_id": "g5i5-yz37",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Building ID",
+                  "value": 0.1416868267919591
+                }
+              ],
+              "columns_merged": [
+                "aug_g5i5-yz37__Building_ID"
+              ]
+            },
+            {
+              "candidate_table_id": "28me-84fj",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "AREA",
+              "positive_top10_columns": [
+                {
+                  "feature": "SAFETY",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_AFRICAN_AMERICAN",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_ASIAN_AMERICAN",
+                  "value": 1.0
+                }
+              ],
+              "columns_merged": [
+                "aug_28me-84fj__SAFETY",
+                "aug_28me-84fj__S_AGE_HIGH",
+                "aug_28me-84fj__S_AGE_LOW",
+                "aug_28me-84fj__S_EDUCATION_HIGH",
+                "aug_28me-84fj__S_EDUCATION_MEDIUM",
+                "aug_28me-84fj__S_INCOME_HIGH",
+                "aug_28me-84fj__S_INCOME_LOW",
+                "aug_28me-84fj__S_INCOME_MEDIUM",
+                "aug_28me-84fj__S_RACE_AFRICAN_AMERICAN",
+                "aug_28me-84fj__S_RACE_ASIAN_AMERICAN"
+              ]
+            },
+            {
+              "candidate_table_id": "umwj-yc4m",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Financing Costs",
+                  "value": 0.2233729002083942
+                },
+                {
+                  "feature": "Job Training",
+                  "value": 0.0001226436650245382
+                }
+              ],
+              "columns_merged": [
+                "aug_umwj-yc4m__Financing_Costs",
+                "aug_umwj-yc4m__Job_Training"
+              ]
+            },
+            {
+              "candidate_table_id": "9xs2-f89t",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Rate of Misconducts (per 100 students) ",
+                  "value": 0.3476399548855675
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09990044901004665
+                }
+              ],
+              "columns_merged": [
+                "aug_9xs2-f89t__Rate_of_Misconducts_(per_100_students)_",
+                "aug_9xs2-f89t__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "xq83-jr8c",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area",
+              "positive_top10_columns": [
+                {
+                  "feature": "Exempt From Chicago Energy Rating",
+                  "value": 0.20565714240581695
+                },
+                {
+                  "feature": "ID",
+                  "value": 0.12709319547678827
+                }
+              ],
+              "columns_merged": [
+                "aug_xq83-jr8c__Exempt_From_Chicago_Energy_Rating",
+                "aug_xq83-jr8c__ID"
+              ]
+            },
+            {
+              "candidate_table_id": "hu6v-hsqb",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.44331838814968494
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.1968547204674512
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.04431920340807001
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.04213124435115603
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.03804018452266916
+                }
+              ],
+              "columns_merged": [
+                "aug_hu6v-hsqb__Historical_Wards_2003-2015",
+                "aug_hu6v-hsqb__Boundaries_-_ZIP_Codes",
+                "aug_hu6v-hsqb__LATITUDE",
+                "aug_hu6v-hsqb__Census_Tracts",
+                "aug_hu6v-hsqb__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "qm7s-3ctt",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Municipal - Cumulative",
+                  "value": 0.25536011738416725
+                },
+                {
+                  "feature": "Municipal - Current",
+                  "value": 0.20815044673654423
+                },
+                {
+                  "feature": "Net Income",
+                  "value": 0.117795344979314
+                }
+              ],
+              "columns_merged": [
+                "aug_qm7s-3ctt__Municipal_-_Cumulative",
+                "aug_qm7s-3ctt__Municipal_-_Current",
+                "aug_qm7s-3ctt__Net_Income"
+              ]
+            },
+            {
+              "candidate_table_id": "i8y3-ytj4",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.5056198460076262
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.30977269614027053
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.12388348960015273
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.11951305414375388
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09973418163591766
+                }
+              ],
+              "columns_merged": [
+                "aug_i8y3-ytj4__Historical_Wards_2003-2015",
+                "aug_i8y3-ytj4__Boundaries_-_ZIP_Codes",
+                "aug_i8y3-ytj4__LATITUDE",
+                "aug_i8y3-ytj4__Census_Tracts",
+                "aug_i8y3-ytj4__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "ir7v-8mc8",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.11986818153086537
+                }
+              ],
+              "columns_merged": [
+                "aug_ir7v-8mc8__LATITUDE"
+              ]
+            },
+            {
+              "candidate_table_id": "u9xt-hiju",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "ROW ID",
+                  "value": 0.042399386765960334
+                }
+              ],
+              "columns_merged": [
+                "aug_u9xt-hiju__ROW_ID"
+              ]
+            }
+          ],
+          "n_augment_tables": 11,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Economic-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Economic-Chicago.json",
+          "tau": 0.5,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.9/Economic-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "Under $25,000",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 21,
+            "join_after_synonym_rules": "neighborhood region",
+            "target_after_synonym_rules": "Under $25,000",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "neighborhood region",
+          "target_column": "Under $25,000",
+          "baseline_metrics": {
+            "r2_score": 0.27801119060504664
+          },
+          "augmented_metrics": {
+            "r2_score": 0.3811463627014372
+          },
+          "improvement": 0.10313517209639056,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "kn9c-c2s2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "COMMUNITY AREA NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "HARDSHIP INDEX",
+                  "value": 0.42535060197776287
+                },
+                {
+                  "feature": "PERCENT OF HOUSING CROWDED",
+                  "value": 0.37733333595049484
+                },
+                {
+                  "feature": "PERCENT HOUSEHOLDS BELOW POVERTY",
+                  "value": 0.36509123024083967
+                },
+                {
+                  "feature": "PERCENT AGED 25+ WITHOUT HIGH SCHOOL DIPLOMA",
+                  "value": 0.33757298371713784
+                },
+                {
+                  "feature": "PERCENT AGED 16+ UNEMPLOYED",
+                  "value": 0.32206999300679084
+                },
+                {
+                  "feature": "PERCENT AGED UNDER 18 OR OVER 64",
+                  "value": 0.129570157023505
+                }
+              ],
+              "columns_merged": [
+                "aug_kn9c-c2s2__HARDSHIP_INDEX",
+                "aug_kn9c-c2s2__PERCENT_OF_HOUSING_CROWDED",
+                "aug_kn9c-c2s2__PERCENT_HOUSEHOLDS_BELOW_POVERTY",
+                "aug_kn9c-c2s2__PERCENT_AGED_25+_WITHOUT_HIGH_SCHOOL_DIPLOMA",
+                "aug_kn9c-c2s2__PERCENT_AGED_16+_UNEMPLOYED",
+                "aug_kn9c-c2s2__PERCENT_AGED_UNDER_18_OR_OVER_64"
+              ]
+            },
+            {
+              "candidate_table_id": "g5i5-yz37",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Building ID",
+                  "value": 0.1416868267919591
+                }
+              ],
+              "columns_merged": [
+                "aug_g5i5-yz37__Building_ID"
+              ]
+            },
+            {
+              "candidate_table_id": "28me-84fj",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "AREA",
+              "positive_top10_columns": [
+                {
+                  "feature": "SAFETY",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_AFRICAN_AMERICAN",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_ASIAN_AMERICAN",
+                  "value": 1.0
+                }
+              ],
+              "columns_merged": [
+                "aug_28me-84fj__SAFETY",
+                "aug_28me-84fj__S_AGE_HIGH",
+                "aug_28me-84fj__S_AGE_LOW",
+                "aug_28me-84fj__S_EDUCATION_HIGH",
+                "aug_28me-84fj__S_EDUCATION_MEDIUM",
+                "aug_28me-84fj__S_INCOME_HIGH",
+                "aug_28me-84fj__S_INCOME_LOW",
+                "aug_28me-84fj__S_INCOME_MEDIUM",
+                "aug_28me-84fj__S_RACE_AFRICAN_AMERICAN",
+                "aug_28me-84fj__S_RACE_ASIAN_AMERICAN"
+              ]
+            },
+            {
+              "candidate_table_id": "umwj-yc4m",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Financing Costs",
+                  "value": 0.2233729002083942
+                },
+                {
+                  "feature": "Job Training",
+                  "value": 0.0001226436650245382
+                }
+              ],
+              "columns_merged": [
+                "aug_umwj-yc4m__Financing_Costs",
+                "aug_umwj-yc4m__Job_Training"
+              ]
+            },
+            {
+              "candidate_table_id": "9xs2-f89t",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Rate of Misconducts (per 100 students) ",
+                  "value": 0.3476399548855675
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09990044901004665
+                }
+              ],
+              "columns_merged": [
+                "aug_9xs2-f89t__Rate_of_Misconducts_(per_100_students)_",
+                "aug_9xs2-f89t__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "xq83-jr8c",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area",
+              "positive_top10_columns": [
+                {
+                  "feature": "Exempt From Chicago Energy Rating",
+                  "value": 0.20565714240581695
+                },
+                {
+                  "feature": "ID",
+                  "value": 0.12709319547678827
+                }
+              ],
+              "columns_merged": [
+                "aug_xq83-jr8c__Exempt_From_Chicago_Energy_Rating",
+                "aug_xq83-jr8c__ID"
+              ]
+            },
+            {
+              "candidate_table_id": "hu6v-hsqb",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.44331838814968494
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.1968547204674512
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.04431920340807001
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.04213124435115603
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.03804018452266916
+                }
+              ],
+              "columns_merged": [
+                "aug_hu6v-hsqb__Historical_Wards_2003-2015",
+                "aug_hu6v-hsqb__Boundaries_-_ZIP_Codes",
+                "aug_hu6v-hsqb__LATITUDE",
+                "aug_hu6v-hsqb__Census_Tracts",
+                "aug_hu6v-hsqb__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "qm7s-3ctt",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Municipal - Cumulative",
+                  "value": 0.25536011738416725
+                },
+                {
+                  "feature": "Municipal - Current",
+                  "value": 0.20815044673654423
+                },
+                {
+                  "feature": "Net Income",
+                  "value": 0.117795344979314
+                }
+              ],
+              "columns_merged": [
+                "aug_qm7s-3ctt__Municipal_-_Cumulative",
+                "aug_qm7s-3ctt__Municipal_-_Current",
+                "aug_qm7s-3ctt__Net_Income"
+              ]
+            },
+            {
+              "candidate_table_id": "i8y3-ytj4",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.5056198460076262
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.30977269614027053
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.12388348960015273
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.11951305414375388
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09973418163591766
+                }
+              ],
+              "columns_merged": [
+                "aug_i8y3-ytj4__Historical_Wards_2003-2015",
+                "aug_i8y3-ytj4__Boundaries_-_ZIP_Codes",
+                "aug_i8y3-ytj4__LATITUDE",
+                "aug_i8y3-ytj4__Census_Tracts",
+                "aug_i8y3-ytj4__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "ir7v-8mc8",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.11986818153086537
+                }
+              ],
+              "columns_merged": [
+                "aug_ir7v-8mc8__LATITUDE"
+              ]
+            },
+            {
+              "candidate_table_id": "u9xt-hiju",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "ROW ID",
+                  "value": 0.042399386765960334
+                }
+              ],
+              "columns_merged": [
+                "aug_u9xt-hiju__ROW_ID"
+              ]
+            }
+          ],
+          "n_augment_tables": 11,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Economic-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Economic-Chicago.json",
+          "tau": 0.5,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.1/Economic-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "Under $25,000",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 5,
+            "join_after_synonym_rules": "locality Area",
+            "target_after_synonym_rules": "Under $25,000",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "locality Area",
+          "target_column": "Under $25,000",
+          "baseline_metrics": {
+            "r2_score": 0.53112239363373
+          },
+          "augmented_metrics": {
+            "r2_score": 0.5803371533952906
+          },
+          "improvement": 0.049214759761560534,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "kn9c-c2s2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "COMMUNITY AREA NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "HARDSHIP INDEX",
+                  "value": 0.42535060197776287
+                },
+                {
+                  "feature": "PERCENT OF HOUSING CROWDED",
+                  "value": 0.37733333595049484
+                },
+                {
+                  "feature": "PERCENT HOUSEHOLDS BELOW POVERTY",
+                  "value": 0.36509123024083967
+                },
+                {
+                  "feature": "PERCENT AGED 25+ WITHOUT HIGH SCHOOL DIPLOMA",
+                  "value": 0.33757298371713784
+                },
+                {
+                  "feature": "PERCENT AGED 16+ UNEMPLOYED",
+                  "value": 0.32206999300679084
+                },
+                {
+                  "feature": "PERCENT AGED UNDER 18 OR OVER 64",
+                  "value": 0.129570157023505
+                }
+              ],
+              "columns_merged": [
+                "aug_kn9c-c2s2__HARDSHIP_INDEX",
+                "aug_kn9c-c2s2__PERCENT_OF_HOUSING_CROWDED",
+                "aug_kn9c-c2s2__PERCENT_HOUSEHOLDS_BELOW_POVERTY",
+                "aug_kn9c-c2s2__PERCENT_AGED_25+_WITHOUT_HIGH_SCHOOL_DIPLOMA",
+                "aug_kn9c-c2s2__PERCENT_AGED_16+_UNEMPLOYED",
+                "aug_kn9c-c2s2__PERCENT_AGED_UNDER_18_OR_OVER_64"
+              ]
+            },
+            {
+              "candidate_table_id": "g5i5-yz37",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Building ID",
+                  "value": 0.1416868267919591
+                }
+              ],
+              "columns_merged": [
+                "aug_g5i5-yz37__Building_ID"
+              ]
+            },
+            {
+              "candidate_table_id": "28me-84fj",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "AREA",
+              "positive_top10_columns": [
+                {
+                  "feature": "SAFETY",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_AFRICAN_AMERICAN",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_ASIAN_AMERICAN",
+                  "value": 1.0
+                }
+              ],
+              "columns_merged": [
+                "aug_28me-84fj__SAFETY",
+                "aug_28me-84fj__S_AGE_HIGH",
+                "aug_28me-84fj__S_AGE_LOW",
+                "aug_28me-84fj__S_EDUCATION_HIGH",
+                "aug_28me-84fj__S_EDUCATION_MEDIUM",
+                "aug_28me-84fj__S_INCOME_HIGH",
+                "aug_28me-84fj__S_INCOME_LOW",
+                "aug_28me-84fj__S_INCOME_MEDIUM",
+                "aug_28me-84fj__S_RACE_AFRICAN_AMERICAN",
+                "aug_28me-84fj__S_RACE_ASIAN_AMERICAN"
+              ]
+            },
+            {
+              "candidate_table_id": "umwj-yc4m",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Financing Costs",
+                  "value": 0.2233729002083942
+                },
+                {
+                  "feature": "Job Training",
+                  "value": 0.0001226436650245382
+                }
+              ],
+              "columns_merged": [
+                "aug_umwj-yc4m__Financing_Costs",
+                "aug_umwj-yc4m__Job_Training"
+              ]
+            },
+            {
+              "candidate_table_id": "9xs2-f89t",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Rate of Misconducts (per 100 students) ",
+                  "value": 0.3476399548855675
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09990044901004665
+                }
+              ],
+              "columns_merged": [
+                "aug_9xs2-f89t__Rate_of_Misconducts_(per_100_students)_",
+                "aug_9xs2-f89t__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "xq83-jr8c",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area",
+              "positive_top10_columns": [
+                {
+                  "feature": "Exempt From Chicago Energy Rating",
+                  "value": 0.20565714240581695
+                },
+                {
+                  "feature": "ID",
+                  "value": 0.12709319547678827
+                }
+              ],
+              "columns_merged": [
+                "aug_xq83-jr8c__Exempt_From_Chicago_Energy_Rating",
+                "aug_xq83-jr8c__ID"
+              ]
+            },
+            {
+              "candidate_table_id": "hu6v-hsqb",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.44331838814968494
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.1968547204674512
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.04431920340807001
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.04213124435115603
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.03804018452266916
+                }
+              ],
+              "columns_merged": [
+                "aug_hu6v-hsqb__Historical_Wards_2003-2015",
+                "aug_hu6v-hsqb__Boundaries_-_ZIP_Codes",
+                "aug_hu6v-hsqb__LATITUDE",
+                "aug_hu6v-hsqb__Census_Tracts",
+                "aug_hu6v-hsqb__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "qm7s-3ctt",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Municipal - Cumulative",
+                  "value": 0.25536011738416725
+                },
+                {
+                  "feature": "Municipal - Current",
+                  "value": 0.20815044673654423
+                },
+                {
+                  "feature": "Net Income",
+                  "value": 0.117795344979314
+                }
+              ],
+              "columns_merged": [
+                "aug_qm7s-3ctt__Municipal_-_Cumulative",
+                "aug_qm7s-3ctt__Municipal_-_Current",
+                "aug_qm7s-3ctt__Net_Income"
+              ]
+            },
+            {
+              "candidate_table_id": "i8y3-ytj4",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.5056198460076262
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.30977269614027053
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.12388348960015273
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.11951305414375388
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09973418163591766
+                }
+              ],
+              "columns_merged": [
+                "aug_i8y3-ytj4__Historical_Wards_2003-2015",
+                "aug_i8y3-ytj4__Boundaries_-_ZIP_Codes",
+                "aug_i8y3-ytj4__LATITUDE",
+                "aug_i8y3-ytj4__Census_Tracts",
+                "aug_i8y3-ytj4__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "ir7v-8mc8",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.11986818153086537
+                }
+              ],
+              "columns_merged": [
+                "aug_ir7v-8mc8__LATITUDE"
+              ]
+            },
+            {
+              "candidate_table_id": "u9xt-hiju",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "ROW ID",
+                  "value": 0.042399386765960334
+                }
+              ],
+              "columns_merged": [
+                "aug_u9xt-hiju__ROW_ID"
+              ]
+            }
+          ],
+          "n_augment_tables": 11,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Economic-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Economic-Chicago.json",
+          "tau": 0.9,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.5/Economic-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "Under $25,000",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 5,
+            "join_after_synonym_rules": "locality Area",
+            "target_after_synonym_rules": "Under $25,000",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "locality Area",
+          "target_column": "Under $25,000",
+          "baseline_metrics": {
+            "r2_score": 0.4423356150103832
+          },
+          "augmented_metrics": {
+            "r2_score": 0.5290711916091211
+          },
+          "improvement": 0.08673557659873787,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "kn9c-c2s2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "COMMUNITY AREA NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "HARDSHIP INDEX",
+                  "value": 0.42535060197776287
+                },
+                {
+                  "feature": "PERCENT OF HOUSING CROWDED",
+                  "value": 0.37733333595049484
+                },
+                {
+                  "feature": "PERCENT HOUSEHOLDS BELOW POVERTY",
+                  "value": 0.36509123024083967
+                },
+                {
+                  "feature": "PERCENT AGED 25+ WITHOUT HIGH SCHOOL DIPLOMA",
+                  "value": 0.33757298371713784
+                },
+                {
+                  "feature": "PERCENT AGED 16+ UNEMPLOYED",
+                  "value": 0.32206999300679084
+                },
+                {
+                  "feature": "PERCENT AGED UNDER 18 OR OVER 64",
+                  "value": 0.129570157023505
+                }
+              ],
+              "columns_merged": [
+                "aug_kn9c-c2s2__HARDSHIP_INDEX",
+                "aug_kn9c-c2s2__PERCENT_OF_HOUSING_CROWDED",
+                "aug_kn9c-c2s2__PERCENT_HOUSEHOLDS_BELOW_POVERTY",
+                "aug_kn9c-c2s2__PERCENT_AGED_25+_WITHOUT_HIGH_SCHOOL_DIPLOMA",
+                "aug_kn9c-c2s2__PERCENT_AGED_16+_UNEMPLOYED",
+                "aug_kn9c-c2s2__PERCENT_AGED_UNDER_18_OR_OVER_64"
+              ]
+            },
+            {
+              "candidate_table_id": "g5i5-yz37",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Building ID",
+                  "value": 0.1416868267919591
+                }
+              ],
+              "columns_merged": [
+                "aug_g5i5-yz37__Building_ID"
+              ]
+            },
+            {
+              "candidate_table_id": "28me-84fj",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "AREA",
+              "positive_top10_columns": [
+                {
+                  "feature": "SAFETY",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_AFRICAN_AMERICAN",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_ASIAN_AMERICAN",
+                  "value": 1.0
+                }
+              ],
+              "columns_merged": [
+                "aug_28me-84fj__SAFETY",
+                "aug_28me-84fj__S_AGE_HIGH",
+                "aug_28me-84fj__S_AGE_LOW",
+                "aug_28me-84fj__S_EDUCATION_HIGH",
+                "aug_28me-84fj__S_EDUCATION_MEDIUM",
+                "aug_28me-84fj__S_INCOME_HIGH",
+                "aug_28me-84fj__S_INCOME_LOW",
+                "aug_28me-84fj__S_INCOME_MEDIUM",
+                "aug_28me-84fj__S_RACE_AFRICAN_AMERICAN",
+                "aug_28me-84fj__S_RACE_ASIAN_AMERICAN"
+              ]
+            },
+            {
+              "candidate_table_id": "umwj-yc4m",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Financing Costs",
+                  "value": 0.2233729002083942
+                },
+                {
+                  "feature": "Job Training",
+                  "value": 0.0001226436650245382
+                }
+              ],
+              "columns_merged": [
+                "aug_umwj-yc4m__Financing_Costs",
+                "aug_umwj-yc4m__Job_Training"
+              ]
+            },
+            {
+              "candidate_table_id": "9xs2-f89t",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Rate of Misconducts (per 100 students) ",
+                  "value": 0.3476399548855675
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09990044901004665
+                }
+              ],
+              "columns_merged": [
+                "aug_9xs2-f89t__Rate_of_Misconducts_(per_100_students)_",
+                "aug_9xs2-f89t__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "xq83-jr8c",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area",
+              "positive_top10_columns": [
+                {
+                  "feature": "Exempt From Chicago Energy Rating",
+                  "value": 0.20565714240581695
+                },
+                {
+                  "feature": "ID",
+                  "value": 0.12709319547678827
+                }
+              ],
+              "columns_merged": [
+                "aug_xq83-jr8c__Exempt_From_Chicago_Energy_Rating",
+                "aug_xq83-jr8c__ID"
+              ]
+            },
+            {
+              "candidate_table_id": "hu6v-hsqb",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.44331838814968494
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.1968547204674512
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.04431920340807001
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.04213124435115603
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.03804018452266916
+                }
+              ],
+              "columns_merged": [
+                "aug_hu6v-hsqb__Historical_Wards_2003-2015",
+                "aug_hu6v-hsqb__Boundaries_-_ZIP_Codes",
+                "aug_hu6v-hsqb__LATITUDE",
+                "aug_hu6v-hsqb__Census_Tracts",
+                "aug_hu6v-hsqb__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "qm7s-3ctt",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Municipal - Cumulative",
+                  "value": 0.25536011738416725
+                },
+                {
+                  "feature": "Municipal - Current",
+                  "value": 0.20815044673654423
+                },
+                {
+                  "feature": "Net Income",
+                  "value": 0.117795344979314
+                }
+              ],
+              "columns_merged": [
+                "aug_qm7s-3ctt__Municipal_-_Cumulative",
+                "aug_qm7s-3ctt__Municipal_-_Current",
+                "aug_qm7s-3ctt__Net_Income"
+              ]
+            },
+            {
+              "candidate_table_id": "i8y3-ytj4",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.5056198460076262
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.30977269614027053
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.12388348960015273
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.11951305414375388
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09973418163591766
+                }
+              ],
+              "columns_merged": [
+                "aug_i8y3-ytj4__Historical_Wards_2003-2015",
+                "aug_i8y3-ytj4__Boundaries_-_ZIP_Codes",
+                "aug_i8y3-ytj4__LATITUDE",
+                "aug_i8y3-ytj4__Census_Tracts",
+                "aug_i8y3-ytj4__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "ir7v-8mc8",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.11986818153086537
+                }
+              ],
+              "columns_merged": [
+                "aug_ir7v-8mc8__LATITUDE"
+              ]
+            },
+            {
+              "candidate_table_id": "u9xt-hiju",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "ROW ID",
+                  "value": 0.042399386765960334
+                }
+              ],
+              "columns_merged": [
+                "aug_u9xt-hiju__ROW_ID"
+              ]
+            }
+          ],
+          "n_augment_tables": 11,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Economic-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Economic-Chicago.json",
+          "tau": 0.9,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.9/Economic-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "Under $25,000",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 5,
+            "join_after_synonym_rules": "district Area",
+            "target_after_synonym_rules": "Under $25,000",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "district Area",
+          "target_column": "Under $25,000",
+          "baseline_metrics": {
+            "r2_score": 0.27801119060504664
+          },
+          "augmented_metrics": {
+            "r2_score": 0.3811463627014372
+          },
+          "improvement": 0.10313517209639056,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "kn9c-c2s2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "COMMUNITY AREA NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "HARDSHIP INDEX",
+                  "value": 0.42535060197776287
+                },
+                {
+                  "feature": "PERCENT OF HOUSING CROWDED",
+                  "value": 0.37733333595049484
+                },
+                {
+                  "feature": "PERCENT HOUSEHOLDS BELOW POVERTY",
+                  "value": 0.36509123024083967
+                },
+                {
+                  "feature": "PERCENT AGED 25+ WITHOUT HIGH SCHOOL DIPLOMA",
+                  "value": 0.33757298371713784
+                },
+                {
+                  "feature": "PERCENT AGED 16+ UNEMPLOYED",
+                  "value": 0.32206999300679084
+                },
+                {
+                  "feature": "PERCENT AGED UNDER 18 OR OVER 64",
+                  "value": 0.129570157023505
+                }
+              ],
+              "columns_merged": [
+                "aug_kn9c-c2s2__HARDSHIP_INDEX",
+                "aug_kn9c-c2s2__PERCENT_OF_HOUSING_CROWDED",
+                "aug_kn9c-c2s2__PERCENT_HOUSEHOLDS_BELOW_POVERTY",
+                "aug_kn9c-c2s2__PERCENT_AGED_25+_WITHOUT_HIGH_SCHOOL_DIPLOMA",
+                "aug_kn9c-c2s2__PERCENT_AGED_16+_UNEMPLOYED",
+                "aug_kn9c-c2s2__PERCENT_AGED_UNDER_18_OR_OVER_64"
+              ]
+            },
+            {
+              "candidate_table_id": "g5i5-yz37",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Building ID",
+                  "value": 0.1416868267919591
+                }
+              ],
+              "columns_merged": [
+                "aug_g5i5-yz37__Building_ID"
+              ]
+            },
+            {
+              "candidate_table_id": "28me-84fj",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "AREA",
+              "positive_top10_columns": [
+                {
+                  "feature": "SAFETY",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_AGE_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_EDUCATION_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_HIGH",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_LOW",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_INCOME_MEDIUM",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_AFRICAN_AMERICAN",
+                  "value": 1.0
+                },
+                {
+                  "feature": "S_RACE_ASIAN_AMERICAN",
+                  "value": 1.0
+                }
+              ],
+              "columns_merged": [
+                "aug_28me-84fj__SAFETY",
+                "aug_28me-84fj__S_AGE_HIGH",
+                "aug_28me-84fj__S_AGE_LOW",
+                "aug_28me-84fj__S_EDUCATION_HIGH",
+                "aug_28me-84fj__S_EDUCATION_MEDIUM",
+                "aug_28me-84fj__S_INCOME_HIGH",
+                "aug_28me-84fj__S_INCOME_LOW",
+                "aug_28me-84fj__S_INCOME_MEDIUM",
+                "aug_28me-84fj__S_RACE_AFRICAN_AMERICAN",
+                "aug_28me-84fj__S_RACE_ASIAN_AMERICAN"
+              ]
+            },
+            {
+              "candidate_table_id": "umwj-yc4m",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Financing Costs",
+                  "value": 0.2233729002083942
+                },
+                {
+                  "feature": "Job Training",
+                  "value": 0.0001226436650245382
+                }
+              ],
+              "columns_merged": [
+                "aug_umwj-yc4m__Financing_Costs",
+                "aug_umwj-yc4m__Job_Training"
+              ]
+            },
+            {
+              "candidate_table_id": "9xs2-f89t",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area Name",
+              "positive_top10_columns": [
+                {
+                  "feature": "Rate of Misconducts (per 100 students) ",
+                  "value": 0.3476399548855675
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09990044901004665
+                }
+              ],
+              "columns_merged": [
+                "aug_9xs2-f89t__Rate_of_Misconducts_(per_100_students)_",
+                "aug_9xs2-f89t__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "xq83-jr8c",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Community Area",
+              "positive_top10_columns": [
+                {
+                  "feature": "Exempt From Chicago Energy Rating",
+                  "value": 0.20565714240581695
+                },
+                {
+                  "feature": "ID",
+                  "value": 0.12709319547678827
+                }
+              ],
+              "columns_merged": [
+                "aug_xq83-jr8c__Exempt_From_Chicago_Energy_Rating",
+                "aug_xq83-jr8c__ID"
+              ]
+            },
+            {
+              "candidate_table_id": "hu6v-hsqb",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.44331838814968494
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.1968547204674512
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.04431920340807001
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.04213124435115603
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.03804018452266916
+                }
+              ],
+              "columns_merged": [
+                "aug_hu6v-hsqb__Historical_Wards_2003-2015",
+                "aug_hu6v-hsqb__Boundaries_-_ZIP_Codes",
+                "aug_hu6v-hsqb__LATITUDE",
+                "aug_hu6v-hsqb__Census_Tracts",
+                "aug_hu6v-hsqb__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "qm7s-3ctt",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "TIF District",
+              "positive_top10_columns": [
+                {
+                  "feature": "Municipal - Cumulative",
+                  "value": 0.25536011738416725
+                },
+                {
+                  "feature": "Municipal - Current",
+                  "value": 0.20815044673654423
+                },
+                {
+                  "feature": "Net Income",
+                  "value": 0.117795344979314
+                }
+              ],
+              "columns_merged": [
+                "aug_qm7s-3ctt__Municipal_-_Cumulative",
+                "aug_qm7s-3ctt__Municipal_-_Current",
+                "aug_qm7s-3ctt__Net_Income"
+              ]
+            },
+            {
+              "candidate_table_id": "i8y3-ytj4",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "LOCATION",
+              "positive_top10_columns": [
+                {
+                  "feature": "Historical Wards 2003-2015",
+                  "value": 0.5056198460076262
+                },
+                {
+                  "feature": "Boundaries - ZIP Codes",
+                  "value": 0.30977269614027053
+                },
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.12388348960015273
+                },
+                {
+                  "feature": "Census Tracts",
+                  "value": 0.11951305414375388
+                },
+                {
+                  "feature": "Zip Codes",
+                  "value": 0.09973418163591766
+                }
+              ],
+              "columns_merged": [
+                "aug_i8y3-ytj4__Historical_Wards_2003-2015",
+                "aug_i8y3-ytj4__Boundaries_-_ZIP_Codes",
+                "aug_i8y3-ytj4__LATITUDE",
+                "aug_i8y3-ytj4__Census_Tracts",
+                "aug_i8y3-ytj4__Zip_Codes"
+              ]
+            },
+            {
+              "candidate_table_id": "ir7v-8mc8",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "LATITUDE",
+                  "value": 0.11986818153086537
+                }
+              ],
+              "columns_merged": [
+                "aug_ir7v-8mc8__LATITUDE"
+              ]
+            },
+            {
+              "candidate_table_id": "u9xt-hiju",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "STREET NAME",
+              "positive_top10_columns": [
+                {
+                  "feature": "ROW ID",
+                  "value": 0.042399386765960334
+                }
+              ],
+              "columns_merged": [
+                "aug_u9xt-hiju__ROW_ID"
+              ]
+            }
+          ],
+          "n_augment_tables": 11,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Economic-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Economic-Chicago.json",
+          "tau": 0.9,
+          "beta": 0.9
+        }
+      ],
+      "status": "ok",
+      "cells_ok_count": 9
+    }
+  }
+}

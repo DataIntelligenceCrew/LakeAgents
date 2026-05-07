@@ -1,0 +1,96 @@
+{
+  "mode": "top10_numerical_correlation",
+  "tables": {
+    "Environment_NYC": {
+      "candidates": [
+        {
+          "candidate_table_id": "ju3b-rwpy",
+          "pick_join_column": "block_id",
+          "n_num_cols": 21,
+          "cand_agg_rows": 131488,
+          "merged_rows": 131488,
+          "corr_df_rows": 21,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "kyad-zm4j",
+          "pick_join_column": "RecordId",
+          "n_num_cols": 21,
+          "cand_agg_rows": 200000,
+          "merged_rows": 200000,
+          "corr_df_rows": 21,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "3as9-uee8",
+          "pick_join_column": "block_id",
+          "n_num_cols": 20,
+          "cand_agg_rows": 18,
+          "merged_rows": 18,
+          "corr_df_rows": 19,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "mdmw-kuen",
+          "pick_join_column": "block_id",
+          "n_num_cols": 20,
+          "cand_agg_rows": 131470,
+          "merged_rows": 131470,
+          "corr_df_rows": 20,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "4bae-3jps",
+          "pick_join_column": "OBJECTID",
+          "n_num_cols": 5,
+          "cand_agg_rows": 20513,
+          "merged_rows": 20513,
+          "corr_df_rows": 4,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "we4w-79be",
+          "pick_join_column": "B5SC",
+          "n_num_cols": 5,
+          "cand_agg_rows": 6,
+          "merged_rows": 6,
+          "corr_df_rows": 4,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "ifu9-zqkd",
+          "pick_join_column": "Acres",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        }
+      ],
+      "target_agg_rows": 683788,
+      "query_join_column": "tree_id",
+      "target_column": "health",
+      "target_type": "categorical",
+      "status": "ok"
+    }
+  }
+}

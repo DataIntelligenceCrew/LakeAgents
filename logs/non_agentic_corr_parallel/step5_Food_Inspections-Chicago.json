@@ -1,0 +1,13 @@
+{
+  "mode": "top10_numerical_correlation",
+  "tables": {
+    "Food Inspections-Chicago": {
+      "candidates": [],
+      "target_agg_rows": 307370,
+      "query_join_column": "Inspection ID",
+      "target_column": "Risk",
+      "target_type": "categorical",
+      "status": "ok"
+    }
+  }
+}

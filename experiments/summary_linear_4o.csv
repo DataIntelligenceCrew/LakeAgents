@@ -1,0 +1,9 @@
+join_table,status,n_total,n_error_skipped,n_counted,average_improvement,stdev_improvement,average_total_token_input,stdev_total_token_input,average_total_token_output,stdev_total_token_output,average_total_duration_seconds,stdev_total_duration_seconds,n_used_for_improvement,n_used_for_input_tokens,n_used_for_output_tokens,n_used_for_duration
+COVID-Chicago,ok,25,0,25,0.5523131786534772,0.14801303703142185,,,,,,,25,0,0,0
+COVID-NYC,ok,25,0,25,0.005673514282946499,0.008740500602270445,,,,,,,25,0,0,0
+Demo-Chicago,ok,25,0,25,0.46194374709288627,0.21183791295999527,,,,,,,25,0,0,0
+Demo-NYC,ok,25,0,25,0.4717912008237207,0.026632762994220186,,,,,,,25,0,0,0
+Economic-Chicago,ok,25,0,25,0.1681380038134395,0.14194607030806908,,,,,,,25,0,0,0
+Economic-NYC,ok,25,0,25,0.5854688410315058,0.12206195961470002,,,,,,,25,0,0,0
+Education-Chicago,ok,25,0,25,0.04737499822278682,0.12347833557460947,,,,,,,25,0,0,0
+Education-NYC,ok,25,0,25,0.5369449895088805,0.06582524249248288,,,,,,,25,0,0,0

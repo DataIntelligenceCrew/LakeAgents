@@ -6,8 +6,8 @@ import os
 import shutil
 from pathlib import Path
 
-source_dir = Path("/localdisk3/ytang49/opendata/datasets_agent")
-desktop_dir = Path("/localdisk3/ytang49/opendata/datasets_agent_1")
+source_dir = Path("/localdisk3/username/opendata/datasets_agent")
+desktop_dir = Path("/localdisk3/username/opendata/datasets_agent_1")
 
 desktop_dir.mkdir(parents=True, exist_ok=True)
 

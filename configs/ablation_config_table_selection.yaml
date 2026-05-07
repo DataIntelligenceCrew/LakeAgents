@@ -1,0 +1,14 @@
+# Ablation-only overrides.
+# This file should ONLY contain knobs for ablation study.
+
+adaptation:
+  run_log_analysis_agent: True
+  run_modification_agent: True
+
+ablation:
+  disable_agents:
+    data_quality: false
+    table_selection: True
+    # Skip augment column selection LLM; pick up to min(10, max_ranked_steps) columns at random from
+    # coarse_selected_columns (DQ + coarse screening). Set false to use default LLM rank/select.
+    augment_column_selection: False

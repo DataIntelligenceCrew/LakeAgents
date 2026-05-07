@@ -1,0 +1,296 @@
+{
+  "mode": "sketch_baseline_multi_table_positive_top10_ml",
+  "project_root": "/localdisk3/ytang49/opendata-clean",
+  "pick_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel",
+  "corr_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel",
+  "tables": {
+    "Demo-Chicago": {
+      "task_type": "regression",
+      "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Demo-Chicago.json",
+      "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Demo-Chicago.json",
+      "cells": [
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.1/Demo-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "No High School Diploma",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 23,
+            "join_after_synonym_rules": "neighborhood region",
+            "target_after_synonym_rules": "No High institution Diploma",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "neighborhood region",
+          "target_column": "No High institution Diploma",
+          "baseline_metrics": {
+            "r2_score": 0.39377284546084246
+          },
+          "augmented_metrics": {
+            "r2_score": 0.39377284546084246
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Demo-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Demo-Chicago.json",
+          "tau": 0.1,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.5/Demo-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "No High School Diploma",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 23,
+            "join_after_synonym_rules": "cmty dist",
+            "target_after_synonym_rules": "No High campus Diploma",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "cmty dist",
+          "target_column": "No High campus Diploma",
+          "baseline_metrics": {
+            "r2_score": 0.18482712535201196
+          },
+          "augmented_metrics": {
+            "r2_score": 0.18482712535201196
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Demo-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Demo-Chicago.json",
+          "tau": 0.1,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.9/Demo-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "No High School Diploma",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 23,
+            "join_after_synonym_rules": "region region",
+            "target_after_synonym_rules": "No High academy Diploma",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "region region",
+          "target_column": "No High academy Diploma",
+          "baseline_metrics": {
+            "r2_score": -0.5712576796594022
+          },
+          "augmented_metrics": {
+            "r2_score": -0.5712576796594022
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Demo-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Demo-Chicago.json",
+          "tau": 0.1,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.1/Demo-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "No High School Diploma",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 19,
+            "join_after_synonym_rules": "region Area",
+            "target_after_synonym_rules": "No High campus Diploma",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "region Area",
+          "target_column": "No High campus Diploma",
+          "baseline_metrics": {
+            "r2_score": 0.39377284546084246
+          },
+          "augmented_metrics": {
+            "r2_score": 0.39377284546084246
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Demo-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Demo-Chicago.json",
+          "tau": 0.5,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.5/Demo-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "No High School Diploma",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 16,
+            "join_after_synonym_rules": "Community region",
+            "target_after_synonym_rules": "No High School Diploma",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "Community region",
+          "target_column": "No High School Diploma",
+          "baseline_metrics": {
+            "r2_score": 0.18482712535201196
+          },
+          "augmented_metrics": {
+            "r2_score": 0.18482712535201196
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Demo-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Demo-Chicago.json",
+          "tau": 0.5,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.9/Demo-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "No High School Diploma",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 17,
+            "join_after_synonym_rules": "Community region",
+            "target_after_synonym_rules": "No High academy Diploma",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "Community region",
+          "target_column": "No High academy Diploma",
+          "baseline_metrics": {
+            "r2_score": -0.5712576796594022
+          },
+          "augmented_metrics": {
+            "r2_score": -0.5712576796594022
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Demo-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Demo-Chicago.json",
+          "tau": 0.5,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.1/Demo-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "No High School Diploma",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 3,
+            "join_after_synonym_rules": "Community Area",
+            "target_after_synonym_rules": "No High School Diploma",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "Community Area",
+          "target_column": "No High School Diploma",
+          "baseline_metrics": {
+            "r2_score": 0.39377284546084246
+          },
+          "augmented_metrics": {
+            "r2_score": 0.39377284546084246
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Demo-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Demo-Chicago.json",
+          "tau": 0.9,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.5/Demo-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "No High School Diploma",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 3,
+            "join_after_synonym_rules": "Community district",
+            "target_after_synonym_rules": "No High School Diploma",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "Community district",
+          "target_column": "No High School Diploma",
+          "baseline_metrics": {
+            "r2_score": 0.18482712535201196
+          },
+          "augmented_metrics": {
+            "r2_score": 0.18482712535201196
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Demo-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Demo-Chicago.json",
+          "tau": 0.9,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.9/Demo-Chicago/rows.csv",
+          "join_column_yaml": "Community Area",
+          "target_column_yaml": "No High School Diploma",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 3,
+            "join_after_synonym_rules": "Community Area",
+            "target_after_synonym_rules": "No High campus Diploma",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "Community Area",
+          "target_column": "No High campus Diploma",
+          "baseline_metrics": {
+            "r2_score": -0.5712576796594022
+          },
+          "augmented_metrics": {
+            "r2_score": -0.5712576796594022
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Demo-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Demo-Chicago.json",
+          "tau": 0.9,
+          "beta": 0.9
+        }
+      ],
+      "status": "ok",
+      "cells_ok_count": 9
+    }
+  }
+}

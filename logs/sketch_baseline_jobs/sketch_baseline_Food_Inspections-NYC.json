@@ -1,0 +1,296 @@
+{
+  "mode": "sketch_baseline_multi_table_positive_top10_ml",
+  "project_root": "/localdisk3/ytang49/opendata-clean",
+  "pick_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel",
+  "corr_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel",
+  "tables": {
+    "Food Inspections-NYC": {
+      "task_type": "classification",
+      "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Food_Inspections-NYC.json",
+      "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Food_Inspections-NYC.json",
+      "cells": [
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.1/Food Inspections-NYC/rows.csv",
+          "join_column_yaml": "CAMIS",
+          "target_column_yaml": "SCORE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 11,
+            "join_after_synonym_rules": "CAMIS",
+            "target_after_synonym_rules": "SCORE",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "CAMIS",
+          "target_column": "SCORE",
+          "baseline_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "augmented_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Food_Inspections-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Food_Inspections-NYC.json",
+          "tau": 0.1,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.5/Food Inspections-NYC/rows.csv",
+          "join_column_yaml": "CAMIS",
+          "target_column_yaml": "SCORE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 12,
+            "join_after_synonym_rules": "CAMIS",
+            "target_after_synonym_rules": "SCORE",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "CAMIS",
+          "target_column": "SCORE",
+          "baseline_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "augmented_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Food_Inspections-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Food_Inspections-NYC.json",
+          "tau": 0.1,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.9/Food Inspections-NYC/rows.csv",
+          "join_column_yaml": "CAMIS",
+          "target_column_yaml": "SCORE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 11,
+            "join_after_synonym_rules": "CAMIS",
+            "target_after_synonym_rules": "SCORE",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "CAMIS",
+          "target_column": "SCORE",
+          "baseline_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "augmented_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Food_Inspections-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Food_Inspections-NYC.json",
+          "tau": 0.1,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.1/Food Inspections-NYC/rows.csv",
+          "join_column_yaml": "CAMIS",
+          "target_column_yaml": "SCORE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 12,
+            "join_after_synonym_rules": "CAMIS",
+            "target_after_synonym_rules": "SCORE",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "CAMIS",
+          "target_column": "SCORE",
+          "baseline_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "augmented_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Food_Inspections-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Food_Inspections-NYC.json",
+          "tau": 0.5,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.5/Food Inspections-NYC/rows.csv",
+          "join_column_yaml": "CAMIS",
+          "target_column_yaml": "SCORE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 11,
+            "join_after_synonym_rules": "CAMIS",
+            "target_after_synonym_rules": "SCORE",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "CAMIS",
+          "target_column": "SCORE",
+          "baseline_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "augmented_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Food_Inspections-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Food_Inspections-NYC.json",
+          "tau": 0.5,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.9/Food Inspections-NYC/rows.csv",
+          "join_column_yaml": "CAMIS",
+          "target_column_yaml": "SCORE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 12,
+            "join_after_synonym_rules": "CAMIS",
+            "target_after_synonym_rules": "SCORE",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "CAMIS",
+          "target_column": "SCORE",
+          "baseline_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "augmented_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Food_Inspections-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Food_Inspections-NYC.json",
+          "tau": 0.5,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.1/Food Inspections-NYC/rows.csv",
+          "join_column_yaml": "CAMIS",
+          "target_column_yaml": "SCORE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 9,
+            "join_after_synonym_rules": "CAMIS",
+            "target_after_synonym_rules": "SCORE",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "CAMIS",
+          "target_column": "SCORE",
+          "baseline_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "augmented_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Food_Inspections-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Food_Inspections-NYC.json",
+          "tau": 0.9,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.5/Food Inspections-NYC/rows.csv",
+          "join_column_yaml": "CAMIS",
+          "target_column_yaml": "SCORE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 9,
+            "join_after_synonym_rules": "CAMIS",
+            "target_after_synonym_rules": "SCORE",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "CAMIS",
+          "target_column": "SCORE",
+          "baseline_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "augmented_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Food_Inspections-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Food_Inspections-NYC.json",
+          "tau": 0.9,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.9/Food Inspections-NYC/rows.csv",
+          "join_column_yaml": "CAMIS",
+          "target_column_yaml": "SCORE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 9,
+            "join_after_synonym_rules": "CAMIS",
+            "target_after_synonym_rules": "SCORE",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "CAMIS",
+          "target_column": "SCORE",
+          "baseline_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "augmented_metrics": {
+            "f1_score": 0.07633633453137159
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Food_Inspections-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Food_Inspections-NYC.json",
+          "tau": 0.9,
+          "beta": 0.9
+        }
+      ],
+      "status": "ok",
+      "cells_ok_count": 9
+    }
+  }
+}

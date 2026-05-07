@@ -1,0 +1,2753 @@
+{
+  "mode": "sketch_baseline_multi_table_positive_top10_ml",
+  "project_root": "/localdisk3/ytang49/opendata-clean",
+  "pick_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel",
+  "corr_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel",
+  "tables": {
+    "COVID-Chicago": {
+      "task_type": "regression",
+      "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-Chicago.json",
+      "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-Chicago.json",
+      "cells": [
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.1/COVID-Chicago/rows.csv",
+          "join_column_yaml": "Date",
+          "target_column_yaml": "Deaths - Total",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 21,
+            "join_after_synonym_rules": "timestamp",
+            "target_after_synonym_rules": "mortalities - sum",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "timestamp",
+          "target_column": "mortalities - sum",
+          "baseline_metrics": {
+            "r2_score": 0.4585668140718987
+          },
+          "augmented_metrics": {
+            "r2_score": 0.4585668140718987
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "2vhs-cf6b",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Black Non-Latinx",
+                  "value": 0.43334130596102105
+                },
+                {
+                  "feature": "Total Doses - Daily - Female",
+                  "value": 0.3945104585393481
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.38910063097477215
+                },
+                {
+                  "feature": "Total Doses - Daily - American Indian/Alaska Native Non-Latinx",
+                  "value": 0.38849160915424796
+                },
+                {
+                  "feature": "Total Doses - Daily - Age 5+",
+                  "value": 0.3866159880852649
+                },
+                {
+                  "feature": "Total Doses - Daily - Latinx",
+                  "value": 0.38111216851804786
+                }
+              ],
+              "columns_merged": [
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Black_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Female",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_American_Indian/Alaska_Native_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Age_5+",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "gkdw-2tgv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Not-Positive Tests - Age 70-79",
+                  "value": 0.5716196200821374
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 60-69",
+                  "value": 0.5619242264891443
+                },
+                {
+                  "feature": "Tests - Age 70-79",
+                  "value": 0.5617630129358457
+                },
+                {
+                  "feature": "Tests - Age 60-69",
+                  "value": 0.5515138574423629
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 50-59",
+                  "value": 0.5458129316570425
+                },
+                {
+                  "feature": "Tests - Age 50-59",
+                  "value": 0.5338434814623035
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 80+",
+                  "value": 0.5201029769101804
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 40-49",
+                  "value": 0.5190855987097203
+                },
+                {
+                  "feature": "Not-Positive Tests - Unknown Race/Ethnicity",
+                  "value": 0.5156052490971914
+                },
+                {
+                  "feature": "Tests - Age 80+",
+                  "value": 0.5130882259698656
+                }
+              ],
+              "columns_merged": [
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_80+",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_40-49",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Unknown_Race/Ethnicity",
+                "aug_gkdw-2tgv__Tests_-_Age_80+"
+              ]
+            },
+            {
+              "candidate_table_id": "4564-ixr2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Chicago Resident",
+                  "value": 0.2928540525932586
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.28282500406730227
+                },
+                {
+                  "feature": "2nd Dose - Daily - Chicago Resident",
+                  "value": 0.28084071349940704
+                }
+              ],
+              "columns_merged": [
+                "aug_4564-ixr2__Total_Doses_-_Daily_-_Chicago_Resident",
+                "aug_4564-ixr2__Total_Doses_-_Daily",
+                "aug_4564-ixr2__2nd_Dose_-_Daily_-_Chicago_Resident"
+              ]
+            },
+            {
+              "candidate_table_id": "e68t-c7fv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Hospitalizations - Age 18-29",
+                  "value": 0.3389923199551801
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 18-29",
+                  "value": 0.3385703321821114
+                },
+                {
+                  "feature": "Cases - Asian Non-Latinx",
+                  "value": 0.33569601356511747
+                },
+                {
+                  "feature": "Cases Rate - Asian Non-Latinx",
+                  "value": 0.335691061192408
+                },
+                {
+                  "feature": "Hospitalizations - Age 30-39",
+                  "value": 0.33268888287140874
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 30-39",
+                  "value": 0.3323166183876778
+                },
+                {
+                  "feature": "Cases - White Non-Latinx",
+                  "value": 0.3202548117959414
+                },
+                {
+                  "feature": "Cases Rate - White Non-Latinx",
+                  "value": 0.32025324994797033
+                },
+                {
+                  "feature": "Hospitalizations - White Non-Latinx",
+                  "value": 0.2887456977510087
+                },
+                {
+                  "feature": "Hospitalizations Rate -  White Non-Latinx",
+                  "value": 0.2887438026455633
+                }
+              ],
+              "columns_merged": [
+                "aug_e68t-c7fv__Hospitalizations_-_Age_18-29",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_18-29",
+                "aug_e68t-c7fv__Cases_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_Age_30-39",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_30-39",
+                "aug_e68t-c7fv__Cases_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__White_Non-Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "xda6-squu",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Cumulative",
+                  "value": 0.5679538764571433
+                }
+              ],
+              "columns_merged": [
+                "aug_xda6-squu__Total_Doses_-_Cumulative"
+              ]
+            },
+            {
+              "candidate_table_id": "f3he-c6sv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "ICU Beds in Use - Non-COVID-19",
+                  "value": 0.23353394557850413
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use- Non-COVID-19",
+                  "value": 0.18233753019389587
+                },
+                {
+                  "feature": "Ventilators in Use - Non-COVID-19",
+                  "value": 0.1571502134813211
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use - Total",
+                  "value": 0.148968898899594
+                }
+              ],
+              "columns_merged": [
+                "aug_f3he-c6sv__ICU_Beds_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use-_Non-COVID-19",
+                "aug_f3he-c6sv__Ventilators_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use_-_Total"
+              ]
+            },
+            {
+              "candidate_table_id": "qwib-edaw",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "COVID Count - 7 day average",
+                  "value": 0.2794129214623342
+                },
+                {
+                  "feature": "COVID Percent - 7 day average",
+                  "value": 0.2780339552723501
+                },
+                {
+                  "feature": "Total COVID - Daily",
+                  "value": 0.26960813973582026
+                },
+                {
+                  "feature": "COVID Percent - Daily",
+                  "value": 0.26894218507461437
+                }
+              ],
+              "columns_merged": [
+                "aug_qwib-edaw__COVID_Count_-_7_day_average",
+                "aug_qwib-edaw__COVID_Percent_-_7_day_average",
+                "aug_qwib-edaw__Total_COVID_-_Daily",
+                "aug_qwib-edaw__COVID_Percent_-_Daily"
+              ]
+            },
+            {
+              "candidate_table_id": "6859-spec",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Week End",
+              "positive_top10_columns": [
+                {
+                  "feature": "Count",
+                  "value": 0.435834322580548
+                },
+                {
+                  "feature": "Percent",
+                  "value": 0.24695038228210406
+                }
+              ],
+              "columns_merged": [
+                "aug_6859-spec__Count",
+                "aug_6859-spec__Percent"
+              ]
+            }
+          ],
+          "n_augment_tables": 8,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-Chicago.json",
+          "tau": 0.1,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.5/COVID-Chicago/rows.csv",
+          "join_column_yaml": "Date",
+          "target_column_yaml": "Deaths - Total",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 21,
+            "join_after_synonym_rules": "timestamp",
+            "target_after_synonym_rules": "mortalities - tot",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "timestamp",
+          "target_column": "mortalities - tot",
+          "baseline_metrics": {
+            "r2_score": -0.258249773716144
+          },
+          "augmented_metrics": {
+            "r2_score": -0.258249773716144
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "2vhs-cf6b",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Black Non-Latinx",
+                  "value": 0.43334130596102105
+                },
+                {
+                  "feature": "Total Doses - Daily - Female",
+                  "value": 0.3945104585393481
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.38910063097477215
+                },
+                {
+                  "feature": "Total Doses - Daily - American Indian/Alaska Native Non-Latinx",
+                  "value": 0.38849160915424796
+                },
+                {
+                  "feature": "Total Doses - Daily - Age 5+",
+                  "value": 0.3866159880852649
+                },
+                {
+                  "feature": "Total Doses - Daily - Latinx",
+                  "value": 0.38111216851804786
+                }
+              ],
+              "columns_merged": [
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Black_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Female",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_American_Indian/Alaska_Native_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Age_5+",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "gkdw-2tgv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Not-Positive Tests - Age 70-79",
+                  "value": 0.5716196200821374
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 60-69",
+                  "value": 0.5619242264891443
+                },
+                {
+                  "feature": "Tests - Age 70-79",
+                  "value": 0.5617630129358457
+                },
+                {
+                  "feature": "Tests - Age 60-69",
+                  "value": 0.5515138574423629
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 50-59",
+                  "value": 0.5458129316570425
+                },
+                {
+                  "feature": "Tests - Age 50-59",
+                  "value": 0.5338434814623035
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 80+",
+                  "value": 0.5201029769101804
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 40-49",
+                  "value": 0.5190855987097203
+                },
+                {
+                  "feature": "Not-Positive Tests - Unknown Race/Ethnicity",
+                  "value": 0.5156052490971914
+                },
+                {
+                  "feature": "Tests - Age 80+",
+                  "value": 0.5130882259698656
+                }
+              ],
+              "columns_merged": [
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_80+",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_40-49",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Unknown_Race/Ethnicity",
+                "aug_gkdw-2tgv__Tests_-_Age_80+"
+              ]
+            },
+            {
+              "candidate_table_id": "4564-ixr2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Chicago Resident",
+                  "value": 0.2928540525932586
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.28282500406730227
+                },
+                {
+                  "feature": "2nd Dose - Daily - Chicago Resident",
+                  "value": 0.28084071349940704
+                }
+              ],
+              "columns_merged": [
+                "aug_4564-ixr2__Total_Doses_-_Daily_-_Chicago_Resident",
+                "aug_4564-ixr2__Total_Doses_-_Daily",
+                "aug_4564-ixr2__2nd_Dose_-_Daily_-_Chicago_Resident"
+              ]
+            },
+            {
+              "candidate_table_id": "e68t-c7fv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Hospitalizations - Age 18-29",
+                  "value": 0.3389923199551801
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 18-29",
+                  "value": 0.3385703321821114
+                },
+                {
+                  "feature": "Cases - Asian Non-Latinx",
+                  "value": 0.33569601356511747
+                },
+                {
+                  "feature": "Cases Rate - Asian Non-Latinx",
+                  "value": 0.335691061192408
+                },
+                {
+                  "feature": "Hospitalizations - Age 30-39",
+                  "value": 0.33268888287140874
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 30-39",
+                  "value": 0.3323166183876778
+                },
+                {
+                  "feature": "Cases - White Non-Latinx",
+                  "value": 0.3202548117959414
+                },
+                {
+                  "feature": "Cases Rate - White Non-Latinx",
+                  "value": 0.32025324994797033
+                },
+                {
+                  "feature": "Hospitalizations - White Non-Latinx",
+                  "value": 0.2887456977510087
+                },
+                {
+                  "feature": "Hospitalizations Rate -  White Non-Latinx",
+                  "value": 0.2887438026455633
+                }
+              ],
+              "columns_merged": [
+                "aug_e68t-c7fv__Hospitalizations_-_Age_18-29",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_18-29",
+                "aug_e68t-c7fv__Cases_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_Age_30-39",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_30-39",
+                "aug_e68t-c7fv__Cases_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__White_Non-Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "xda6-squu",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Cumulative",
+                  "value": 0.5679538764571433
+                }
+              ],
+              "columns_merged": [
+                "aug_xda6-squu__Total_Doses_-_Cumulative"
+              ]
+            },
+            {
+              "candidate_table_id": "f3he-c6sv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "ICU Beds in Use - Non-COVID-19",
+                  "value": 0.23353394557850413
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use- Non-COVID-19",
+                  "value": 0.18233753019389587
+                },
+                {
+                  "feature": "Ventilators in Use - Non-COVID-19",
+                  "value": 0.1571502134813211
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use - Total",
+                  "value": 0.148968898899594
+                }
+              ],
+              "columns_merged": [
+                "aug_f3he-c6sv__ICU_Beds_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use-_Non-COVID-19",
+                "aug_f3he-c6sv__Ventilators_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use_-_Total"
+              ]
+            },
+            {
+              "candidate_table_id": "qwib-edaw",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "COVID Count - 7 day average",
+                  "value": 0.2794129214623342
+                },
+                {
+                  "feature": "COVID Percent - 7 day average",
+                  "value": 0.2780339552723501
+                },
+                {
+                  "feature": "Total COVID - Daily",
+                  "value": 0.26960813973582026
+                },
+                {
+                  "feature": "COVID Percent - Daily",
+                  "value": 0.26894218507461437
+                }
+              ],
+              "columns_merged": [
+                "aug_qwib-edaw__COVID_Count_-_7_day_average",
+                "aug_qwib-edaw__COVID_Percent_-_7_day_average",
+                "aug_qwib-edaw__Total_COVID_-_Daily",
+                "aug_qwib-edaw__COVID_Percent_-_Daily"
+              ]
+            },
+            {
+              "candidate_table_id": "6859-spec",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Week End",
+              "positive_top10_columns": [
+                {
+                  "feature": "Count",
+                  "value": 0.435834322580548
+                },
+                {
+                  "feature": "Percent",
+                  "value": 0.24695038228210406
+                }
+              ],
+              "columns_merged": [
+                "aug_6859-spec__Count",
+                "aug_6859-spec__Percent"
+              ]
+            }
+          ],
+          "n_augment_tables": 8,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-Chicago.json",
+          "tau": 0.1,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.9/COVID-Chicago/rows.csv",
+          "join_column_yaml": "Date",
+          "target_column_yaml": "Deaths - Total",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 21,
+            "join_after_synonym_rules": "calendar",
+            "target_after_synonym_rules": "lethality - aggregate",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "calendar",
+          "target_column": "lethality - aggregate",
+          "baseline_metrics": {
+            "r2_score": -0.2723023424124362
+          },
+          "augmented_metrics": {
+            "r2_score": -0.2723023424124362
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "2vhs-cf6b",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Black Non-Latinx",
+                  "value": 0.43334130596102105
+                },
+                {
+                  "feature": "Total Doses - Daily - Female",
+                  "value": 0.3945104585393481
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.38910063097477215
+                },
+                {
+                  "feature": "Total Doses - Daily - American Indian/Alaska Native Non-Latinx",
+                  "value": 0.38849160915424796
+                },
+                {
+                  "feature": "Total Doses - Daily - Age 5+",
+                  "value": 0.3866159880852649
+                },
+                {
+                  "feature": "Total Doses - Daily - Latinx",
+                  "value": 0.38111216851804786
+                }
+              ],
+              "columns_merged": [
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Black_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Female",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_American_Indian/Alaska_Native_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Age_5+",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "gkdw-2tgv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Not-Positive Tests - Age 70-79",
+                  "value": 0.5716196200821374
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 60-69",
+                  "value": 0.5619242264891443
+                },
+                {
+                  "feature": "Tests - Age 70-79",
+                  "value": 0.5617630129358457
+                },
+                {
+                  "feature": "Tests - Age 60-69",
+                  "value": 0.5515138574423629
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 50-59",
+                  "value": 0.5458129316570425
+                },
+                {
+                  "feature": "Tests - Age 50-59",
+                  "value": 0.5338434814623035
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 80+",
+                  "value": 0.5201029769101804
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 40-49",
+                  "value": 0.5190855987097203
+                },
+                {
+                  "feature": "Not-Positive Tests - Unknown Race/Ethnicity",
+                  "value": 0.5156052490971914
+                },
+                {
+                  "feature": "Tests - Age 80+",
+                  "value": 0.5130882259698656
+                }
+              ],
+              "columns_merged": [
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_80+",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_40-49",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Unknown_Race/Ethnicity",
+                "aug_gkdw-2tgv__Tests_-_Age_80+"
+              ]
+            },
+            {
+              "candidate_table_id": "4564-ixr2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Chicago Resident",
+                  "value": 0.2928540525932586
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.28282500406730227
+                },
+                {
+                  "feature": "2nd Dose - Daily - Chicago Resident",
+                  "value": 0.28084071349940704
+                }
+              ],
+              "columns_merged": [
+                "aug_4564-ixr2__Total_Doses_-_Daily_-_Chicago_Resident",
+                "aug_4564-ixr2__Total_Doses_-_Daily",
+                "aug_4564-ixr2__2nd_Dose_-_Daily_-_Chicago_Resident"
+              ]
+            },
+            {
+              "candidate_table_id": "e68t-c7fv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Hospitalizations - Age 18-29",
+                  "value": 0.3389923199551801
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 18-29",
+                  "value": 0.3385703321821114
+                },
+                {
+                  "feature": "Cases - Asian Non-Latinx",
+                  "value": 0.33569601356511747
+                },
+                {
+                  "feature": "Cases Rate - Asian Non-Latinx",
+                  "value": 0.335691061192408
+                },
+                {
+                  "feature": "Hospitalizations - Age 30-39",
+                  "value": 0.33268888287140874
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 30-39",
+                  "value": 0.3323166183876778
+                },
+                {
+                  "feature": "Cases - White Non-Latinx",
+                  "value": 0.3202548117959414
+                },
+                {
+                  "feature": "Cases Rate - White Non-Latinx",
+                  "value": 0.32025324994797033
+                },
+                {
+                  "feature": "Hospitalizations - White Non-Latinx",
+                  "value": 0.2887456977510087
+                },
+                {
+                  "feature": "Hospitalizations Rate -  White Non-Latinx",
+                  "value": 0.2887438026455633
+                }
+              ],
+              "columns_merged": [
+                "aug_e68t-c7fv__Hospitalizations_-_Age_18-29",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_18-29",
+                "aug_e68t-c7fv__Cases_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_Age_30-39",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_30-39",
+                "aug_e68t-c7fv__Cases_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__White_Non-Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "xda6-squu",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Cumulative",
+                  "value": 0.5679538764571433
+                }
+              ],
+              "columns_merged": [
+                "aug_xda6-squu__Total_Doses_-_Cumulative"
+              ]
+            },
+            {
+              "candidate_table_id": "f3he-c6sv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "ICU Beds in Use - Non-COVID-19",
+                  "value": 0.23353394557850413
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use- Non-COVID-19",
+                  "value": 0.18233753019389587
+                },
+                {
+                  "feature": "Ventilators in Use - Non-COVID-19",
+                  "value": 0.1571502134813211
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use - Total",
+                  "value": 0.148968898899594
+                }
+              ],
+              "columns_merged": [
+                "aug_f3he-c6sv__ICU_Beds_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use-_Non-COVID-19",
+                "aug_f3he-c6sv__Ventilators_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use_-_Total"
+              ]
+            },
+            {
+              "candidate_table_id": "qwib-edaw",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "COVID Count - 7 day average",
+                  "value": 0.2794129214623342
+                },
+                {
+                  "feature": "COVID Percent - 7 day average",
+                  "value": 0.2780339552723501
+                },
+                {
+                  "feature": "Total COVID - Daily",
+                  "value": 0.26960813973582026
+                },
+                {
+                  "feature": "COVID Percent - Daily",
+                  "value": 0.26894218507461437
+                }
+              ],
+              "columns_merged": [
+                "aug_qwib-edaw__COVID_Count_-_7_day_average",
+                "aug_qwib-edaw__COVID_Percent_-_7_day_average",
+                "aug_qwib-edaw__Total_COVID_-_Daily",
+                "aug_qwib-edaw__COVID_Percent_-_Daily"
+              ]
+            },
+            {
+              "candidate_table_id": "6859-spec",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Week End",
+              "positive_top10_columns": [
+                {
+                  "feature": "Count",
+                  "value": 0.435834322580548
+                },
+                {
+                  "feature": "Percent",
+                  "value": 0.24695038228210406
+                }
+              ],
+              "columns_merged": [
+                "aug_6859-spec__Count",
+                "aug_6859-spec__Percent"
+              ]
+            }
+          ],
+          "n_augment_tables": 8,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-Chicago.json",
+          "tau": 0.1,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.1/COVID-Chicago/rows.csv",
+          "join_column_yaml": "Date",
+          "target_column_yaml": "Deaths - Total",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 21,
+            "join_after_synonym_rules": "dt",
+            "target_after_synonym_rules": "fatalities - aggregate",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "dt",
+          "target_column": "fatalities - aggregate",
+          "baseline_metrics": {
+            "r2_score": 0.4585668140718987
+          },
+          "augmented_metrics": {
+            "r2_score": 0.4585668140718987
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "2vhs-cf6b",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Black Non-Latinx",
+                  "value": 0.43334130596102105
+                },
+                {
+                  "feature": "Total Doses - Daily - Female",
+                  "value": 0.3945104585393481
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.38910063097477215
+                },
+                {
+                  "feature": "Total Doses - Daily - American Indian/Alaska Native Non-Latinx",
+                  "value": 0.38849160915424796
+                },
+                {
+                  "feature": "Total Doses - Daily - Age 5+",
+                  "value": 0.3866159880852649
+                },
+                {
+                  "feature": "Total Doses - Daily - Latinx",
+                  "value": 0.38111216851804786
+                }
+              ],
+              "columns_merged": [
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Black_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Female",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_American_Indian/Alaska_Native_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Age_5+",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "gkdw-2tgv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Not-Positive Tests - Age 70-79",
+                  "value": 0.5716196200821374
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 60-69",
+                  "value": 0.5619242264891443
+                },
+                {
+                  "feature": "Tests - Age 70-79",
+                  "value": 0.5617630129358457
+                },
+                {
+                  "feature": "Tests - Age 60-69",
+                  "value": 0.5515138574423629
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 50-59",
+                  "value": 0.5458129316570425
+                },
+                {
+                  "feature": "Tests - Age 50-59",
+                  "value": 0.5338434814623035
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 80+",
+                  "value": 0.5201029769101804
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 40-49",
+                  "value": 0.5190855987097203
+                },
+                {
+                  "feature": "Not-Positive Tests - Unknown Race/Ethnicity",
+                  "value": 0.5156052490971914
+                },
+                {
+                  "feature": "Tests - Age 80+",
+                  "value": 0.5130882259698656
+                }
+              ],
+              "columns_merged": [
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_80+",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_40-49",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Unknown_Race/Ethnicity",
+                "aug_gkdw-2tgv__Tests_-_Age_80+"
+              ]
+            },
+            {
+              "candidate_table_id": "4564-ixr2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Chicago Resident",
+                  "value": 0.2928540525932586
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.28282500406730227
+                },
+                {
+                  "feature": "2nd Dose - Daily - Chicago Resident",
+                  "value": 0.28084071349940704
+                }
+              ],
+              "columns_merged": [
+                "aug_4564-ixr2__Total_Doses_-_Daily_-_Chicago_Resident",
+                "aug_4564-ixr2__Total_Doses_-_Daily",
+                "aug_4564-ixr2__2nd_Dose_-_Daily_-_Chicago_Resident"
+              ]
+            },
+            {
+              "candidate_table_id": "e68t-c7fv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Hospitalizations - Age 18-29",
+                  "value": 0.3389923199551801
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 18-29",
+                  "value": 0.3385703321821114
+                },
+                {
+                  "feature": "Cases - Asian Non-Latinx",
+                  "value": 0.33569601356511747
+                },
+                {
+                  "feature": "Cases Rate - Asian Non-Latinx",
+                  "value": 0.335691061192408
+                },
+                {
+                  "feature": "Hospitalizations - Age 30-39",
+                  "value": 0.33268888287140874
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 30-39",
+                  "value": 0.3323166183876778
+                },
+                {
+                  "feature": "Cases - White Non-Latinx",
+                  "value": 0.3202548117959414
+                },
+                {
+                  "feature": "Cases Rate - White Non-Latinx",
+                  "value": 0.32025324994797033
+                },
+                {
+                  "feature": "Hospitalizations - White Non-Latinx",
+                  "value": 0.2887456977510087
+                },
+                {
+                  "feature": "Hospitalizations Rate -  White Non-Latinx",
+                  "value": 0.2887438026455633
+                }
+              ],
+              "columns_merged": [
+                "aug_e68t-c7fv__Hospitalizations_-_Age_18-29",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_18-29",
+                "aug_e68t-c7fv__Cases_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_Age_30-39",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_30-39",
+                "aug_e68t-c7fv__Cases_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__White_Non-Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "xda6-squu",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Cumulative",
+                  "value": 0.5679538764571433
+                }
+              ],
+              "columns_merged": [
+                "aug_xda6-squu__Total_Doses_-_Cumulative"
+              ]
+            },
+            {
+              "candidate_table_id": "f3he-c6sv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "ICU Beds in Use - Non-COVID-19",
+                  "value": 0.23353394557850413
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use- Non-COVID-19",
+                  "value": 0.18233753019389587
+                },
+                {
+                  "feature": "Ventilators in Use - Non-COVID-19",
+                  "value": 0.1571502134813211
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use - Total",
+                  "value": 0.148968898899594
+                }
+              ],
+              "columns_merged": [
+                "aug_f3he-c6sv__ICU_Beds_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use-_Non-COVID-19",
+                "aug_f3he-c6sv__Ventilators_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use_-_Total"
+              ]
+            },
+            {
+              "candidate_table_id": "qwib-edaw",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "COVID Count - 7 day average",
+                  "value": 0.2794129214623342
+                },
+                {
+                  "feature": "COVID Percent - 7 day average",
+                  "value": 0.2780339552723501
+                },
+                {
+                  "feature": "Total COVID - Daily",
+                  "value": 0.26960813973582026
+                },
+                {
+                  "feature": "COVID Percent - Daily",
+                  "value": 0.26894218507461437
+                }
+              ],
+              "columns_merged": [
+                "aug_qwib-edaw__COVID_Count_-_7_day_average",
+                "aug_qwib-edaw__COVID_Percent_-_7_day_average",
+                "aug_qwib-edaw__Total_COVID_-_Daily",
+                "aug_qwib-edaw__COVID_Percent_-_Daily"
+              ]
+            },
+            {
+              "candidate_table_id": "6859-spec",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Week End",
+              "positive_top10_columns": [
+                {
+                  "feature": "Count",
+                  "value": 0.435834322580548
+                },
+                {
+                  "feature": "Percent",
+                  "value": 0.24695038228210406
+                }
+              ],
+              "columns_merged": [
+                "aug_6859-spec__Count",
+                "aug_6859-spec__Percent"
+              ]
+            }
+          ],
+          "n_augment_tables": 8,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-Chicago.json",
+          "tau": 0.5,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.5/COVID-Chicago/rows.csv",
+          "join_column_yaml": "Date",
+          "target_column_yaml": "Deaths - Total",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 22,
+            "join_after_synonym_rules": "timestamp",
+            "target_after_synonym_rules": "lethality - tot",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "timestamp",
+          "target_column": "lethality - tot",
+          "baseline_metrics": {
+            "r2_score": -0.258249773716144
+          },
+          "augmented_metrics": {
+            "r2_score": -0.258249773716144
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "2vhs-cf6b",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Black Non-Latinx",
+                  "value": 0.43334130596102105
+                },
+                {
+                  "feature": "Total Doses - Daily - Female",
+                  "value": 0.3945104585393481
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.38910063097477215
+                },
+                {
+                  "feature": "Total Doses - Daily - American Indian/Alaska Native Non-Latinx",
+                  "value": 0.38849160915424796
+                },
+                {
+                  "feature": "Total Doses - Daily - Age 5+",
+                  "value": 0.3866159880852649
+                },
+                {
+                  "feature": "Total Doses - Daily - Latinx",
+                  "value": 0.38111216851804786
+                }
+              ],
+              "columns_merged": [
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Black_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Female",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_American_Indian/Alaska_Native_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Age_5+",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "gkdw-2tgv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Not-Positive Tests - Age 70-79",
+                  "value": 0.5716196200821374
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 60-69",
+                  "value": 0.5619242264891443
+                },
+                {
+                  "feature": "Tests - Age 70-79",
+                  "value": 0.5617630129358457
+                },
+                {
+                  "feature": "Tests - Age 60-69",
+                  "value": 0.5515138574423629
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 50-59",
+                  "value": 0.5458129316570425
+                },
+                {
+                  "feature": "Tests - Age 50-59",
+                  "value": 0.5338434814623035
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 80+",
+                  "value": 0.5201029769101804
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 40-49",
+                  "value": 0.5190855987097203
+                },
+                {
+                  "feature": "Not-Positive Tests - Unknown Race/Ethnicity",
+                  "value": 0.5156052490971914
+                },
+                {
+                  "feature": "Tests - Age 80+",
+                  "value": 0.5130882259698656
+                }
+              ],
+              "columns_merged": [
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_80+",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_40-49",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Unknown_Race/Ethnicity",
+                "aug_gkdw-2tgv__Tests_-_Age_80+"
+              ]
+            },
+            {
+              "candidate_table_id": "4564-ixr2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Chicago Resident",
+                  "value": 0.2928540525932586
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.28282500406730227
+                },
+                {
+                  "feature": "2nd Dose - Daily - Chicago Resident",
+                  "value": 0.28084071349940704
+                }
+              ],
+              "columns_merged": [
+                "aug_4564-ixr2__Total_Doses_-_Daily_-_Chicago_Resident",
+                "aug_4564-ixr2__Total_Doses_-_Daily",
+                "aug_4564-ixr2__2nd_Dose_-_Daily_-_Chicago_Resident"
+              ]
+            },
+            {
+              "candidate_table_id": "e68t-c7fv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Hospitalizations - Age 18-29",
+                  "value": 0.3389923199551801
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 18-29",
+                  "value": 0.3385703321821114
+                },
+                {
+                  "feature": "Cases - Asian Non-Latinx",
+                  "value": 0.33569601356511747
+                },
+                {
+                  "feature": "Cases Rate - Asian Non-Latinx",
+                  "value": 0.335691061192408
+                },
+                {
+                  "feature": "Hospitalizations - Age 30-39",
+                  "value": 0.33268888287140874
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 30-39",
+                  "value": 0.3323166183876778
+                },
+                {
+                  "feature": "Cases - White Non-Latinx",
+                  "value": 0.3202548117959414
+                },
+                {
+                  "feature": "Cases Rate - White Non-Latinx",
+                  "value": 0.32025324994797033
+                },
+                {
+                  "feature": "Hospitalizations - White Non-Latinx",
+                  "value": 0.2887456977510087
+                },
+                {
+                  "feature": "Hospitalizations Rate -  White Non-Latinx",
+                  "value": 0.2887438026455633
+                }
+              ],
+              "columns_merged": [
+                "aug_e68t-c7fv__Hospitalizations_-_Age_18-29",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_18-29",
+                "aug_e68t-c7fv__Cases_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_Age_30-39",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_30-39",
+                "aug_e68t-c7fv__Cases_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__White_Non-Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "xda6-squu",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Cumulative",
+                  "value": 0.5679538764571433
+                }
+              ],
+              "columns_merged": [
+                "aug_xda6-squu__Total_Doses_-_Cumulative"
+              ]
+            },
+            {
+              "candidate_table_id": "f3he-c6sv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "ICU Beds in Use - Non-COVID-19",
+                  "value": 0.23353394557850413
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use- Non-COVID-19",
+                  "value": 0.18233753019389587
+                },
+                {
+                  "feature": "Ventilators in Use - Non-COVID-19",
+                  "value": 0.1571502134813211
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use - Total",
+                  "value": 0.148968898899594
+                }
+              ],
+              "columns_merged": [
+                "aug_f3he-c6sv__ICU_Beds_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use-_Non-COVID-19",
+                "aug_f3he-c6sv__Ventilators_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use_-_Total"
+              ]
+            },
+            {
+              "candidate_table_id": "qwib-edaw",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "COVID Count - 7 day average",
+                  "value": 0.2794129214623342
+                },
+                {
+                  "feature": "COVID Percent - 7 day average",
+                  "value": 0.2780339552723501
+                },
+                {
+                  "feature": "Total COVID - Daily",
+                  "value": 0.26960813973582026
+                },
+                {
+                  "feature": "COVID Percent - Daily",
+                  "value": 0.26894218507461437
+                }
+              ],
+              "columns_merged": [
+                "aug_qwib-edaw__COVID_Count_-_7_day_average",
+                "aug_qwib-edaw__COVID_Percent_-_7_day_average",
+                "aug_qwib-edaw__Total_COVID_-_Daily",
+                "aug_qwib-edaw__COVID_Percent_-_Daily"
+              ]
+            },
+            {
+              "candidate_table_id": "6859-spec",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Week End",
+              "positive_top10_columns": [
+                {
+                  "feature": "Count",
+                  "value": 0.435834322580548
+                },
+                {
+                  "feature": "Percent",
+                  "value": 0.24695038228210406
+                }
+              ],
+              "columns_merged": [
+                "aug_6859-spec__Count",
+                "aug_6859-spec__Percent"
+              ]
+            }
+          ],
+          "n_augment_tables": 8,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-Chicago.json",
+          "tau": 0.5,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.9/COVID-Chicago/rows.csv",
+          "join_column_yaml": "Date",
+          "target_column_yaml": "Deaths - Total",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 22,
+            "join_after_synonym_rules": "calendar",
+            "target_after_synonym_rules": "fatality - tot",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "calendar",
+          "target_column": "fatality - tot",
+          "baseline_metrics": {
+            "r2_score": -0.2723023424124362
+          },
+          "augmented_metrics": {
+            "r2_score": -0.2723023424124362
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "2vhs-cf6b",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Black Non-Latinx",
+                  "value": 0.43334130596102105
+                },
+                {
+                  "feature": "Total Doses - Daily - Female",
+                  "value": 0.3945104585393481
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.38910063097477215
+                },
+                {
+                  "feature": "Total Doses - Daily - American Indian/Alaska Native Non-Latinx",
+                  "value": 0.38849160915424796
+                },
+                {
+                  "feature": "Total Doses - Daily - Age 5+",
+                  "value": 0.3866159880852649
+                },
+                {
+                  "feature": "Total Doses - Daily - Latinx",
+                  "value": 0.38111216851804786
+                }
+              ],
+              "columns_merged": [
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Black_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Female",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_American_Indian/Alaska_Native_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Age_5+",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "gkdw-2tgv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Not-Positive Tests - Age 70-79",
+                  "value": 0.5716196200821374
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 60-69",
+                  "value": 0.5619242264891443
+                },
+                {
+                  "feature": "Tests - Age 70-79",
+                  "value": 0.5617630129358457
+                },
+                {
+                  "feature": "Tests - Age 60-69",
+                  "value": 0.5515138574423629
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 50-59",
+                  "value": 0.5458129316570425
+                },
+                {
+                  "feature": "Tests - Age 50-59",
+                  "value": 0.5338434814623035
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 80+",
+                  "value": 0.5201029769101804
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 40-49",
+                  "value": 0.5190855987097203
+                },
+                {
+                  "feature": "Not-Positive Tests - Unknown Race/Ethnicity",
+                  "value": 0.5156052490971914
+                },
+                {
+                  "feature": "Tests - Age 80+",
+                  "value": 0.5130882259698656
+                }
+              ],
+              "columns_merged": [
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_80+",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_40-49",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Unknown_Race/Ethnicity",
+                "aug_gkdw-2tgv__Tests_-_Age_80+"
+              ]
+            },
+            {
+              "candidate_table_id": "4564-ixr2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Chicago Resident",
+                  "value": 0.2928540525932586
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.28282500406730227
+                },
+                {
+                  "feature": "2nd Dose - Daily - Chicago Resident",
+                  "value": 0.28084071349940704
+                }
+              ],
+              "columns_merged": [
+                "aug_4564-ixr2__Total_Doses_-_Daily_-_Chicago_Resident",
+                "aug_4564-ixr2__Total_Doses_-_Daily",
+                "aug_4564-ixr2__2nd_Dose_-_Daily_-_Chicago_Resident"
+              ]
+            },
+            {
+              "candidate_table_id": "e68t-c7fv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Hospitalizations - Age 18-29",
+                  "value": 0.3389923199551801
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 18-29",
+                  "value": 0.3385703321821114
+                },
+                {
+                  "feature": "Cases - Asian Non-Latinx",
+                  "value": 0.33569601356511747
+                },
+                {
+                  "feature": "Cases Rate - Asian Non-Latinx",
+                  "value": 0.335691061192408
+                },
+                {
+                  "feature": "Hospitalizations - Age 30-39",
+                  "value": 0.33268888287140874
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 30-39",
+                  "value": 0.3323166183876778
+                },
+                {
+                  "feature": "Cases - White Non-Latinx",
+                  "value": 0.3202548117959414
+                },
+                {
+                  "feature": "Cases Rate - White Non-Latinx",
+                  "value": 0.32025324994797033
+                },
+                {
+                  "feature": "Hospitalizations - White Non-Latinx",
+                  "value": 0.2887456977510087
+                },
+                {
+                  "feature": "Hospitalizations Rate -  White Non-Latinx",
+                  "value": 0.2887438026455633
+                }
+              ],
+              "columns_merged": [
+                "aug_e68t-c7fv__Hospitalizations_-_Age_18-29",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_18-29",
+                "aug_e68t-c7fv__Cases_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_Age_30-39",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_30-39",
+                "aug_e68t-c7fv__Cases_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__White_Non-Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "xda6-squu",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Cumulative",
+                  "value": 0.5679538764571433
+                }
+              ],
+              "columns_merged": [
+                "aug_xda6-squu__Total_Doses_-_Cumulative"
+              ]
+            },
+            {
+              "candidate_table_id": "f3he-c6sv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "ICU Beds in Use - Non-COVID-19",
+                  "value": 0.23353394557850413
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use- Non-COVID-19",
+                  "value": 0.18233753019389587
+                },
+                {
+                  "feature": "Ventilators in Use - Non-COVID-19",
+                  "value": 0.1571502134813211
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use - Total",
+                  "value": 0.148968898899594
+                }
+              ],
+              "columns_merged": [
+                "aug_f3he-c6sv__ICU_Beds_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use-_Non-COVID-19",
+                "aug_f3he-c6sv__Ventilators_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use_-_Total"
+              ]
+            },
+            {
+              "candidate_table_id": "qwib-edaw",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "COVID Count - 7 day average",
+                  "value": 0.2794129214623342
+                },
+                {
+                  "feature": "COVID Percent - 7 day average",
+                  "value": 0.2780339552723501
+                },
+                {
+                  "feature": "Total COVID - Daily",
+                  "value": 0.26960813973582026
+                },
+                {
+                  "feature": "COVID Percent - Daily",
+                  "value": 0.26894218507461437
+                }
+              ],
+              "columns_merged": [
+                "aug_qwib-edaw__COVID_Count_-_7_day_average",
+                "aug_qwib-edaw__COVID_Percent_-_7_day_average",
+                "aug_qwib-edaw__Total_COVID_-_Daily",
+                "aug_qwib-edaw__COVID_Percent_-_Daily"
+              ]
+            },
+            {
+              "candidate_table_id": "6859-spec",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Week End",
+              "positive_top10_columns": [
+                {
+                  "feature": "Count",
+                  "value": 0.435834322580548
+                },
+                {
+                  "feature": "Percent",
+                  "value": 0.24695038228210406
+                }
+              ],
+              "columns_merged": [
+                "aug_6859-spec__Count",
+                "aug_6859-spec__Percent"
+              ]
+            }
+          ],
+          "n_augment_tables": 8,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-Chicago.json",
+          "tau": 0.5,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.1/COVID-Chicago/rows.csv",
+          "join_column_yaml": "Date",
+          "target_column_yaml": "Deaths - Total",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 5,
+            "join_after_synonym_rules": "Date",
+            "target_after_synonym_rules": "Deaths - Total",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "Date",
+          "target_column": "Deaths - Total",
+          "baseline_metrics": {
+            "r2_score": 0.4585668140718987
+          },
+          "augmented_metrics": {
+            "r2_score": 0.4585668140718987
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "2vhs-cf6b",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Black Non-Latinx",
+                  "value": 0.43334130596102105
+                },
+                {
+                  "feature": "Total Doses - Daily - Female",
+                  "value": 0.3945104585393481
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.38910063097477215
+                },
+                {
+                  "feature": "Total Doses - Daily - American Indian/Alaska Native Non-Latinx",
+                  "value": 0.38849160915424796
+                },
+                {
+                  "feature": "Total Doses - Daily - Age 5+",
+                  "value": 0.3866159880852649
+                },
+                {
+                  "feature": "Total Doses - Daily - Latinx",
+                  "value": 0.38111216851804786
+                }
+              ],
+              "columns_merged": [
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Black_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Female",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_American_Indian/Alaska_Native_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Age_5+",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "gkdw-2tgv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Not-Positive Tests - Age 70-79",
+                  "value": 0.5716196200821374
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 60-69",
+                  "value": 0.5619242264891443
+                },
+                {
+                  "feature": "Tests - Age 70-79",
+                  "value": 0.5617630129358457
+                },
+                {
+                  "feature": "Tests - Age 60-69",
+                  "value": 0.5515138574423629
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 50-59",
+                  "value": 0.5458129316570425
+                },
+                {
+                  "feature": "Tests - Age 50-59",
+                  "value": 0.5338434814623035
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 80+",
+                  "value": 0.5201029769101804
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 40-49",
+                  "value": 0.5190855987097203
+                },
+                {
+                  "feature": "Not-Positive Tests - Unknown Race/Ethnicity",
+                  "value": 0.5156052490971914
+                },
+                {
+                  "feature": "Tests - Age 80+",
+                  "value": 0.5130882259698656
+                }
+              ],
+              "columns_merged": [
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_80+",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_40-49",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Unknown_Race/Ethnicity",
+                "aug_gkdw-2tgv__Tests_-_Age_80+"
+              ]
+            },
+            {
+              "candidate_table_id": "4564-ixr2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Chicago Resident",
+                  "value": 0.2928540525932586
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.28282500406730227
+                },
+                {
+                  "feature": "2nd Dose - Daily - Chicago Resident",
+                  "value": 0.28084071349940704
+                }
+              ],
+              "columns_merged": [
+                "aug_4564-ixr2__Total_Doses_-_Daily_-_Chicago_Resident",
+                "aug_4564-ixr2__Total_Doses_-_Daily",
+                "aug_4564-ixr2__2nd_Dose_-_Daily_-_Chicago_Resident"
+              ]
+            },
+            {
+              "candidate_table_id": "e68t-c7fv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Hospitalizations - Age 18-29",
+                  "value": 0.3389923199551801
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 18-29",
+                  "value": 0.3385703321821114
+                },
+                {
+                  "feature": "Cases - Asian Non-Latinx",
+                  "value": 0.33569601356511747
+                },
+                {
+                  "feature": "Cases Rate - Asian Non-Latinx",
+                  "value": 0.335691061192408
+                },
+                {
+                  "feature": "Hospitalizations - Age 30-39",
+                  "value": 0.33268888287140874
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 30-39",
+                  "value": 0.3323166183876778
+                },
+                {
+                  "feature": "Cases - White Non-Latinx",
+                  "value": 0.3202548117959414
+                },
+                {
+                  "feature": "Cases Rate - White Non-Latinx",
+                  "value": 0.32025324994797033
+                },
+                {
+                  "feature": "Hospitalizations - White Non-Latinx",
+                  "value": 0.2887456977510087
+                },
+                {
+                  "feature": "Hospitalizations Rate -  White Non-Latinx",
+                  "value": 0.2887438026455633
+                }
+              ],
+              "columns_merged": [
+                "aug_e68t-c7fv__Hospitalizations_-_Age_18-29",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_18-29",
+                "aug_e68t-c7fv__Cases_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_Age_30-39",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_30-39",
+                "aug_e68t-c7fv__Cases_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__White_Non-Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "xda6-squu",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Cumulative",
+                  "value": 0.5679538764571433
+                }
+              ],
+              "columns_merged": [
+                "aug_xda6-squu__Total_Doses_-_Cumulative"
+              ]
+            },
+            {
+              "candidate_table_id": "f3he-c6sv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "ICU Beds in Use - Non-COVID-19",
+                  "value": 0.23353394557850413
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use- Non-COVID-19",
+                  "value": 0.18233753019389587
+                },
+                {
+                  "feature": "Ventilators in Use - Non-COVID-19",
+                  "value": 0.1571502134813211
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use - Total",
+                  "value": 0.148968898899594
+                }
+              ],
+              "columns_merged": [
+                "aug_f3he-c6sv__ICU_Beds_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use-_Non-COVID-19",
+                "aug_f3he-c6sv__Ventilators_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use_-_Total"
+              ]
+            },
+            {
+              "candidate_table_id": "qwib-edaw",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "COVID Count - 7 day average",
+                  "value": 0.2794129214623342
+                },
+                {
+                  "feature": "COVID Percent - 7 day average",
+                  "value": 0.2780339552723501
+                },
+                {
+                  "feature": "Total COVID - Daily",
+                  "value": 0.26960813973582026
+                },
+                {
+                  "feature": "COVID Percent - Daily",
+                  "value": 0.26894218507461437
+                }
+              ],
+              "columns_merged": [
+                "aug_qwib-edaw__COVID_Count_-_7_day_average",
+                "aug_qwib-edaw__COVID_Percent_-_7_day_average",
+                "aug_qwib-edaw__Total_COVID_-_Daily",
+                "aug_qwib-edaw__COVID_Percent_-_Daily"
+              ]
+            },
+            {
+              "candidate_table_id": "6859-spec",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Week End",
+              "positive_top10_columns": [
+                {
+                  "feature": "Count",
+                  "value": 0.435834322580548
+                },
+                {
+                  "feature": "Percent",
+                  "value": 0.24695038228210406
+                }
+              ],
+              "columns_merged": [
+                "aug_6859-spec__Count",
+                "aug_6859-spec__Percent"
+              ]
+            }
+          ],
+          "n_augment_tables": 8,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-Chicago.json",
+          "tau": 0.9,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.5/COVID-Chicago/rows.csv",
+          "join_column_yaml": "Date",
+          "target_column_yaml": "Deaths - Total",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 5,
+            "join_after_synonym_rules": "Date",
+            "target_after_synonym_rules": "mortalities - Total",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "Date",
+          "target_column": "mortalities - Total",
+          "baseline_metrics": {
+            "r2_score": -0.258249773716144
+          },
+          "augmented_metrics": {
+            "r2_score": -0.258249773716144
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "2vhs-cf6b",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Black Non-Latinx",
+                  "value": 0.43334130596102105
+                },
+                {
+                  "feature": "Total Doses - Daily - Female",
+                  "value": 0.3945104585393481
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.38910063097477215
+                },
+                {
+                  "feature": "Total Doses - Daily - American Indian/Alaska Native Non-Latinx",
+                  "value": 0.38849160915424796
+                },
+                {
+                  "feature": "Total Doses - Daily - Age 5+",
+                  "value": 0.3866159880852649
+                },
+                {
+                  "feature": "Total Doses - Daily - Latinx",
+                  "value": 0.38111216851804786
+                }
+              ],
+              "columns_merged": [
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Black_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Female",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_American_Indian/Alaska_Native_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Age_5+",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "gkdw-2tgv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Not-Positive Tests - Age 70-79",
+                  "value": 0.5716196200821374
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 60-69",
+                  "value": 0.5619242264891443
+                },
+                {
+                  "feature": "Tests - Age 70-79",
+                  "value": 0.5617630129358457
+                },
+                {
+                  "feature": "Tests - Age 60-69",
+                  "value": 0.5515138574423629
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 50-59",
+                  "value": 0.5458129316570425
+                },
+                {
+                  "feature": "Tests - Age 50-59",
+                  "value": 0.5338434814623035
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 80+",
+                  "value": 0.5201029769101804
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 40-49",
+                  "value": 0.5190855987097203
+                },
+                {
+                  "feature": "Not-Positive Tests - Unknown Race/Ethnicity",
+                  "value": 0.5156052490971914
+                },
+                {
+                  "feature": "Tests - Age 80+",
+                  "value": 0.5130882259698656
+                }
+              ],
+              "columns_merged": [
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_80+",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_40-49",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Unknown_Race/Ethnicity",
+                "aug_gkdw-2tgv__Tests_-_Age_80+"
+              ]
+            },
+            {
+              "candidate_table_id": "4564-ixr2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Chicago Resident",
+                  "value": 0.2928540525932586
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.28282500406730227
+                },
+                {
+                  "feature": "2nd Dose - Daily - Chicago Resident",
+                  "value": 0.28084071349940704
+                }
+              ],
+              "columns_merged": [
+                "aug_4564-ixr2__Total_Doses_-_Daily_-_Chicago_Resident",
+                "aug_4564-ixr2__Total_Doses_-_Daily",
+                "aug_4564-ixr2__2nd_Dose_-_Daily_-_Chicago_Resident"
+              ]
+            },
+            {
+              "candidate_table_id": "e68t-c7fv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Hospitalizations - Age 18-29",
+                  "value": 0.3389923199551801
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 18-29",
+                  "value": 0.3385703321821114
+                },
+                {
+                  "feature": "Cases - Asian Non-Latinx",
+                  "value": 0.33569601356511747
+                },
+                {
+                  "feature": "Cases Rate - Asian Non-Latinx",
+                  "value": 0.335691061192408
+                },
+                {
+                  "feature": "Hospitalizations - Age 30-39",
+                  "value": 0.33268888287140874
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 30-39",
+                  "value": 0.3323166183876778
+                },
+                {
+                  "feature": "Cases - White Non-Latinx",
+                  "value": 0.3202548117959414
+                },
+                {
+                  "feature": "Cases Rate - White Non-Latinx",
+                  "value": 0.32025324994797033
+                },
+                {
+                  "feature": "Hospitalizations - White Non-Latinx",
+                  "value": 0.2887456977510087
+                },
+                {
+                  "feature": "Hospitalizations Rate -  White Non-Latinx",
+                  "value": 0.2887438026455633
+                }
+              ],
+              "columns_merged": [
+                "aug_e68t-c7fv__Hospitalizations_-_Age_18-29",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_18-29",
+                "aug_e68t-c7fv__Cases_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_Age_30-39",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_30-39",
+                "aug_e68t-c7fv__Cases_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__White_Non-Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "xda6-squu",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Cumulative",
+                  "value": 0.5679538764571433
+                }
+              ],
+              "columns_merged": [
+                "aug_xda6-squu__Total_Doses_-_Cumulative"
+              ]
+            },
+            {
+              "candidate_table_id": "f3he-c6sv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "ICU Beds in Use - Non-COVID-19",
+                  "value": 0.23353394557850413
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use- Non-COVID-19",
+                  "value": 0.18233753019389587
+                },
+                {
+                  "feature": "Ventilators in Use - Non-COVID-19",
+                  "value": 0.1571502134813211
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use - Total",
+                  "value": 0.148968898899594
+                }
+              ],
+              "columns_merged": [
+                "aug_f3he-c6sv__ICU_Beds_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use-_Non-COVID-19",
+                "aug_f3he-c6sv__Ventilators_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use_-_Total"
+              ]
+            },
+            {
+              "candidate_table_id": "qwib-edaw",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "COVID Count - 7 day average",
+                  "value": 0.2794129214623342
+                },
+                {
+                  "feature": "COVID Percent - 7 day average",
+                  "value": 0.2780339552723501
+                },
+                {
+                  "feature": "Total COVID - Daily",
+                  "value": 0.26960813973582026
+                },
+                {
+                  "feature": "COVID Percent - Daily",
+                  "value": 0.26894218507461437
+                }
+              ],
+              "columns_merged": [
+                "aug_qwib-edaw__COVID_Count_-_7_day_average",
+                "aug_qwib-edaw__COVID_Percent_-_7_day_average",
+                "aug_qwib-edaw__Total_COVID_-_Daily",
+                "aug_qwib-edaw__COVID_Percent_-_Daily"
+              ]
+            },
+            {
+              "candidate_table_id": "6859-spec",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Week End",
+              "positive_top10_columns": [
+                {
+                  "feature": "Count",
+                  "value": 0.435834322580548
+                },
+                {
+                  "feature": "Percent",
+                  "value": 0.24695038228210406
+                }
+              ],
+              "columns_merged": [
+                "aug_6859-spec__Count",
+                "aug_6859-spec__Percent"
+              ]
+            }
+          ],
+          "n_augment_tables": 8,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-Chicago.json",
+          "tau": 0.9,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.9/COVID-Chicago/rows.csv",
+          "join_column_yaml": "Date",
+          "target_column_yaml": "Deaths - Total",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 5,
+            "join_after_synonym_rules": "Date",
+            "target_after_synonym_rules": "Deaths - Total",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "Date",
+          "target_column": "Deaths - Total",
+          "baseline_metrics": {
+            "r2_score": -0.2723023424124362
+          },
+          "augmented_metrics": {
+            "r2_score": -0.2723023424124362
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [
+            {
+              "candidate_table_id": "2vhs-cf6b",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Black Non-Latinx",
+                  "value": 0.43334130596102105
+                },
+                {
+                  "feature": "Total Doses - Daily - Female",
+                  "value": 0.3945104585393481
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.38910063097477215
+                },
+                {
+                  "feature": "Total Doses - Daily - American Indian/Alaska Native Non-Latinx",
+                  "value": 0.38849160915424796
+                },
+                {
+                  "feature": "Total Doses - Daily - Age 5+",
+                  "value": 0.3866159880852649
+                },
+                {
+                  "feature": "Total Doses - Daily - Latinx",
+                  "value": 0.38111216851804786
+                }
+              ],
+              "columns_merged": [
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Black_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Female",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_American_Indian/Alaska_Native_Non-Latinx",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Age_5+",
+                "aug_2vhs-cf6b__Total_Doses_-_Daily_-_Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "gkdw-2tgv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Not-Positive Tests - Age 70-79",
+                  "value": 0.5716196200821374
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 60-69",
+                  "value": 0.5619242264891443
+                },
+                {
+                  "feature": "Tests - Age 70-79",
+                  "value": 0.5617630129358457
+                },
+                {
+                  "feature": "Tests - Age 60-69",
+                  "value": 0.5515138574423629
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 50-59",
+                  "value": 0.5458129316570425
+                },
+                {
+                  "feature": "Tests - Age 50-59",
+                  "value": 0.5338434814623035
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 80+",
+                  "value": 0.5201029769101804
+                },
+                {
+                  "feature": "Not-Positive Tests - Age 40-49",
+                  "value": 0.5190855987097203
+                },
+                {
+                  "feature": "Not-Positive Tests - Unknown Race/Ethnicity",
+                  "value": 0.5156052490971914
+                },
+                {
+                  "feature": "Tests - Age 80+",
+                  "value": 0.5130882259698656
+                }
+              ],
+              "columns_merged": [
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Tests_-_Age_70-79",
+                "aug_gkdw-2tgv__Tests_-_Age_60-69",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Tests_-_Age_50-59",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_80+",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Age_40-49",
+                "aug_gkdw-2tgv__Not-Positive_Tests_-_Unknown_Race/Ethnicity",
+                "aug_gkdw-2tgv__Tests_-_Age_80+"
+              ]
+            },
+            {
+              "candidate_table_id": "4564-ixr2",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Daily - Chicago Resident",
+                  "value": 0.2928540525932586
+                },
+                {
+                  "feature": "Total Doses - Daily",
+                  "value": 0.28282500406730227
+                },
+                {
+                  "feature": "2nd Dose - Daily - Chicago Resident",
+                  "value": 0.28084071349940704
+                }
+              ],
+              "columns_merged": [
+                "aug_4564-ixr2__Total_Doses_-_Daily_-_Chicago_Resident",
+                "aug_4564-ixr2__Total_Doses_-_Daily",
+                "aug_4564-ixr2__2nd_Dose_-_Daily_-_Chicago_Resident"
+              ]
+            },
+            {
+              "candidate_table_id": "e68t-c7fv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Hospitalizations - Age 18-29",
+                  "value": 0.3389923199551801
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 18-29",
+                  "value": 0.3385703321821114
+                },
+                {
+                  "feature": "Cases - Asian Non-Latinx",
+                  "value": 0.33569601356511747
+                },
+                {
+                  "feature": "Cases Rate - Asian Non-Latinx",
+                  "value": 0.335691061192408
+                },
+                {
+                  "feature": "Hospitalizations - Age 30-39",
+                  "value": 0.33268888287140874
+                },
+                {
+                  "feature": "Hospitalizations Rate -  Age 30-39",
+                  "value": 0.3323166183876778
+                },
+                {
+                  "feature": "Cases - White Non-Latinx",
+                  "value": 0.3202548117959414
+                },
+                {
+                  "feature": "Cases Rate - White Non-Latinx",
+                  "value": 0.32025324994797033
+                },
+                {
+                  "feature": "Hospitalizations - White Non-Latinx",
+                  "value": 0.2887456977510087
+                },
+                {
+                  "feature": "Hospitalizations Rate -  White Non-Latinx",
+                  "value": 0.2887438026455633
+                }
+              ],
+              "columns_merged": [
+                "aug_e68t-c7fv__Hospitalizations_-_Age_18-29",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_18-29",
+                "aug_e68t-c7fv__Cases_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_Asian_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_Age_30-39",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__Age_30-39",
+                "aug_e68t-c7fv__Cases_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Cases_Rate_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_-_White_Non-Latinx",
+                "aug_e68t-c7fv__Hospitalizations_Rate_-__White_Non-Latinx"
+              ]
+            },
+            {
+              "candidate_table_id": "xda6-squu",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "Total Doses - Cumulative",
+                  "value": 0.5679538764571433
+                }
+              ],
+              "columns_merged": [
+                "aug_xda6-squu__Total_Doses_-_Cumulative"
+              ]
+            },
+            {
+              "candidate_table_id": "f3he-c6sv",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "ICU Beds in Use - Non-COVID-19",
+                  "value": 0.23353394557850413
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use- Non-COVID-19",
+                  "value": 0.18233753019389587
+                },
+                {
+                  "feature": "Ventilators in Use - Non-COVID-19",
+                  "value": 0.1571502134813211
+                },
+                {
+                  "feature": "Acute Non-ICU Beds in Use - Total",
+                  "value": 0.148968898899594
+                }
+              ],
+              "columns_merged": [
+                "aug_f3he-c6sv__ICU_Beds_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use-_Non-COVID-19",
+                "aug_f3he-c6sv__Ventilators_in_Use_-_Non-COVID-19",
+                "aug_f3he-c6sv__Acute_Non-ICU_Beds_in_Use_-_Total"
+              ]
+            },
+            {
+              "candidate_table_id": "qwib-edaw",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Date",
+              "positive_top10_columns": [
+                {
+                  "feature": "COVID Count - 7 day average",
+                  "value": 0.2794129214623342
+                },
+                {
+                  "feature": "COVID Percent - 7 day average",
+                  "value": 0.2780339552723501
+                },
+                {
+                  "feature": "Total COVID - Daily",
+                  "value": 0.26960813973582026
+                },
+                {
+                  "feature": "COVID Percent - Daily",
+                  "value": 0.26894218507461437
+                }
+              ],
+              "columns_merged": [
+                "aug_qwib-edaw__COVID_Count_-_7_day_average",
+                "aug_qwib-edaw__COVID_Percent_-_7_day_average",
+                "aug_qwib-edaw__Total_COVID_-_Daily",
+                "aug_qwib-edaw__COVID_Percent_-_Daily"
+              ]
+            },
+            {
+              "candidate_table_id": "6859-spec",
+              "domain": "data.cityofchicago.org",
+              "join_on_candidate": "Week End",
+              "positive_top10_columns": [
+                {
+                  "feature": "Count",
+                  "value": 0.435834322580548
+                },
+                {
+                  "feature": "Percent",
+                  "value": 0.24695038228210406
+                }
+              ],
+              "columns_merged": [
+                "aug_6859-spec__Count",
+                "aug_6859-spec__Percent"
+              ]
+            }
+          ],
+          "n_augment_tables": 8,
+          "skipped_candidates": [],
+          "status": "ok_with_augment",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-Chicago.json",
+          "tau": 0.9,
+          "beta": 0.9
+        }
+      ],
+      "status": "ok",
+      "cells_ok_count": 9
+    }
+  }
+}

@@ -1,0 +1,232 @@
+{
+  "mode": "top10_numerical_correlation",
+  "tables": {
+    "Economic-NYC": {
+      "candidates": [
+        {
+          "candidate_table_id": "s52a-8aq6",
+          "pick_join_column": "# Asian",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "45j8-f6um",
+          "pick_join_column": "# Asian",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "5yiz-8xar",
+          "pick_join_column": "Grades 6-8 Enrollment",
+          "n_num_cols": 2,
+          "cand_agg_rows": 304,
+          "merged_rows": 304,
+          "corr_df_rows": 2,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "3ydk-du45",
+          "pick_join_column": "# Asian",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "c7ru-d68s",
+          "pick_join_column": "# Asian",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "ugqd-j3dx",
+          "pick_join_column": "2018-19 ELA # Proficient (L3&4)",
+          "n_num_cols": 1,
+          "cand_agg_rows": 287,
+          "merged_rows": 181,
+          "corr_df_rows": 1,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "uh2w-zjsn",
+          "pick_join_column": "# Asian",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "dv8j-yjt9",
+          "pick_join_column": "# White",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "bvzk-auuz",
+          "pick_join_column": "# Asian",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "kiwq-bb5k",
+          "pick_join_column": "Total Enrollment (Pre-K to 12)",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "v9z6-t6nq",
+          "pick_join_column": "# Asian",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "8mzw-jfss",
+          "pick_join_column": "# Black",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "q45m-5vk4",
+          "pick_join_column": "Total Enrollment",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "m2z7-dx25",
+          "pick_join_column": "# White",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "u9k7-x2z3",
+          "pick_join_column": "# Asian",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "xqea-6ihi",
+          "pick_join_column": "2017-18 Total 4-year August Grad Cohort",
+          "n_num_cols": 2,
+          "cand_agg_rows": 155,
+          "merged_rows": 153,
+          "corr_df_rows": 2,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "4tdt-h5f6",
+          "pick_join_column": "ELA # Proficient (L3&4)",
+          "n_num_cols": 2,
+          "cand_agg_rows": 278,
+          "merged_rows": 177,
+          "corr_df_rows": 2,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "ipu7-kigb",
+          "pick_join_column": "FJC Clients",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "r9z2-6j3f",
+          "pick_join_column": "CTE Designated High School",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "xni9-ncns",
+          "pick_join_column": "#Grade 2",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "pwts-g83w",
+          "pick_join_column": "Address",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        }
+      ],
+      "target_agg_rows": 26585,
+      "query_join_column": "SERIALNO",
+      "target_column": "Household/family type",
+      "target_type": "categorical",
+      "status": "ok"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+join_table,status,n_total,n_error_skipped,n_counted,average_improvement,stdev_improvement,average_total_token_input,stdev_total_token_input,average_total_token_output,stdev_total_token_output,average_total_duration_seconds,stdev_total_duration_seconds,n_used_for_improvement,n_used_for_input_tokens,n_used_for_output_tokens,n_used_for_duration
+Building Permits-Chicago,ok,9,0,9,0.057486302018685626,0.17245890605605688,,,,,,,9,0,0,0
+COVID-Chicago,ok,9,1,8,0.3369701965999998,0.3829052775272072,,,,,,,8,0,0,0
+COVID-NYC,ok,9,1,8,0.006393538945952307,0.006152546531686415,,,,,,,8,0,0,0
+Demo-Chicago,ok,9,0,9,0.3287355211251995,0.3180554251409184,,,,,,,9,0,0,0
+Demo-NYC,ok,9,2,7,0.0,0.0,,,,,,,7,0,0,0
+Economic-Chicago,ok,9,2,7,0.1290281366314009,0.13657199736485062,,,,,,,7,0,0,0
+Economic-NYC,ok,9,1,8,0.07818000117827459,0.22112643594532094,,,,,,,8,0,0,0
+Education-Chicago,ok,9,1,8,0.0774730679659996,0.11272362704832198,,,,,,,8,0,0,0
+Education-NYC,ok,9,0,9,0.4424940264336324,0.1991582377316614,,,,,,,9,0,0,0
+Environment_NYC,ok,9,0,9,0.03711158190240101,0.11611568488273251,,,,,,,9,0,0,0
+Food Inspections-Chicago,ok,9,0,9,0.0011779027219990985,0.0017668540829986479,,,,,,,9,0,0,0
+Food Inspections-NYC,failure,9,9,0,,,,,,,,,,,,

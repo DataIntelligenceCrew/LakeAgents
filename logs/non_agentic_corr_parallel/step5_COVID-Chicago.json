@@ -1,0 +1,529 @@
+{
+  "mode": "top10_numerical_correlation",
+  "tables": {
+    "COVID-Chicago": {
+      "candidates": [
+        {
+          "candidate_table_id": "t4hh-4ku9",
+          "pick_join_column": "Date",
+          "n_num_cols": 57,
+          "cand_agg_rows": 434,
+          "merged_rows": 433,
+          "corr_df_rows": 57,
+          "n_finite_corr_rows": 56,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "People Positive - Age 80+",
+              "value": -0.5459953030533241,
+              "metric": "correlation"
+            },
+            {
+              "feature": "People Tested - Age 80+",
+              "value": -0.4436931383878699,
+              "metric": "correlation"
+            },
+            {
+              "feature": "People Positive - Age 70-79",
+              "value": -0.44206508009409357,
+              "metric": "correlation"
+            },
+            {
+              "feature": "People Positive - Age 60-69",
+              "value": -0.3968597659992838,
+              "metric": "correlation"
+            },
+            {
+              "feature": "People Positive - Gender Unknown",
+              "value": -0.3926143176114834,
+              "metric": "correlation"
+            },
+            {
+              "feature": "People Positive - Age 50-59",
+              "value": -0.35890334889311853,
+              "metric": "correlation"
+            },
+            {
+              "feature": "People Tested - Age 70-79",
+              "value": -0.3500989312165285,
+              "metric": "correlation"
+            },
+            {
+              "feature": "People Tested - Age 60-69",
+              "value": -0.3272006484909692,
+              "metric": "correlation"
+            },
+            {
+              "feature": "People Positive - Latinx",
+              "value": -0.30891847933784766,
+              "metric": "correlation"
+            },
+            {
+              "feature": "People Tested - Age 50-59",
+              "value": -0.28868216545520914,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "2vhs-cf6b",
+          "pick_join_column": "Date",
+          "n_num_cols": 152,
+          "cand_agg_rows": 1003,
+          "merged_rows": 1003,
+          "corr_df_rows": 152,
+          "n_finite_corr_rows": 147,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "Bivalent - Percent Population",
+              "value": -0.8306318493514282,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Bivalent - Cumulative",
+              "value": -0.8306214551528142,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Bivalent - Daily - Age 0-4",
+              "value": -0.6911809596251144,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total Doses - Daily - Black Non-Latinx",
+              "value": 0.43334130596102105,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total Doses - Cumulative",
+              "value": -0.42900878197396863,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total Doses - Daily - Female",
+              "value": 0.3945104585393481,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total Doses - Daily",
+              "value": 0.38910063097477215,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total Doses - Daily - American Indian/Alaska Native Non-Latinx",
+              "value": 0.38849160915424796,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total Doses - Daily - Age 5+",
+              "value": 0.3866159880852649,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total Doses - Daily - Latinx",
+              "value": 0.38111216851804786,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "gkdw-2tgv",
+          "pick_join_column": "Date",
+          "n_num_cols": 57,
+          "cand_agg_rows": 1540,
+          "merged_rows": 1539,
+          "corr_df_rows": 57,
+          "n_finite_corr_rows": 55,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "Not-Positive Tests - Age 70-79",
+              "value": 0.5716196200821374,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Not-Positive Tests - Age 60-69",
+              "value": 0.5619242264891443,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Tests - Age 70-79",
+              "value": 0.5617630129358457,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Tests - Age 60-69",
+              "value": 0.5515138574423629,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Not-Positive Tests - Age 50-59",
+              "value": 0.5458129316570425,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Tests - Age 50-59",
+              "value": 0.5338434814623035,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Not-Positive Tests - Age 80+",
+              "value": 0.5201029769101804,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Not-Positive Tests - Age 40-49",
+              "value": 0.5190855987097203,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Not-Positive Tests - Unknown Race/Ethnicity",
+              "value": 0.5156052490971914,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Tests - Age 80+",
+              "value": 0.5130882259698656,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "4564-ixr2",
+          "pick_join_column": "Date",
+          "n_num_cols": 24,
+          "cand_agg_rows": 1003,
+          "merged_rows": 1003,
+          "corr_df_rows": 24,
+          "n_finite_corr_rows": 24,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "1st Dose - Cumulative - Unknown Residency",
+              "value": -0.31289009973380255,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total Doses - Daily - Chicago Resident",
+              "value": 0.2928540525932586,
+              "metric": "correlation"
+            },
+            {
+              "feature": "1st Dose - Cumulative  - Chicago Resident",
+              "value": -0.29164597398144276,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total Doses - Cumulative - Chicago Resident",
+              "value": -0.29150823205703147,
+              "metric": "correlation"
+            },
+            {
+              "feature": "2nd Dose - Cumulative  - Chicago Resident",
+              "value": -0.2908050319498283,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total Doses - Cumulative - Unknown Residency",
+              "value": -0.2867989466823417,
+              "metric": "correlation"
+            },
+            {
+              "feature": "1st Dose - Cumulative",
+              "value": -0.2839682462758413,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total Doses - Daily",
+              "value": 0.28282500406730227,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total Doses - Cumulative",
+              "value": -0.2821055356216639,
+              "metric": "correlation"
+            },
+            {
+              "feature": "2nd Dose - Daily - Chicago Resident",
+              "value": 0.28084071349940704,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "e68t-c7fv",
+          "pick_join_column": "Date",
+          "n_num_cols": 96,
+          "cand_agg_rows": 1525,
+          "merged_rows": 1525,
+          "corr_df_rows": 95,
+          "n_finite_corr_rows": 83,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "Hospitalizations - Age 18-29",
+              "value": 0.3389923199551801,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Hospitalizations Rate -  Age 18-29",
+              "value": 0.3385703321821114,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Cases - Asian Non-Latinx",
+              "value": 0.33569601356511747,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Cases Rate - Asian Non-Latinx",
+              "value": 0.335691061192408,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Hospitalizations - Age 30-39",
+              "value": 0.33268888287140874,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Hospitalizations Rate -  Age 30-39",
+              "value": 0.3323166183876778,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Cases - White Non-Latinx",
+              "value": 0.3202548117959414,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Cases Rate - White Non-Latinx",
+              "value": 0.32025324994797033,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Hospitalizations - White Non-Latinx",
+              "value": 0.2887456977510087,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Hospitalizations Rate -  White Non-Latinx",
+              "value": 0.2887438026455633,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "xda6-squu",
+          "pick_join_column": "Date",
+          "n_num_cols": 2,
+          "cand_agg_rows": 748,
+          "merged_rows": 748,
+          "corr_df_rows": 2,
+          "n_finite_corr_rows": 2,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "Total Doses - Cumulative",
+              "value": 0.5679538764571433,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total Doses - Daily",
+              "value": -0.011148712356740654,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "f3he-c6sv",
+          "pick_join_column": "Date",
+          "n_num_cols": 31,
+          "cand_agg_rows": 1147,
+          "merged_rows": 1147,
+          "corr_df_rows": 31,
+          "n_finite_corr_rows": 29,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "Ventilator Surge Capacity",
+              "value": -0.24679731244914266,
+              "metric": "correlation"
+            },
+            {
+              "feature": "ICU Beds in Use - Non-COVID-19",
+              "value": 0.23353394557850413,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Ventilators in Use - COVID-19",
+              "value": -0.18607220338760552,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Ventilators in Use - COVID-19 PUI",
+              "value": -0.1846533303640466,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Acute Non-ICU Beds in Use- Non-COVID-19",
+              "value": 0.18233753019389587,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Ventilators in Use - COVID-19 Patients",
+              "value": -0.17701711288480504,
+              "metric": "correlation"
+            },
+            {
+              "feature": "ICU Beds in Use - COVID-19 PUI",
+              "value": -0.1599113430934374,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Ventilators in Use - Non-COVID-19",
+              "value": 0.1571502134813211,
+              "metric": "correlation"
+            },
+            {
+              "feature": "ICU Beds in Use - COVID-19",
+              "value": -0.1539542214377713,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Acute Non-ICU Beds in Use - Total",
+              "value": 0.148968898899594,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "qwib-edaw",
+          "pick_join_column": "Date",
+          "n_num_cols": 9,
+          "cand_agg_rows": 1692,
+          "merged_rows": 1692,
+          "corr_df_rows": 9,
+          "n_finite_corr_rows": 9,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "CLI Percent - 7 day average",
+              "value": -0.6044642413921038,
+              "metric": "correlation"
+            },
+            {
+              "feature": "CLI Percent - Daily",
+              "value": -0.5749239198797942,
+              "metric": "correlation"
+            },
+            {
+              "feature": "CLI Count - 7 day average",
+              "value": -0.5358662791622941,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total CLI - Daily",
+              "value": -0.4916819086443899,
+              "metric": "correlation"
+            },
+            {
+              "feature": "COVID Count - 7 day average",
+              "value": 0.2794129214623342,
+              "metric": "correlation"
+            },
+            {
+              "feature": "COVID Percent - 7 day average",
+              "value": 0.2780339552723501,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total COVID - Daily",
+              "value": 0.26960813973582026,
+              "metric": "correlation"
+            },
+            {
+              "feature": "COVID Percent - Daily",
+              "value": 0.26894218507461437,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total ED Visits - Daily",
+              "value": -0.2229294164033412,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "553k-3xzc",
+          "pick_join_column": "Date",
+          "n_num_cols": 38,
+          "cand_agg_rows": 1004,
+          "merged_rows": 1003,
+          "corr_df_rows": 38,
+          "n_finite_corr_rows": 4,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "Bivalent - Cumulative",
+              "value": -0.8306214551528152,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total Doses - Cumulative",
+              "value": -0.42900878197396863,
+              "metric": "correlation"
+            },
+            {
+              "feature": "1st Dose - Cumulative",
+              "value": -0.2800928087403962,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Vaccine Series Completed - Cumulative",
+              "value": -0.25158314822691047,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "6859-spec",
+          "pick_join_column": "Week End",
+          "n_num_cols": 5,
+          "cand_agg_rows": 137,
+          "merged_rows": 137,
+          "corr_df_rows": 5,
+          "n_finite_corr_rows": 2,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "Count",
+              "value": 0.435834322580548,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Percent",
+              "value": 0.24695038228210406,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        }
+      ],
+      "target_agg_rows": 1539,
+      "query_join_column": "Date",
+      "target_column": "Deaths - Total",
+      "target_type": "numerical",
+      "status": "ok"
+    }
+  }
+}

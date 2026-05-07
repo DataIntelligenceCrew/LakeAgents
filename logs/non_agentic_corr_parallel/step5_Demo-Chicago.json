@@ -1,0 +1,514 @@
+{
+  "mode": "top10_numerical_correlation",
+  "tables": {
+    "Demo-Chicago": {
+      "candidates": [
+        {
+          "candidate_table_id": "kcki-hnch",
+          "pick_join_column": "Community Areas",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "38sz-xyf4",
+          "pick_join_column": "Community Areas",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "qjr3-bm53",
+          "pick_join_column": "Community Area Number",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "j6cj-r444",
+          "pick_join_column": "Adjusted Rate Rank",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "bfhr-4ckq",
+          "pick_join_column": "Community Area",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "3qdj-cqb8",
+          "pick_join_column": "2000 Upper 95% CI",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "vekt-28b5",
+          "pick_join_column": "Hospitalizations 2007",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "3mg2-a24n",
+          "pick_join_column": "Total Number of Initial Lead Inspections Completed Per Month",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "cjg8-dbka",
+          "pick_join_column": "Community Areas",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "vazh-t57q",
+          "pick_join_column": "Hospitalizations 2006",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "4arr-givg",
+          "pick_join_column": "Community Area",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "fbxr-9u99",
+          "pick_join_column": "Community Area",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "2q9j-hh6g",
+          "pick_join_column": "Community Area Number",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "uvy2-xbnp",
+          "pick_join_column": "Percent Students Receiving Sealants",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "9zqv-3uhs",
+          "pick_join_column": "Community Areas",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "7g62-yrf5",
+          "pick_join_column": "Annual Performance Target",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "rhy3-4x2f",
+          "pick_join_column": "Community Area Number",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "5t3t-6y9q",
+          "pick_join_column": "Percent Turned Away",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "ndk3-zftj",
+          "pick_join_column": "Community Area",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "g5zk-9ycw",
+          "pick_join_column": "Community Area Number",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "naz8-j4nc",
+          "pick_join_column": "Cases - Age 30-39",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "9kva-bt6k",
+          "pick_join_column": "Community Area Number",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "yhhz-zm2v",
+          "pick_join_column": "Cases - Weekly",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "m5qn-gmjx",
+          "pick_join_column": "Community Area",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "bz6k-73ti",
+          "pick_join_column": "Community Area",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "cgjw-mn43",
+          "pick_join_column": "Community Area",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "azpf-uc4s",
+          "pick_join_column": "Boundaries - ZIP Codes",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "v2z5-jyrq",
+          "pick_join_column": "Community Area Number",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "e68t-c7fv",
+          "pick_join_column": "Cases - Age 40-49",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "2vhs-cf6b",
+          "pick_join_column": "1st Dose - Daily - Age 0-17",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "35yf-6dy3",
+          "pick_join_column": "Community Area",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "553k-3xzc",
+          "pick_join_column": "1st Dose - Daily",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "jqe8-8r6s",
+          "pick_join_column": "COMMUNITY AREA NUMBER",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "f3he-c6sv",
+          "pick_join_column": "Ventilators in Use - COVID-19 Patients",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "gkdw-2tgv",
+          "pick_join_column": "Not-Positive Tests - Gender Unknown",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "6irb-gasv",
+          "pick_join_column": "Outcome Unvaccinated",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "xhc6-88s9",
+          "pick_join_column": "Community Area or ZIP Code",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "urdi-w8wq",
+          "pick_join_column": "Normalized_N1",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "t4hh-4ku9",
+          "pick_join_column": "People Positive - Age 60-69",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "nk2j-663f",
+          "pick_join_column": "Equity Zone",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "7ce8-bpr6",
+          "pick_join_column": "week",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "qwib-edaw",
+          "pick_join_column": "Total COVID - Daily",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "qgdz-d5m4",
+          "pick_join_column": "lab_tot_positive",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "4564-ixr2",
+          "pick_join_column": "2nd Dose - Daily - Non-Chicago Resident",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "6q3z-9maq",
+          "pick_join_column": "Community Areas",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "8vvr-jv2g",
+          "pick_join_column": "Boundaries - ZIP Codes",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "2ani-ic5x",
+          "pick_join_column": "Count",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "6xmk-qk57",
+          "pick_join_column": "ILI_TOT_ILI_ILINET",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "xfya-dxtq",
+          "pick_join_column": "Community Areas",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "37ac-bbe3",
+          "pick_join_column": "Boosted",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        }
+      ],
+      "target_agg_rows": 77,
+      "query_join_column": "Community Area",
+      "target_column": "No High School Diploma",
+      "target_type": "numerical",
+      "status": "ok"
+    }
+  }
+}

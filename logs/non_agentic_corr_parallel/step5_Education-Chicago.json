@@ -1,0 +1,516 @@
+{
+  "mode": "top10_numerical_correlation",
+  "tables": {
+    "Education-Chicago": {
+      "candidates": [
+        {
+          "candidate_table_id": "qemx-3d9f",
+          "pick_join_column": "School ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "tj8h-mnuv",
+          "pick_join_column": "School ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "anck-gptm",
+          "pick_join_column": "SCHOOL_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "kn9c-c2s2",
+          "pick_join_column": "COMMUNITY AREA NAME",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "sp5c-ihm9",
+          "pick_join_column": "SCHOOL_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "2m8w-izji",
+          "pick_join_column": "School ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "b5gj-d4r4",
+          "pick_join_column": "School ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "kqmn-byj8",
+          "pick_join_column": "DEFINITION",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "tb2x-zdvr",
+          "pick_join_column": "SCHOOL_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "hr9c-szde",
+          "pick_join_column": "SCHOOL_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "hwmb-iu8j",
+          "pick_join_column": "ADDRESS",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "iqnk-2tcu",
+          "pick_join_column": "Assault (Homicide)",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "8dps-5d4x",
+          "pick_join_column": "2011 APPROPRIATION",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "98wb-ks45",
+          "pick_join_column": "SCHOOL_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "v2z5-jyrq",
+          "pick_join_column": "Community Area Name",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "fypr-ksnz",
+          "pick_join_column": "ADDRESS",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "i9rk-duva",
+          "pick_join_column": "ADDRESS",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "bz6k-73ti",
+          "pick_join_column": "Cases 2000 Female 15-44",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "tfmt-mmy2",
+          "pick_join_column": "ADDRESS",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "h8qh-dq5s",
+          "pick_join_column": "SCHOOL_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "pnta-kuqa",
+          "pick_join_column": "Address",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "u68q-ccjt",
+          "pick_join_column": "SCHOOL_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "s2in-k2mg",
+          "pick_join_column": "SCHOOL_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "7xqa-efsz",
+          "pick_join_column": "SCHOOL_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "cgjw-mn43",
+          "pick_join_column": "Cases 2000 Female 15-44",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "d5vw-2kcs",
+          "pick_join_column": "SCHOOL_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "m5qn-gmjx",
+          "pick_join_column": "Cases 2000 Male 15-44",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "it84-h78n",
+          "pick_join_column": "SCHOOL_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "m7h2-r4sq",
+          "pick_join_column": "SCHOOL_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "8i6r-et8s",
+          "pick_join_column": "School_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "ten5-q8vs",
+          "pick_join_column": "DATE REQUESTED",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "vjbu-ywct",
+          "pick_join_column": "0-2 Yrs",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "vekt-28b5",
+          "pick_join_column": "Adjusted Rate 2000",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "ndk3-zftj",
+          "pick_join_column": "Average Annual Incidence Rate 2007-2011",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "qhb4-qx8k",
+          "pick_join_column": "ADDRESS",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "vbts-zqt4",
+          "pick_join_column": "CUMULATIVE NUMBER OF SESSIONS",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "35yf-6dy3",
+          "pick_join_column": "CASES 2000 Male 15-44",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "ir7v-8mc8",
+          "pick_join_column": "ADDRESS",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "4jy7-7m68",
+          "pick_join_column": "Address",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "d95y-ue9h",
+          "pick_join_column": "SCHOOL_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "6gqn-e2ij",
+          "pick_join_column": "ADDRESS",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "z8bn-74gv",
+          "pick_join_column": "ADDRESS",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "pb6d-zzuh",
+          "pick_join_column": "School_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "kes6-wskt",
+          "pick_join_column": "2010",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "xczi-kmtf",
+          "pick_join_column": "Academic / Vocational Support and Enrichment",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "mq3s-cgin",
+          "pick_join_column": "SCHOOL_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "mv87-m4mi",
+          "pick_join_column": "School_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "abk6-gwwr",
+          "pick_join_column": "SCHOOL_ID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "c7jj-qjvh",
+          "pick_join_column": "SchoolID",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "kh4r-387c",
+          "pick_join_column": "School_ID",
+          "n_num_cols": 8,
+          "cand_agg_rows": 654,
+          "merged_rows": 556,
+          "corr_df_rows": 8,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        }
+      ],
+      "target_agg_rows": 566,
+      "query_join_column": "School ID",
+      "target_column": "CPS Performance Policy Status",
+      "target_type": "categorical",
+      "status": "ok"
+    }
+  }
+}

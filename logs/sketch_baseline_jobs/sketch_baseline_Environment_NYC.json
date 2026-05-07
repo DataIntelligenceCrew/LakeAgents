@@ -1,0 +1,296 @@
+{
+  "mode": "sketch_baseline_multi_table_positive_top10_ml",
+  "project_root": "/localdisk3/ytang49/opendata-clean",
+  "pick_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel",
+  "corr_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel",
+  "tables": {
+    "Environment_NYC": {
+      "task_type": "classification",
+      "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Environment_NYC.json",
+      "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Environment_NYC.json",
+      "cells": [
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.1/Environment_NYC/rows.csv",
+          "join_column_yaml": "tree_id",
+          "target_column_yaml": "health",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 16,
+            "join_after_synonym_rules": "tree_id",
+            "target_after_synonym_rules": "wellness",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "tree_id",
+          "target_column": "wellness",
+          "baseline_metrics": {
+            "f1_score": 0.7384087779860522
+          },
+          "augmented_metrics": {
+            "f1_score": 0.7384087779860522
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Environment_NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Environment_NYC.json",
+          "tau": 0.1,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.5/Environment_NYC/rows.csv",
+          "join_column_yaml": "tree_id",
+          "target_column_yaml": "health",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 14,
+            "join_after_synonym_rules": "tree_id",
+            "target_after_synonym_rules": "wellness",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "tree_id",
+          "target_column": "wellness",
+          "baseline_metrics": {
+            "f1_score": 0.7384087779860522
+          },
+          "augmented_metrics": {
+            "f1_score": 0.7384087779860522
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Environment_NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Environment_NYC.json",
+          "tau": 0.1,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.9/Environment_NYC/rows.csv",
+          "join_column_yaml": "tree_id",
+          "target_column_yaml": "health",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 16,
+            "join_after_synonym_rules": "tree_id",
+            "target_after_synonym_rules": "condition",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "tree_id",
+          "target_column": "condition",
+          "baseline_metrics": {
+            "f1_score": 0.7384298180488584
+          },
+          "augmented_metrics": {
+            "f1_score": 0.7384298180488584
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Environment_NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Environment_NYC.json",
+          "tau": 0.1,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.1/Environment_NYC/rows.csv",
+          "join_column_yaml": "tree_id",
+          "target_column_yaml": "health",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 13,
+            "join_after_synonym_rules": "tree_id",
+            "target_after_synonym_rules": "condition",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "tree_id",
+          "target_column": "condition",
+          "baseline_metrics": {
+            "f1_score": 0.7384087779860522
+          },
+          "augmented_metrics": {
+            "f1_score": 0.7384087779860522
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Environment_NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Environment_NYC.json",
+          "tau": 0.5,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.5/Environment_NYC/rows.csv",
+          "join_column_yaml": "tree_id",
+          "target_column_yaml": "health",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 15,
+            "join_after_synonym_rules": "tree_id",
+            "target_after_synonym_rules": "wellness",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "tree_id",
+          "target_column": "wellness",
+          "baseline_metrics": {
+            "f1_score": 0.7384087779860522
+          },
+          "augmented_metrics": {
+            "f1_score": 0.7384087779860522
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Environment_NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Environment_NYC.json",
+          "tau": 0.5,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.9/Environment_NYC/rows.csv",
+          "join_column_yaml": "tree_id",
+          "target_column_yaml": "health",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 14,
+            "join_after_synonym_rules": "tree_id",
+            "target_after_synonym_rules": "condition",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "tree_id",
+          "target_column": "condition",
+          "baseline_metrics": {
+            "f1_score": 0.7384298180488584
+          },
+          "augmented_metrics": {
+            "f1_score": 0.7384298180488584
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Environment_NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Environment_NYC.json",
+          "tau": 0.5,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.1/Environment_NYC/rows.csv",
+          "join_column_yaml": "tree_id",
+          "target_column_yaml": "health",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 7,
+            "join_after_synonym_rules": "tree_id",
+            "target_after_synonym_rules": "health",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "tree_id",
+          "target_column": "health",
+          "baseline_metrics": {
+            "f1_score": 0.7384087779860522
+          },
+          "augmented_metrics": {
+            "f1_score": 0.7384087779860522
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Environment_NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Environment_NYC.json",
+          "tau": 0.9,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.5/Environment_NYC/rows.csv",
+          "join_column_yaml": "tree_id",
+          "target_column_yaml": "health",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 7,
+            "join_after_synonym_rules": "tree_id",
+            "target_after_synonym_rules": "condition",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "tree_id",
+          "target_column": "condition",
+          "baseline_metrics": {
+            "f1_score": 0.7384087779860522
+          },
+          "augmented_metrics": {
+            "f1_score": 0.7384087779860522
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Environment_NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Environment_NYC.json",
+          "tau": 0.9,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.9/Environment_NYC/rows.csv",
+          "join_column_yaml": "tree_id",
+          "target_column_yaml": "health",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 7,
+            "join_after_synonym_rules": "tree_id",
+            "target_after_synonym_rules": "wellness",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "tree_id",
+          "target_column": "wellness",
+          "baseline_metrics": {
+            "f1_score": 0.7384298180488584
+          },
+          "augmented_metrics": {
+            "f1_score": 0.7384298180488584
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Environment_NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Environment_NYC.json",
+          "tau": 0.9,
+          "beta": 0.9
+        }
+      ],
+      "status": "ok",
+      "cells_ok_count": 9
+    }
+  }
+}

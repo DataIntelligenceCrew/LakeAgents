@@ -1,0 +1,726 @@
+{
+  "mode": "top10_numerical_correlation",
+  "tables": {
+    "Economic-Chicago": {
+      "candidates": [
+        {
+          "candidate_table_id": "kn9c-c2s2",
+          "pick_join_column": "COMMUNITY AREA NAME",
+          "n_num_cols": 8,
+          "cand_agg_rows": 78,
+          "merged_rows": 78,
+          "corr_df_rows": 8,
+          "n_finite_corr_rows": 8,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "HARDSHIP INDEX",
+              "value": 0.42535060197776287,
+              "metric": "correlation"
+            },
+            {
+              "feature": "PERCENT OF HOUSING CROWDED",
+              "value": 0.37733333595049484,
+              "metric": "correlation"
+            },
+            {
+              "feature": "PERCENT HOUSEHOLDS BELOW POVERTY",
+              "value": 0.36509123024083967,
+              "metric": "correlation"
+            },
+            {
+              "feature": "PERCENT AGED 25+ WITHOUT HIGH SCHOOL DIPLOMA",
+              "value": 0.33757298371713784,
+              "metric": "correlation"
+            },
+            {
+              "feature": "PER CAPITA INCOME ",
+              "value": -0.3266957401649826,
+              "metric": "correlation"
+            },
+            {
+              "feature": "PERCENT AGED 16+ UNEMPLOYED",
+              "value": 0.32206999300679084,
+              "metric": "correlation"
+            },
+            {
+              "feature": "PERCENT AGED UNDER 18 OR OVER 64",
+              "value": 0.129570157023505,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Community Area Number",
+              "value": -0.005086085410616031,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "cgjw-mn43",
+          "pick_join_column": "Community Area Name",
+          "n_num_cols": 61,
+          "cand_agg_rows": 78,
+          "status": "error",
+          "error": "'DataFrame' object has no attribute 'unique'"
+        },
+        {
+          "candidate_table_id": "g5i5-yz37",
+          "pick_join_column": "Community Area Name",
+          "n_num_cols": 13,
+          "cand_agg_rows": 78,
+          "merged_rows": 78,
+          "corr_df_rows": 13,
+          "n_finite_corr_rows": 4,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "Building ID",
+              "value": 0.1416868267919591,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Census Tracts",
+              "value": -0.09203838020531521,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Latitude",
+              "value": -0.0326626525481807,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Longitude",
+              "value": -0.01756834767834235,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "28me-84fj",
+          "pick_join_column": "AREA",
+          "n_num_cols": 70,
+          "cand_agg_rows": 9,
+          "merged_rows": 2,
+          "corr_df_rows": 70,
+          "n_finite_corr_rows": 34,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "SAFETY",
+              "value": 1.0,
+              "metric": "correlation"
+            },
+            {
+              "feature": "S_AGE_HIGH",
+              "value": 1.0,
+              "metric": "correlation"
+            },
+            {
+              "feature": "S_AGE_LOW",
+              "value": 1.0,
+              "metric": "correlation"
+            },
+            {
+              "feature": "S_EDUCATION_HIGH",
+              "value": 1.0,
+              "metric": "correlation"
+            },
+            {
+              "feature": "S_EDUCATION_MEDIUM",
+              "value": 1.0,
+              "metric": "correlation"
+            },
+            {
+              "feature": "S_INCOME_HIGH",
+              "value": 1.0,
+              "metric": "correlation"
+            },
+            {
+              "feature": "S_INCOME_LOW",
+              "value": 1.0,
+              "metric": "correlation"
+            },
+            {
+              "feature": "S_INCOME_MEDIUM",
+              "value": 1.0,
+              "metric": "correlation"
+            },
+            {
+              "feature": "S_RACE_AFRICAN_AMERICAN",
+              "value": 1.0,
+              "metric": "correlation"
+            },
+            {
+              "feature": "S_RACE_ASIAN_AMERICAN",
+              "value": 1.0,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "bz6k-73ti",
+          "pick_join_column": "Community Area Name",
+          "n_num_cols": 61,
+          "cand_agg_rows": 79,
+          "status": "error",
+          "error": "'DataFrame' object has no attribute 'unique'"
+        },
+        {
+          "candidate_table_id": "awnk-6fvc",
+          "pick_join_column": "$125,000 +",
+          "n_num_cols": 27,
+          "cand_agg_rows": 49,
+          "merged_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "merged_too_small"
+        },
+        {
+          "candidate_table_id": "2ui7-wiq8",
+          "status": "skipped"
+        },
+        {
+          "candidate_table_id": "m5qn-gmjx",
+          "pick_join_column": "Community Area Name",
+          "n_num_cols": 61,
+          "cand_agg_rows": 79,
+          "status": "error",
+          "error": "'DataFrame' object has no attribute 'unique'"
+        },
+        {
+          "candidate_table_id": "yhhz-zm2v",
+          "pick_join_column": "Boundaries - ZIP Codes",
+          "n_num_cols": 21,
+          "cand_agg_rows": 58,
+          "merged_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "merged_too_small"
+        },
+        {
+          "candidate_table_id": "umwj-yc4m",
+          "pick_join_column": "TIF District",
+          "n_num_cols": 9,
+          "cand_agg_rows": 152,
+          "merged_rows": 41,
+          "corr_df_rows": 9,
+          "n_finite_corr_rows": 8,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "Financing Costs",
+              "value": 0.2233729002083942,
+              "metric": "correlation"
+            },
+            {
+              "feature": "New Housing",
+              "value": -0.14463095367922157,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Interest Cost",
+              "value": -0.14152855117234694,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Public Works",
+              "value": -0.11218990662416632,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Cost of Studies",
+              "value": -0.09630237256665511,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Site Preparation Costs",
+              "value": -0.08063256577426957,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Renovation, Rehab, Etc.",
+              "value": -0.04524557291067878,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Job Training",
+              "value": 0.0001226436650245382,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "35yf-6dy3",
+          "pick_join_column": "Community Area Name",
+          "n_num_cols": 61,
+          "cand_agg_rows": 79,
+          "status": "error",
+          "error": "'DataFrame' object has no attribute 'unique'"
+        },
+        {
+          "candidate_table_id": "9xs2-f89t",
+          "pick_join_column": "Community Area Name",
+          "n_num_cols": 45,
+          "cand_agg_rows": 77,
+          "merged_rows": 77,
+          "corr_df_rows": 28,
+          "n_finite_corr_rows": 28,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "School ID",
+              "value": -0.6123350383141741,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Safety Score",
+              "value": -0.4090624461259259,
+              "metric": "correlation"
+            },
+            {
+              "feature": "ISAT Exceeding Reading % ",
+              "value": -0.38431931841266653,
+              "metric": "correlation"
+            },
+            {
+              "feature": "ISAT Exceeding Math %",
+              "value": -0.3619561986235196,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Rate of Misconducts (per 100 students) ",
+              "value": 0.3476399548855675,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Average Student Attendance",
+              "value": -0.12189609549417738,
+              "metric": "correlation"
+            },
+            {
+              "feature": "ISAT Value Add Read",
+              "value": -0.11263495030968942,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Average Teacher Attendance",
+              "value": -0.10830063317529529,
+              "metric": "correlation"
+            },
+            {
+              "feature": "College Enrollment (number of students) ",
+              "value": -0.10780501609838508,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Zip Codes",
+              "value": 0.09990044901004665,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "xq83-jr8c",
+          "pick_join_column": "Community Area",
+          "n_num_cols": 28,
+          "cand_agg_rows": 158,
+          "merged_rows": 157,
+          "corr_df_rows": 28,
+          "n_finite_corr_rows": 13,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "Exempt From Chicago Energy Rating",
+              "value": 0.20565714240581695,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Weather Normalized Source EUI (kBtu/sq ft)",
+              "value": -0.12744777906426347,
+              "metric": "correlation"
+            },
+            {
+              "feature": "ID",
+              "value": 0.12709319547678827,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Source EUI (kBtu/sq ft)",
+              "value": -0.1102848155047582,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Electricity Use (kBtu)",
+              "value": -0.0867761654968183,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Gross Floor Area - Buildings (sq ft)",
+              "value": -0.07326467551131306,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Weather Normalized Site EUI (kBtu/sq ft)",
+              "value": -0.07176091768806986,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total GHG Emissions (Metric Tons CO2e)",
+              "value": -0.07019670728352378,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Water Use (kGal)",
+              "value": -0.05833679292068497,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Site EUI (kBtu/sq ft)",
+              "value": -0.04915348252124378,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "hu6v-hsqb",
+          "pick_join_column": "LOCATION",
+          "n_num_cols": 8,
+          "cand_agg_rows": 44,
+          "merged_rows": 23,
+          "corr_df_rows": 8,
+          "n_finite_corr_rows": 8,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "Historical Wards 2003-2015",
+              "value": 0.44331838814968494,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Wards",
+              "value": -0.23460414776286184,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Boundaries - ZIP Codes",
+              "value": 0.1968547204674512,
+              "metric": "correlation"
+            },
+            {
+              "feature": "LONGITUDE",
+              "value": -0.15425920874509905,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Community Areas",
+              "value": -0.07252408827349756,
+              "metric": "correlation"
+            },
+            {
+              "feature": "LATITUDE",
+              "value": 0.04431920340807001,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Census Tracts",
+              "value": 0.04213124435115603,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Zip Codes",
+              "value": 0.03804018452266916,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "qm7s-3ctt",
+          "pick_join_column": "TIF District",
+          "n_num_cols": 23,
+          "cand_agg_rows": 151,
+          "merged_rows": 40,
+          "corr_df_rows": 23,
+          "n_finite_corr_rows": 17,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "Municipal - Cumulative",
+              "value": 0.25536011738416725,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Transfers - Municipal",
+              "value": -0.23872321288780377,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Municipal - Current",
+              "value": 0.20815044673654423,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Total Expenditure",
+              "value": -0.13964896914347735,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Property Tax Increment - Cumulative",
+              "value": -0.1351896677610948,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Interest - Current",
+              "value": -0.12861232115237833,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Property Tax Increment - Current",
+              "value": -0.12071670374969916,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Net Income",
+              "value": 0.117795344979314,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Distribution of Surplus",
+              "value": -0.10800370035042532,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Tax Allocation Fund Balance",
+              "value": -0.0861607079934748,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "i8y3-ytj4",
+          "pick_join_column": "LOCATION",
+          "n_num_cols": 8,
+          "cand_agg_rows": 24,
+          "merged_rows": 14,
+          "corr_df_rows": 8,
+          "n_finite_corr_rows": 8,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "Historical Wards 2003-2015",
+              "value": 0.5056198460076262,
+              "metric": "correlation"
+            },
+            {
+              "feature": "LONGITUDE",
+              "value": -0.3987508838749711,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Wards",
+              "value": -0.3897534454857558,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Boundaries - ZIP Codes",
+              "value": 0.30977269614027053,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Community Areas",
+              "value": -0.24457073865428736,
+              "metric": "correlation"
+            },
+            {
+              "feature": "LATITUDE",
+              "value": 0.12388348960015273,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Census Tracts",
+              "value": 0.11951305414375388,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Zip Codes",
+              "value": 0.09973418163591766,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "ir7v-8mc8",
+          "pick_join_column": "STREET NAME",
+          "n_num_cols": 9,
+          "cand_agg_rows": 1029,
+          "merged_rows": 85,
+          "corr_df_rows": 9,
+          "n_finite_corr_rows": 3,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "STREET NUMBER FROM",
+              "value": -0.18486684871423006,
+              "metric": "correlation"
+            },
+            {
+              "feature": "LATITUDE",
+              "value": 0.11986818153086537,
+              "metric": "correlation"
+            },
+            {
+              "feature": "LONGITUDE",
+              "value": -0.08574978981025067,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "u9xt-hiju",
+          "pick_join_column": "STREET NAME",
+          "n_num_cols": 6,
+          "cand_agg_rows": 771,
+          "merged_rows": 60,
+          "corr_df_rows": 5,
+          "n_finite_corr_rows": 3,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "ROW ID",
+              "value": 0.042399386765960334,
+              "metric": "correlation"
+            },
+            {
+              "feature": "ADDRESS RANGE - HIGH",
+              "value": -0.019285276685900004,
+              "metric": "correlation"
+            },
+            {
+              "feature": "ADDRESS RANGE - LOW",
+              "value": -0.016404172463274712,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "b5gj-d4r4",
+          "pick_join_column": "School Short Name",
+          "n_num_cols": 58,
+          "cand_agg_rows": 460,
+          "merged_rows": 45,
+          "corr_df_rows": 57,
+          "n_finite_corr_rows": 56,
+          "status": "ok",
+          "top10": [
+            {
+              "feature": "Reading Performance Grade 5",
+              "value": -0.5176151430009228,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Reading Performance Grade 4",
+              "value": -0.5040873632831204,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Reading Performance All Grades",
+              "value": -0.47844676855950846,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Reading Performance Grade 6",
+              "value": -0.47142624435315944,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Math Performance Grade 4",
+              "value": -0.46907953822551385,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Reading Performance Grade 7",
+              "value": -0.4630389671218633,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Math Performance Grade 3",
+              "value": -0.46202929851407537,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Student Performance Reading and Math",
+              "value": -0.4505414906420839,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Reading Growth Students with Disabilities",
+              "value": -0.4460114986264586,
+              "metric": "correlation"
+            },
+            {
+              "feature": "Math Performance Grade 7",
+              "value": -0.4143633823236771,
+              "metric": "correlation"
+            }
+          ],
+          "corr_skip_reason": null
+        },
+        {
+          "candidate_table_id": "qemx-3d9f",
+          "pick_join_column": "5-Year Cohort Graduation Rate 2011 - Percent",
+          "n_num_cols": 37,
+          "cand_agg_rows": 70,
+          "merged_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "merged_too_small"
+        },
+        {
+          "candidate_table_id": "nxdn-bvae",
+          "pick_join_column": "Age Group",
+          "n_num_cols": 11,
+          "cand_agg_rows": 5,
+          "merged_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "merged_too_small"
+        },
+        {
+          "candidate_table_id": "2ani-ic5x",
+          "pick_join_column": "Age Group",
+          "n_num_cols": 11,
+          "cand_agg_rows": 5,
+          "merged_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "merged_too_small"
+        },
+        {
+          "candidate_table_id": "6irb-gasv",
+          "pick_join_column": "Age Group",
+          "n_num_cols": 18,
+          "cand_agg_rows": 9,
+          "merged_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "merged_too_small"
+        }
+      ],
+      "target_agg_rows": 77,
+      "query_join_column": "Community Area",
+      "target_column": "Under $25,000",
+      "target_type": "numerical",
+      "status": "ok"
+    }
+  }
+}

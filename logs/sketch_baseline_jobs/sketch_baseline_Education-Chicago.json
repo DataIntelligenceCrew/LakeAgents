@@ -1,0 +1,296 @@
+{
+  "mode": "sketch_baseline_multi_table_positive_top10_ml",
+  "project_root": "/localdisk3/ytang49/opendata-clean",
+  "pick_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel",
+  "corr_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel",
+  "tables": {
+    "Education-Chicago": {
+      "task_type": "classification",
+      "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-Chicago.json",
+      "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-Chicago.json",
+      "cells": [
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.1/Education-Chicago/rows.csv",
+          "join_column_yaml": "School ID",
+          "target_column_yaml": "CPS Performance Policy Status",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 21,
+            "join_after_synonym_rules": "institution ident",
+            "target_after_synonym_rules": "CPS results Policy Status",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "institution ident",
+          "target_column": "CPS results Policy Status",
+          "baseline_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "augmented_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-Chicago.json",
+          "tau": 0.1,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.5/Education-Chicago/rows.csv",
+          "join_column_yaml": "School ID",
+          "target_column_yaml": "CPS Performance Policy Status",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 22,
+            "join_after_synonym_rules": "campus key",
+            "target_after_synonym_rules": "CPS perf Policy Status",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "campus key",
+          "target_column": "CPS perf Policy Status",
+          "baseline_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "augmented_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-Chicago.json",
+          "tau": 0.1,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.9/Education-Chicago/rows.csv",
+          "join_column_yaml": "School ID",
+          "target_column_yaml": "CPS Performance Policy Status",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 22,
+            "join_after_synonym_rules": "academy ident",
+            "target_after_synonym_rules": "CPS consequences Policy Status",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "academy ident",
+          "target_column": "CPS consequences Policy Status",
+          "baseline_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "augmented_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-Chicago.json",
+          "tau": 0.1,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.1/Education-Chicago/rows.csv",
+          "join_column_yaml": "School ID",
+          "target_column_yaml": "CPS Performance Policy Status",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 23,
+            "join_after_synonym_rules": "academy key",
+            "target_after_synonym_rules": "CPS perf Policy Status",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "academy key",
+          "target_column": "CPS perf Policy Status",
+          "baseline_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "augmented_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-Chicago.json",
+          "tau": 0.5,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.5/Education-Chicago/rows.csv",
+          "join_column_yaml": "School ID",
+          "target_column_yaml": "CPS Performance Policy Status",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 22,
+            "join_after_synonym_rules": "institution key",
+            "target_after_synonym_rules": "CPS findings Policy Status",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "institution key",
+          "target_column": "CPS findings Policy Status",
+          "baseline_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "augmented_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-Chicago.json",
+          "tau": 0.5,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.9/Education-Chicago/rows.csv",
+          "join_column_yaml": "School ID",
+          "target_column_yaml": "CPS Performance Policy Status",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 21,
+            "join_after_synonym_rules": "campus key",
+            "target_after_synonym_rules": "CPS results Policy Status",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "campus key",
+          "target_column": "CPS results Policy Status",
+          "baseline_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "augmented_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-Chicago.json",
+          "tau": 0.5,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.1/Education-Chicago/rows.csv",
+          "join_column_yaml": "School ID",
+          "target_column_yaml": "CPS Performance Policy Status",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 6,
+            "join_after_synonym_rules": "School ID",
+            "target_after_synonym_rules": "CPS Performance Policy Status",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "School ID",
+          "target_column": "CPS Performance Policy Status",
+          "baseline_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "augmented_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-Chicago.json",
+          "tau": 0.9,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.5/Education-Chicago/rows.csv",
+          "join_column_yaml": "School ID",
+          "target_column_yaml": "CPS Performance Policy Status",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 6,
+            "join_after_synonym_rules": "campus ID",
+            "target_after_synonym_rules": "CPS Performance Policy Status",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "campus ID",
+          "target_column": "CPS Performance Policy Status",
+          "baseline_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "augmented_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-Chicago.json",
+          "tau": 0.9,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.9/Education-Chicago/rows.csv",
+          "join_column_yaml": "School ID",
+          "target_column_yaml": "CPS Performance Policy Status",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 7,
+            "join_after_synonym_rules": "School ID",
+            "target_after_synonym_rules": "CPS perf Policy Status",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "School ID",
+          "target_column": "CPS perf Policy Status",
+          "baseline_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "augmented_metrics": {
+            "f1_score": 0.6913571962360261
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-Chicago.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-Chicago.json",
+          "tau": 0.9,
+          "beta": 0.9
+        }
+      ],
+      "status": "ok",
+      "cells_ok_count": 9
+    }
+  }
+}

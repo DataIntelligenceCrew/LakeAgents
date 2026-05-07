@@ -1,0 +1,296 @@
+{
+  "mode": "sketch_baseline_multi_table_positive_top10_ml",
+  "project_root": "/localdisk3/ytang49/opendata-clean",
+  "pick_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel",
+  "corr_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel",
+  "tables": {
+    "Education-NYC": {
+      "task_type": "classification",
+      "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-NYC.json",
+      "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-NYC.json",
+      "cells": [
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.1/Education-NYC/rows.csv",
+          "join_column_yaml": "DBN",
+          "target_column_yaml": "2009-2010 OVERALL GRADE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 20,
+            "join_after_synonym_rules": "DBN",
+            "target_after_synonym_rules": "2009-2010 OVERALL rating",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "DBN",
+          "target_column": "2009-2010 OVERALL rating",
+          "baseline_metrics": {
+            "f1_score": 0.48874976834163886
+          },
+          "augmented_metrics": {
+            "f1_score": 0.48874976834163886
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-NYC.json",
+          "tau": 0.1,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.5/Education-NYC/rows.csv",
+          "join_column_yaml": "DBN",
+          "target_column_yaml": "2009-2010 OVERALL GRADE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 23,
+            "join_after_synonym_rules": "DBN",
+            "target_after_synonym_rules": "2009-2010 OVERALL score",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "DBN",
+          "target_column": "2009-2010 OVERALL score",
+          "baseline_metrics": {
+            "f1_score": 0.4025289057123759
+          },
+          "augmented_metrics": {
+            "f1_score": 0.4025289057123759
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-NYC.json",
+          "tau": 0.1,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.9/Education-NYC/rows.csv",
+          "join_column_yaml": "DBN",
+          "target_column_yaml": "2009-2010 OVERALL GRADE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 19,
+            "join_after_synonym_rules": "DBN",
+            "target_after_synonym_rules": "2009-2010 OVERALL mark",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "DBN",
+          "target_column": "2009-2010 OVERALL mark",
+          "baseline_metrics": {
+            "f1_score": 0.3727455893052629
+          },
+          "augmented_metrics": {
+            "f1_score": 0.3727455893052629
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-NYC.json",
+          "tau": 0.1,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.1/Education-NYC/rows.csv",
+          "join_column_yaml": "DBN",
+          "target_column_yaml": "2009-2010 OVERALL GRADE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 19,
+            "join_after_synonym_rules": "DBN",
+            "target_after_synonym_rules": "2009-2010 OVERALL rating",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "DBN",
+          "target_column": "2009-2010 OVERALL rating",
+          "baseline_metrics": {
+            "f1_score": 0.48874976834163886
+          },
+          "augmented_metrics": {
+            "f1_score": 0.48874976834163886
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-NYC.json",
+          "tau": 0.5,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.5/Education-NYC/rows.csv",
+          "join_column_yaml": "DBN",
+          "target_column_yaml": "2009-2010 OVERALL GRADE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 19,
+            "join_after_synonym_rules": "DBN",
+            "target_after_synonym_rules": "2009-2010 OVERALL mark",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "DBN",
+          "target_column": "2009-2010 OVERALL mark",
+          "baseline_metrics": {
+            "f1_score": 0.4025289057123759
+          },
+          "augmented_metrics": {
+            "f1_score": 0.4025289057123759
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-NYC.json",
+          "tau": 0.5,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.9/Education-NYC/rows.csv",
+          "join_column_yaml": "DBN",
+          "target_column_yaml": "2009-2010 OVERALL GRADE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 17,
+            "join_after_synonym_rules": "DBN",
+            "target_after_synonym_rules": "2009-2010 OVERALL rating",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "DBN",
+          "target_column": "2009-2010 OVERALL rating",
+          "baseline_metrics": {
+            "f1_score": 0.3727455893052629
+          },
+          "augmented_metrics": {
+            "f1_score": 0.3727455893052629
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-NYC.json",
+          "tau": 0.5,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.1/Education-NYC/rows.csv",
+          "join_column_yaml": "DBN",
+          "target_column_yaml": "2009-2010 OVERALL GRADE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 5,
+            "join_after_synonym_rules": "DBN",
+            "target_after_synonym_rules": "2009-2010 OVERALL score",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "DBN",
+          "target_column": "2009-2010 OVERALL score",
+          "baseline_metrics": {
+            "f1_score": 0.48874976834163886
+          },
+          "augmented_metrics": {
+            "f1_score": 0.48874976834163886
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-NYC.json",
+          "tau": 0.9,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.5/Education-NYC/rows.csv",
+          "join_column_yaml": "DBN",
+          "target_column_yaml": "2009-2010 OVERALL GRADE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 6,
+            "join_after_synonym_rules": "DBN",
+            "target_after_synonym_rules": "2009-2010 OVERALL GRADE",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "DBN",
+          "target_column": "2009-2010 OVERALL GRADE",
+          "baseline_metrics": {
+            "f1_score": 0.4025289057123759
+          },
+          "augmented_metrics": {
+            "f1_score": 0.4025289057123759
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-NYC.json",
+          "tau": 0.9,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.9/Education-NYC/rows.csv",
+          "join_column_yaml": "DBN",
+          "target_column_yaml": "2009-2010 OVERALL GRADE",
+          "task_type": "classification",
+          "primary_metric": "f1_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 5,
+            "join_after_synonym_rules": "DBN",
+            "target_after_synonym_rules": "2009-2010 OVERALL GRADE",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "DBN",
+          "target_column": "2009-2010 OVERALL GRADE",
+          "baseline_metrics": {
+            "f1_score": 0.3727455893052629
+          },
+          "augmented_metrics": {
+            "f1_score": 0.3727455893052629
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_Education-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_Education-NYC.json",
+          "tau": 0.9,
+          "beta": 0.9
+        }
+      ],
+      "status": "ok",
+      "cells_ok_count": 9
+    }
+  }
+}

@@ -1,0 +1,296 @@
+{
+  "mode": "sketch_baseline_multi_table_positive_top10_ml",
+  "project_root": "/localdisk3/ytang49/opendata-clean",
+  "pick_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel",
+  "corr_dir": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel",
+  "tables": {
+    "COVID-NYC": {
+      "task_type": "regression",
+      "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-NYC.json",
+      "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-NYC.json",
+      "cells": [
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.1/COVID-NYC/rows.csv",
+          "join_column_yaml": "extract_date",
+          "target_column_yaml": "Number_deaths",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 28,
+            "join_after_synonym_rules": "extract_date",
+            "target_after_synonym_rules": "Number_deaths",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "extract_date",
+          "target_column": "Number_deaths",
+          "baseline_metrics": {
+            "r2_score": 0.7073255228290534
+          },
+          "augmented_metrics": {
+            "r2_score": 0.7073255228290534
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-NYC.json",
+          "tau": 0.1,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.5/COVID-NYC/rows.csv",
+          "join_column_yaml": "extract_date",
+          "target_column_yaml": "Number_deaths",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 26,
+            "join_after_synonym_rules": "extract_date",
+            "target_after_synonym_rules": "Number_deaths",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "extract_date",
+          "target_column": "Number_deaths",
+          "baseline_metrics": {
+            "r2_score": 0.5721427823546366
+          },
+          "augmented_metrics": {
+            "r2_score": 0.5721427823546366
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-NYC.json",
+          "tau": 0.1,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.9/COVID-NYC/rows.csv",
+          "join_column_yaml": "extract_date",
+          "target_column_yaml": "Number_deaths",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 27,
+            "join_after_synonym_rules": "extract_date",
+            "target_after_synonym_rules": "Number_deaths",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "extract_date",
+          "target_column": "Number_deaths",
+          "baseline_metrics": {
+            "r2_score": 0.3973783282789243
+          },
+          "augmented_metrics": {
+            "r2_score": 0.3973783282789243
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-NYC.json",
+          "tau": 0.1,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.1/COVID-NYC/rows.csv",
+          "join_column_yaml": "extract_date",
+          "target_column_yaml": "Number_deaths",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 19,
+            "join_after_synonym_rules": "extract_date",
+            "target_after_synonym_rules": "Number_deaths",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "extract_date",
+          "target_column": "Number_deaths",
+          "baseline_metrics": {
+            "r2_score": 0.7073255228290534
+          },
+          "augmented_metrics": {
+            "r2_score": 0.7073255228290534
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-NYC.json",
+          "tau": 0.5,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.5/COVID-NYC/rows.csv",
+          "join_column_yaml": "extract_date",
+          "target_column_yaml": "Number_deaths",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 19,
+            "join_after_synonym_rules": "extract_date",
+            "target_after_synonym_rules": "Number_deaths",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "extract_date",
+          "target_column": "Number_deaths",
+          "baseline_metrics": {
+            "r2_score": 0.5721427823546366
+          },
+          "augmented_metrics": {
+            "r2_score": 0.5721427823546366
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-NYC.json",
+          "tau": 0.5,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.5_0.9/COVID-NYC/rows.csv",
+          "join_column_yaml": "extract_date",
+          "target_column_yaml": "Number_deaths",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 20,
+            "join_after_synonym_rules": "extract_date",
+            "target_after_synonym_rules": "Number_deaths",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "extract_date",
+          "target_column": "Number_deaths",
+          "baseline_metrics": {
+            "r2_score": 0.3973783282789243
+          },
+          "augmented_metrics": {
+            "r2_score": 0.3973783282789243
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-NYC.json",
+          "tau": 0.5,
+          "beta": 0.9
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.1/COVID-NYC/rows.csv",
+          "join_column_yaml": "extract_date",
+          "target_column_yaml": "Number_deaths",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 3,
+            "join_after_synonym_rules": "extract_date",
+            "target_after_synonym_rules": "Number_deaths",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "extract_date",
+          "target_column": "Number_deaths",
+          "baseline_metrics": {
+            "r2_score": 0.7073255228290534
+          },
+          "augmented_metrics": {
+            "r2_score": 0.7073255228290534
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-NYC.json",
+          "tau": 0.9,
+          "beta": 0.1
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.5/COVID-NYC/rows.csv",
+          "join_column_yaml": "extract_date",
+          "target_column_yaml": "Number_deaths",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 3,
+            "join_after_synonym_rules": "extract_date",
+            "target_after_synonym_rules": "Number_deaths",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "extract_date",
+          "target_column": "Number_deaths",
+          "baseline_metrics": {
+            "r2_score": 0.5721427823546366
+          },
+          "augmented_metrics": {
+            "r2_score": 0.5721427823546366
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-NYC.json",
+          "tau": 0.9,
+          "beta": 0.5
+        },
+        {
+          "rows_path": "/localdisk3/ytang49/opendata-clean/perturbed_0.9_0.9/COVID-NYC/rows.csv",
+          "join_column_yaml": "extract_date",
+          "target_column_yaml": "Number_deaths",
+          "task_type": "regression",
+          "primary_metric": "r2_score",
+          "column_name_resolution": {
+            "n_replacement_rules": 3,
+            "join_after_synonym_rules": "extract_date",
+            "target_after_synonym_rules": "Number_deaths",
+            "join_resolution": "perturbed_header",
+            "target_resolution": "perturbed_header"
+          },
+          "join_column": "extract_date",
+          "target_column": "Number_deaths",
+          "baseline_metrics": {
+            "r2_score": 0.3973783282789243
+          },
+          "augmented_metrics": {
+            "r2_score": 0.3973783282789243
+          },
+          "improvement": 0.0,
+          "augment_candidates_used": [],
+          "n_augment_tables": 0,
+          "skipped_candidates": [],
+          "status": "ok_baseline_only",
+          "pick_join_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_pick_join_parallel/step34_COVID-NYC.json",
+          "corr_path": "/localdisk3/ytang49/opendata-clean/logs/non_agentic_corr_parallel/step5_COVID-NYC.json",
+          "tau": 0.9,
+          "beta": 0.9
+        }
+      ],
+      "status": "ok",
+      "cells_ok_count": 9
+    }
+  }
+}

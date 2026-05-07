@@ -1,0 +1,56 @@
+{
+  "mode": "top10_numerical_correlation",
+  "tables": {
+    "Food Inspections-NYC": {
+      "candidates": [
+        {
+          "candidate_table_id": "4dx7-axux",
+          "pick_join_column": "AgencyCode",
+          "n_num_cols": 9,
+          "cand_agg_rows": 9,
+          "merged_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "merged_too_small"
+        },
+        {
+          "candidate_table_id": "5ery-qagt",
+          "pick_join_column": "BBL",
+          "n_num_cols": 11,
+          "cand_agg_rows": 2130,
+          "merged_rows": 71,
+          "corr_df_rows": 7,
+          "n_finite_corr_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "no_finite_correlations"
+        },
+        {
+          "candidate_table_id": "p937-wjvj",
+          "pick_join_column": "APPROVED_DATE",
+          "n_num_cols": 21,
+          "cand_agg_rows": 166636,
+          "merged_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "merged_too_small"
+        },
+        {
+          "candidate_table_id": "9hxz-c2kj",
+          "pick_join_column": "Address",
+          "n_num_cols": 11,
+          "cand_agg_rows": 2115,
+          "merged_rows": 0,
+          "status": "ok",
+          "top10": [],
+          "corr_skip_reason": "merged_too_small"
+        }
+      ],
+      "target_agg_rows": 30949,
+      "query_join_column": "CAMIS",
+      "target_column": "SCORE",
+      "target_type": "categorical",
+      "status": "ok"
+    }
+  }
+}

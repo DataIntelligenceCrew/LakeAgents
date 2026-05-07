@@ -1,0 +1,214 @@
+{
+  "mode": "top10_numerical_correlation",
+  "tables": {
+    "Education-NYC": {
+      "candidates": [
+        {
+          "candidate_table_id": "4n2j-ut8i",
+          "pick_join_column": "DBN",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "rfpq-hs49",
+          "pick_join_column": "District",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "upwt-zvh3",
+          "pick_join_column": "DBN",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "yig9-9zum",
+          "pick_join_column": "DBN",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "mq6n-s45c",
+          "pick_join_column": "(FY 2009) 7/1/2008",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "k8hv-56d7",
+          "pick_join_column": "DBN",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "d3ge-anaz",
+          "pick_join_column": "AVERAGE CLASS SIZE",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "5fsg-d8c9",
+          "pick_join_column": "2006-07 PROGRESS REPORT GRADE",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "p26e-k6k9",
+          "pick_join_column": "1990",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "cvh6-nmyi",
+          "pick_join_column": "DBN",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "4snd-in5m",
+          "pick_join_column": "DBN",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "irg8-quqm",
+          "pick_join_column": "DBN",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "4y63-yw9e",
+          "pick_join_column": "2006-07 PROGRESS REPORT GRADE",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "6je4-4x7e",
+          "pick_join_column": "DBN",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "xne4-4v8f",
+          "pick_join_column": "DBN",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "cgz5-877h",
+          "pick_join_column": "DBN",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "hukm-snmq",
+          "pick_join_column": "AGENCY CAPITAL EXPENDITURES BY PURPOSE",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "mjux-q9d4",
+          "pick_join_column": "DBN",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "fu34-wamz",
+          "pick_join_column": "FY  2004",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        },
+        {
+          "candidate_table_id": "5i9t-mvdt",
+          "pick_join_column": "FY  2004",
+          "n_num_cols": 0,
+          "status": "ok",
+          "top10": [],
+          "cand_agg_rows": null,
+          "merged_rows": null,
+          "corr_skip_reason": "no_numerical_columns"
+        }
+      ],
+      "target_agg_rows": 1582,
+      "query_join_column": "DBN",
+      "target_column": "2009-2010 OVERALL GRADE",
+      "target_type": "categorical",
+      "status": "ok"
+    }
+  }
+}

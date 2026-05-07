@@ -1,0 +1,11 @@
+{
+  "mode": "pick_join_sketch_coverage",
+  "tables": {
+    "Food Inspections-Chicago": {
+      "candidates": [],
+      "query_join_column": "Inspection ID",
+      "status": "error",
+      "error": "no candidate_table_ids from search step"
+    }
+  }
+}
