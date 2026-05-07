@@ -20,8 +20,8 @@ import json
 from pathlib import Path
 from typing import Union, List
 
-QUERY_BASE = Path("/localdisk3/ytang49/opendata/query_table")
-OUTPUT_DIR = Path("/localdisk3/ytang49/opendata/benchmark_perturbation/jaccard_tokenized")
+QUERY_BASE = Path("/localdisk3/username/opendata/query_table")
+OUTPUT_DIR = Path("/localdisk3/username/opendata/benchmark_perturbation/jaccard_tokenized")
 
 TABLES = [
     ("COVID-NYC", "Number_deaths", "extract_date"),
