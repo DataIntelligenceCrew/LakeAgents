@@ -8,8 +8,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from tools.text_integration import embed_texts_with_fasttext
 
-# path = "/localdisk3/ytang49/opendata-clean/query_table/COVID-NYC/rows.csv"
-path = '/localdisk3/ytang49/opendata-clean/perturbed_0.1_0.1/COVID-NYC/rows.csv'
+# path = "/localdisk3/username/opendata-clean/query_table/COVID-NYC/rows.csv"
+path = '/localdisk3/username/opendata-clean/perturbed_0.1_0.1/COVID-NYC/rows.csv'
 df = pd.read_csv(path)
 df = df.head(1000)
 target_col = "Number_deaths"
