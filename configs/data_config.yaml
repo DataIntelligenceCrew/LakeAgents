@@ -2,7 +2,7 @@
 # Paths and data processing settings
 
 # Data paths
-data_dir: /localdisk3/ytang49/opendata
+data_dir: /localdisk3/username/opendata
 output_dir: ./processed_data
 
 # Input files
