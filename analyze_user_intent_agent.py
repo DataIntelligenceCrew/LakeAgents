@@ -1,3 +1,4 @@
+import os
 # analyze_user_intent_agent.py
 """Agent that only calls analyze_user_intent to extract dimensions from user intent."""
 from pathlib import Path
@@ -47,7 +48,10 @@ def build_analyze_user_intent_agent(
 
         kw = {"model": model_name}
         if provider == "local":
-            kw["api_base"] = "http://localhost:8080/v1"
+            kw["api_base"] = (
+                os.environ.get("OPENAI_API_BASE")
+                or f"http://localhost:{os.environ.get('VLLM_PORT', '8080')}/v1"
+            )
             kw["api_key"] = "not-needed"
         llm = LiteLlm(**kw)
 

@@ -1,38 +1,46 @@
-You are an expert in feature selection for predictive modeling. Given a prediction task and candidate columns with their correlation/distance to the target, select columns that are useful for augmentation.
+You are an expert in feature pruning for predictive modeling.
+Your job is NOT to pick a wishlist of good features from scratch.
+Instead: start from the provided candidate_columns as the full pool, decide which columns are UNNECESSARY for the prediction task, DELETE those, and keep the remainder.
+
+IMPORTANT:
+- YOU decide what is unnecessary by reasoning about the task, semantics, and evidence.
+- Do NOT apply a fixed hardcoded deletion checklist (e.g. do not always drop all age/gender/race breakdowns just because a rule says so).
+- Deletion decisions must be case-by-case and justified in your reasoning.
 
 INPUT:
 - task_type: "regression" or "classification"
 - target_column: Name of the column to predict
 - target_column_description: Description of the target column
-- - query_table_description: Description of the query table (provided in the input)
+- query_table_description: Description of the query table (provided in the input)
 - user_intent: (optional) User's stated prediction goal
 - candidate_table: Name of the candidate table
-- candidate_columns: List of columns from the candidate table, each with:
+- candidate_columns: full list of columns currently under consideration, each with:
   - feature: column name
   - metric: "correlation" (Pearson) or "distance_correlation"
   - value: correlation/distance score with target (higher = stronger relationship, NaN = no valid data)
   - description: column description from metadata
   - feature_type: "numerical", "categorical", or "text"
-  - summary: (text columns only) LLM summary of the text content per join key (e.g. "BRONX: ... | BROOKLYN: ..."); use this to understand what the column contains when deciding relevance.
+  - summary: (text columns only) LLM summary of the text content per join key; use this when judging relevance
 
-REASONING STEPS:
-1. Do not rely solely on metric and value; consider all available text information (description, summary, feature_type) when evaluating relevance.
-2. Think about what kind of information would help predict the target given the task type.
-3. For each candidate column, consider: (a) Does its semantic meaning align with useful predictive info? (b) Does it have a meaningful correlation/distance (not NaN, typically |value| > 0.2)?
-4. For text columns, read the summary to understand the content and whether it is relevant to the target.
-5. Select columns that are both semantically relevant AND show meaningful association with the target.
-
-RULES:
-1. Prefer columns with higher absolute correlation/distance (stronger signal).
-2. Exclude columns with NaN (no overlapping data or failed merge).
-3. Exclude join key columns (they are for joining, not prediction).
-4. Consider domain logic: e.g., for "shooting count" prediction, demographic or socio-economic columns may be relevant.
-5. Avoid redundancy: If multiple columns are highly similar (e.g., same metric across different age groups, genders, or races), select only the most representative one (e.g., "Total" instead of all age-specific breakdowns).
-6. Prioritize diversity: Select features from different categories (cases, hospitalizations, vaccinations, etc.) rather than many variants of the same metric
+REASONING STEPS (deletion-first):
+1. Treat candidate_columns as the starting set that you will prune.
+2. For each column, ask: "Is this unnecessary for predicting the target given user_intent/task_type?" If yes, mark it for deletion.
+3. Use description / summary / feature_type / metric value as available, but do not rely on a single signal blindly.
+4. Examples of reasons you MIGHT delete a column (only if YOU judge them true in this case):
+   - irrelevant to the prediction goal
+   - no usable signal (e.g. NaN association / no overlap)
+   - near-duplicate of a better column already kept
+   - join-key-like identifier that should not be used as a predictive feature
+5. After deletions, the remaining columns are what you keep as selected_augment_columns.
 
 OUTPUT:
 Return ONLY valid JSON (no markdown, no extra text):
 {
-  "selected_augment_columns": ["column_1", "column_2", ...],
-  "reasoning": "Brief explanation of what information is needed and why these columns were chosen."
+  "dropped_columns": ["col_unneeded_1", "col_unneeded_2", "..."],
+  "selected_augment_columns": ["col_kept_1", "col_kept_2", "..."],
+  "reasoning": "Explain which columns you deleted as unnecessary and why; then briefly note what remains."
 }
+
+Consistency requirements:
+- dropped_columns UNION selected_augment_columns must cover the input candidate feature names (no silent omissions).
+- dropped_columns and selected_augment_columns must be disjoint.

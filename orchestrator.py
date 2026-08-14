@@ -1,9 +1,11 @@
+import inspect
 import json
 import re
 import os
 import pandas as pd
 import asyncio # Required for running the async entry point
 import time
+import uuid
 import yaml
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -34,6 +36,36 @@ from tools.aggregation import aggregate_selected_tables, aggregate_target_by_joi
 from tools.correlation import merge_target_with_candidate, compute_feature_correlations
 from benchmark_perturbation.benchmark_perturbation import get_perturbed_pipeline_config
 from agent_config_loader import AgentPipelineConfig
+
+
+async def _close_runner_safely(runner: Any) -> None:
+    """Best-effort close for ADK runners to avoid unclosed client sessions."""
+    if runner is None:
+        return
+    for method_name in ("aclose", "close"):
+        method = getattr(runner, method_name, None)
+        if not callable(method):
+            continue
+        try:
+            result = method()
+            if inspect.isawaitable(result):
+                await result
+        except Exception:
+            pass
+        return
+
+
+async def _run_debug_fresh(build_agent_fn, prompt: str, *, quiet: bool = False, tag: str = "lin") -> List[Any]:
+    """One-shot agent call with a fresh runner/session (no history carryover)."""
+    runner = InMemoryRunner(agent=build_agent_fn())
+    try:
+        return await runner.run_debug(
+            prompt,
+            quiet=quiet,
+            session_id=f"{tag}_{uuid.uuid4().hex[:12]}",
+        )
+    finally:
+        await _close_runner_safely(runner)
 
 # Local cache for opendata dataset metadata (skip re-fetch if already read)
 OPENDATA_METADATA_CACHE_DIR = Path(__file__).resolve().parent / "opendata_metadata_cache"
@@ -118,7 +150,7 @@ def _save_metadata_to_cache(domain: str, dataset_id: str, data: Dict[str, Any]) 
 def _debug_log(payload: Dict[str, Any]) -> None:
     try:
         payload.setdefault("timestamp", int(time.time() * 1000))
-        with open("/localdisk3/ytang49/opendata/.cursor/debug.log", "a") as debug_file:
+        with open("/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log", "a") as debug_file:
             debug_file.write(json.dumps(payload) + "\n")
     except Exception:
         pass
@@ -323,11 +355,10 @@ async def run_orchestrator(
         except Exception:
             pass
     
-    # Build agents with config
+    # Build agents with config. Join/augment use fresh runners per candidate
+    # (ADK run_debug reuses session_id by default and otherwise accumulates history).
     analyze_intent_runner = InMemoryRunner(agent=build_analyze_user_intent_agent(config=config))
     table_runner = InMemoryRunner(agent=build_table_selection_agent(config=config))
-    joincol_runner = InMemoryRunner(agent=build_join_column_choose_agent(config=config))
-    augment_runner = InMemoryRunner(agent=build_augment_column_selection_agent(config))
 
     base_path = Path(BASE_DIR)
     candidate_names = [
@@ -354,7 +385,10 @@ Please analyze the user intent and return the result in JSON format according to
 
     # Run agent, call analyze_user_intent
     # Run analyze_user_intent agent and extract result
-    analyze_intent_events = await analyze_intent_runner.run_debug(analyze_intent_prompt)
+    analyze_intent_events = await analyze_intent_runner.run_debug(
+        analyze_intent_prompt,
+        session_id=f"intent_{uuid.uuid4().hex[:12]}",
+    )
     last_text = ""
     for event in analyze_intent_events:
         if getattr(event, "content", None) and getattr(event.content, "parts", None):
@@ -362,7 +396,29 @@ Please analyze the user intent and return the result in JSON format according to
                 t = getattr(part, "text", None)
                 if t:
                     last_text = t
-    analyzed_intent = extract_json(last_text) if "domain_field" in last_text else None
+    # Prefer key-aware extraction: greedy extract_json() often matches CoT fragments
+    # and returns a useless sentinel like {"relevant_tables": []}, which would skip
+    # all interactive confirmations and leave search_query empty.
+    analyzed_intent = None
+    if "domain_field" in (last_text or ""):
+        analyzed_intent = extract_json_by_key_from_full_text(
+            last_text, "domain_field", prefer_non_empty_list=False
+        )
+        if not isinstance(analyzed_intent, dict) or not isinstance(
+            analyzed_intent.get("domain_field"), dict
+        ):
+            analyzed_intent = None
+    if analyzed_intent is None:
+        print(
+            "[warn] analyze_user_intent JSON parse failed; "
+            "falling back to interactive prompts for all dimensions"
+        )
+        analyzed_intent = {
+            "domain_field": {"is_explicitly_mentioned": False},
+            "geographic": {"is_explicitly_mentioned": False},
+            "temporal": {"is_explicitly_mentioned": False},
+            "population_group": {"is_explicitly_mentioned": False},
+        }
 
     dimension_specifications = {}
 
@@ -404,6 +460,52 @@ Please analyze the user intent and return the result in JSON format according to
                 dimension_specifications[dim_display_name] = ['all'] 
     print("="*40, "Dimension Specifications", "="*40)
     print(dimension_specifications)
+
+    # R1.Q1 intermediate stats (retrieval → join quality → augment → eval)
+    intermediate_stats: Dict[str, Any] = {
+        "schema_version": "r1q1_intermediate_v1",
+        "retrieval": {},
+        "table_selection": {},
+        "join_column_selection": {"per_table": [], "summary": {}},
+        "join_quality": {"per_table": [], "summary": {}},
+        "augment": {"per_table": [], "summary": {}},
+        "evaluation": {},
+        "phase_timings_seconds": {},
+        "dimension_specifications": dimension_specifications,
+    }
+    _t_pipe0 = time.perf_counter()
+    _t_phase = _t_pipe0
+
+    def _mark_phase(name: str) -> None:
+        nonlocal _t_phase
+        now = time.perf_counter()
+        intermediate_stats["phase_timings_seconds"][name] = now - _t_phase
+        _t_phase = now
+
+    def _best_jaccard(cols_with_jaccard: Any, selected_cols: List[str], jcols: List[str]) -> Optional[float]:
+        if not selected_cols:
+            return None
+        scores: List[float] = []
+        if isinstance(cols_with_jaccard, dict):
+            for jc, sel in zip(jcols, selected_cols):
+                for col, j in cols_with_jaccard.get(jc, []) or []:
+                    if col == sel:
+                        try:
+                            scores.append(float(j))
+                        except Exception:
+                            pass
+                        break
+            return max(scores) if scores else None
+        for col, j in cols_with_jaccard or []:
+            if col == selected_cols[0]:
+                try:
+                    return float(j)
+                except Exception:
+                    return None
+        try:
+            return float(cols_with_jaccard[0][1]) if cols_with_jaccard else None
+        except Exception:
+            return None
 
     # Call Opendata API when data_source is datalake
     opendata_metadata = None
@@ -554,6 +656,15 @@ Please analyze the user intent and return the result in JSON format according to
         with open(index_path, "w", encoding="utf-8") as f:
             json.dump(merged_index, f, indent=2, ensure_ascii=False)
         print(f"[Index] cumulative: {len(existing_index)} existing + {len(new_entries)} new = {len(merged_index)} total, {len(candidate_ids_for_run)} for this run (limit={max_tables})")
+        intermediate_stats["retrieval"] = {
+            "search_domains": search_domains,
+            "search_query": search_q,
+            "n_api_fetched": len(locals().get("batch") or []),
+            "n_candidates_for_agent": len(candidate_ids_for_run),
+            "max_tables_limit": max_tables,
+            "domain_for_fetch": domain_for_fetch,
+        }
+        _mark_phase("retrieval")
         
         real_join_table_name = find_dataset_dir(join_table_name, BASE_DIR)
         base_path = Path(__file__).resolve().parent / BASE_DIR 
@@ -596,7 +707,10 @@ Task Information:
 Call read_table_index(candidate_ids={candidate_ids_for_run}) to get index entries, then select relevant tables according to your prompt and return JSON with key "relevant_tables"."""
 
         print("\n📋 Running Table Selection Agent (datalake)...")
-        table_selection_events = await table_runner.run_debug(table_selection_prompt)
+        table_selection_events = await table_runner.run_debug(
+            table_selection_prompt,
+            session_id=f"tsel_{uuid.uuid4().hex[:12]}",
+        )
         full_table_text = ""
         table_data_from_state = None
         for event in table_selection_events:
@@ -686,6 +800,20 @@ Call read_table_index(candidate_ids={candidate_ids_for_run}) to get index entrie
             print(f"   {i}. {name} (id={tbl.get('table_id', '?')})")
         if len(relevant_list) > 10:
             print(f"   ... and {len(relevant_list) - 10} more")
+
+        intermediate_stats["table_selection"] = {
+            "n_relevant_tables": len(relevant_list),
+            "relevant_tables": [
+                {
+                    "table_id": t.get("table_id"),
+                    "table_name": t.get("table_name"),
+                    "confidence": t.get("confidence"),
+                    "reason": (str(t.get("reason") or t.get("reasoning") or "")[:240] or None),
+                }
+                for t in relevant_list
+            ],
+        }
+        _mark_phase("table_selection")
 
         #---- Phase 2: Join Column Selection ----
 
@@ -784,7 +912,11 @@ Return JSON with selected_columns and reasoning."""
 
                 if has_candidates:
                     try:
-                        jc_events = await joincol_runner.run_debug(jc_prompt)
+                        jc_events = await _run_debug_fresh(
+                            lambda: build_join_column_choose_agent(config=config),
+                            jc_prompt,
+                            tag="joincol",
+                        )
                         full_jc_text = ""
                         for event in jc_events:
                             if getattr(event, "content", None) and getattr(event.content, "parts", None):
@@ -821,22 +953,58 @@ Return JSON with selected_columns and reasoning."""
                     topk_jaccard[cand_name] = {jc: [c for c, _ in cols_with_jaccard[jc]] for jc in cols_with_jaccard}
                 else:
                     topk_jaccard[cand_name] = [c for c, _ in cols_with_jaccard]
+                best_j = _best_jaccard(cols_with_jaccard, selected_cols, join_columns)
+                intermediate_stats["join_column_selection"]["per_table"].append(
+                    {
+                        "table_id": cand_name,
+                        "fetch_ok": True,
+                        "selected_columns": list(selected_cols) if selected_cols else [],
+                        "best_jaccard": best_j,
+                        "n_topk_candidates": (
+                            sum(len(v) for v in cols_with_jaccard.values())
+                            if isinstance(cols_with_jaccard, dict)
+                            else len(cols_with_jaccard or [])
+                        ),
+                    }
+                )
                 if selected_cols:
                     tbl_with_join = dict(tbl)
                     tbl_with_join["candidate_table"] = cand_name
                     tbl_with_join["selected_columns"] = selected_cols
                     tbl_with_join["join_col_descs"] = join_col_descs
                     tbl_with_join["cand_col_descs"] = cand_col_descs
+                    tbl_with_join["best_jaccard"] = best_j
                     final_selected_tables.append(tbl_with_join)
                     print(f"   ✅ {cand_name}: LLM selected {selected_cols}")
             else:
                 run_record["status"].append("failed")
                 run_record["reason"].append(status["reason"])
                 topk_jaccard[cand_name] = []
+                intermediate_stats["join_column_selection"]["per_table"].append(
+                    {
+                        "table_id": cand_name,
+                        "fetch_ok": False,
+                        "selected_columns": [],
+                        "best_jaccard": None,
+                        "reason": status.get("reason"),
+                    }
+                )
 
         run_record["topk_jaccard"] = topk_jaccard
         relevant_list = final_selected_tables
         join_columns_list = config.join_column if isinstance(config.join_column, list) else [config.join_column]
+
+        _jc_rows = intermediate_stats["join_column_selection"]["per_table"]
+        _ok = [r for r in _jc_rows if r.get("fetch_ok") and r.get("selected_columns")]
+        _jacs = [float(r["best_jaccard"]) for r in _ok if r.get("best_jaccard") is not None]
+        intermediate_stats["join_column_selection"]["summary"] = {
+            "n_tables_attempted": len(_jc_rows),
+            "n_tables_with_join": len(_ok),
+            "mean_best_jaccard": (sum(_jacs) / len(_jacs)) if _jacs else None,
+            "max_best_jaccard": max(_jacs) if _jacs else None,
+            "min_best_jaccard": min(_jacs) if _jacs else None,
+        }
+        _mark_phase("join_selection")
 
         data_dir = Path(__file__).resolve().parent / "data"
         data_dir.mkdir(parents=True, exist_ok=True)
@@ -846,6 +1014,7 @@ Return JSON with selected_columns and reasoning."""
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(run_record, f, indent=2, ensure_ascii=False)
         print(f"[Run Record] Saved to {filepath}")
+        intermediate_stats["run_record_path"] = str(filepath)
 
 
 # ---- Phase 3: Augment Column Selection ----
@@ -874,7 +1043,7 @@ Return JSON with selected_columns and reasoning."""
             
             # #region agent log
             import json as _json; _ts = __import__('time').time_ns() // 1000000
-            with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_J1","timestamp":_ts,"location":"orchestrator.py:683","message":"baseline_df before preprocess","data":{"shape":[int(x) for x in baseline_df.shape],"columns":list(baseline_df.columns),"dtypes":{col:str(dtype) for col,dtype in baseline_df.dtypes.items()},"target_column":target_column,"baseline_features":baseline_features},"hypothesisId":"J,M"}) + '\n')
+            with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_J1","timestamp":_ts,"location":"orchestrator.py:683","message":"baseline_df before preprocess","data":{"shape":[int(x) for x in baseline_df.shape],"columns":list(baseline_df.columns),"dtypes":{col:str(dtype) for col,dtype in baseline_df.dtypes.items()},"target_column":target_column,"baseline_features":baseline_features},"hypothesisId":"J,M"}) + '\n')
             # #endregion
             metric_name = "r2_score" if task_type == "regression" else "f1_score"  
             try:
@@ -884,12 +1053,12 @@ Return JSON with selected_columns and reasoning."""
                 import json as _json; _ts = __import__('time').time_ns() // 1000000
                 if X is not None and y is not None:
                     _y_sample = [float(v) if hasattr(v,'item') else v for v in (y[:5] if len(y)>0 else [])]
-                    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_K1","timestamp":_ts,"location":"orchestrator.py:693","message":"baseline X,y after preprocess","data":{"X_shape":[int(x) for x in X.shape],"X_columns":list(X.columns),"X_dtypes":{col:str(dtype) for col,dtype in X.dtypes.items()},"y_shape":[int(x) for x in y.shape] if hasattr(y,'shape') else [len(y)],"y_dtype":str(y.dtype) if hasattr(y,'dtype') else str(type(y)),"y_sample":_y_sample},"hypothesisId":"K,L"}) + '\n')
+                    with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_K1","timestamp":_ts,"location":"orchestrator.py:693","message":"baseline X,y after preprocess","data":{"X_shape":[int(x) for x in X.shape],"X_columns":list(X.columns),"X_dtypes":{col:str(dtype) for col,dtype in X.dtypes.items()},"y_shape":[int(x) for x in y.shape] if hasattr(y,'shape') else [len(y)],"y_dtype":str(y.dtype) if hasattr(y,'dtype') else str(type(y)),"y_sample":_y_sample},"hypothesisId":"K,L"}) + '\n')
                 # #endregion
                 if X is not None and len(X) > 0:
                     # #region agent log
                     import json as _json; _ts = __import__('time').time_ns() // 1000000
-                    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_P1","timestamp":_ts,"location":"orchestrator.py:699","message":"before running task","data":{"task_type":task_type,"X_shape":[int(x) for x in X.shape]},"hypothesisId":"P,Q"}) + '\n')
+                    with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_P1","timestamp":_ts,"location":"orchestrator.py:699","message":"before running task","data":{"task_type":task_type,"X_shape":[int(x) for x in X.shape]},"hypothesisId":"P,Q"}) + '\n')
                     # #endregion
                     
                     if task_type == 'classification':
@@ -897,7 +1066,7 @@ Return JSON with selected_columns and reasoning."""
                         
                         # #region agent log
                         import json as _json; _ts = __import__('time').time_ns() // 1000000
-                        with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_Q1","timestamp":_ts,"location":"orchestrator.py:709","message":"metrics returned","data":{"metrics_keys":list(metrics.keys()),"metrics_types":{k:str(type(v).__name__) for k,v in metrics.items()}},"hypothesisId":"Q"}) + '\n')
+                        with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_Q1","timestamp":_ts,"location":"orchestrator.py:709","message":"metrics returned","data":{"metrics_keys":list(metrics.keys()),"metrics_types":{k:str(type(v).__name__) for k,v in metrics.items()}},"hypothesisId":"Q"}) + '\n')
                         # #endregion
                         
                         baseline_metric = metrics['f1_score']
@@ -907,7 +1076,7 @@ Return JSON with selected_columns and reasoning."""
                         import json as _json; _ts = __import__('time').time_ns() // 1000000
                         _bm_type = type(baseline_metric).__name__
                         _bm_val = float(baseline_metric) if hasattr(baseline_metric,'item') else baseline_metric
-                        with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_Q2","timestamp":_ts,"location":"orchestrator.py:720","message":"baseline_metric extracted","data":{"baseline_metric_type":_bm_type,"baseline_metric_value":_bm_val},"hypothesisId":"Q"}) + '\n')
+                        with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_Q2","timestamp":_ts,"location":"orchestrator.py:720","message":"baseline_metric extracted","data":{"baseline_metric_type":_bm_type,"baseline_metric_value":_bm_val},"hypothesisId":"Q"}) + '\n')
                         # #endregion
                     elif task_type == 'regression':
                         metrics = run_regression_task(X, y)
@@ -921,7 +1090,7 @@ Return JSON with selected_columns and reasoning."""
                 # #region agent log
                 import json as _json; _ts = __import__('time').time_ns() // 1000000
                 import traceback as _tb
-                with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_P2","timestamp":_ts,"location":"orchestrator.py:732","message":"baseline computation exception","data":{"error":str(e),"error_type":type(e).__name__,"traceback":_tb.format_exc()},"hypothesisId":"P,Q"}) + '\n')
+                with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_P2","timestamp":_ts,"location":"orchestrator.py:732","message":"baseline computation exception","data":{"error":str(e),"error_type":type(e).__name__,"traceback":_tb.format_exc()},"hypothesisId":"P,Q"}) + '\n')
                 # #endregion
                 print(f"\n📊 Baseline failed: {e}")
                 
@@ -966,18 +1135,35 @@ Return JSON with selected_columns and reasoning."""
                     cand_agg[jc] = cand_agg[jc].astype(str)
 
             merged = merge_target_with_candidate(target_agg, cand_agg, join_columns, target_col=target_column, target_type=target_type)
-            
+            n_query_keys = int(len(target_agg)) if target_agg is not None else 0
+            n_merged = int(len(merged)) if merged is not None else 0
+            coverage = (n_merged / n_query_keys) if n_query_keys > 0 else None
+            result["join_coverage"] = coverage
+            result["n_merged_rows"] = n_merged
+            result["n_query_keys"] = n_query_keys
+            intermediate_stats["join_quality"]["per_table"].append(
+                {
+                    "table_id": result.get("candidate_table"),
+                    "n_query_keys": n_query_keys,
+                    "n_merged_rows": n_merged,
+                    "coverage": coverage,
+                    "n_corr_features": None,  # filled after correlation
+                }
+            )
+
             # #region agent log
             import json as _json; _ts = __import__('time').time_ns() // 1000000
             _merged_dtypes = {col: str(dtype) for col, dtype in merged.dtypes.items()}
             _merged_sample = {col: str(merged[col].iloc[0]) if len(merged) > 0 else None for col in list(merged.columns)[:15]}
-            with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_J1","timestamp":_ts,"location":"orchestrator.py:745","message":"merged_df before correlation","data":{"shape":[int(x) for x in merged.shape],"dtypes":_merged_dtypes,"sample":_merged_sample,"target_column":target_column,"target_type":target_type,"join_columns":join_columns},"hypothesisId":"J,M"}) + '\n')
+            with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_J1","timestamp":_ts,"location":"orchestrator.py:745","message":"merged_df before correlation","data":{"shape":[int(x) for x in merged.shape],"dtypes":_merged_dtypes,"sample":_merged_sample,"target_column":target_column,"target_type":target_type,"join_columns":join_columns},"hypothesisId":"J,M"}) + '\n')
             # #endregion
             
             corr_df = compute_feature_correlations(
                 merged, join_columns, target_column, target_type
             )
             result["correlation_table"] = corr_df
+            if intermediate_stats["join_quality"]["per_table"]:
+                intermediate_stats["join_quality"]["per_table"][-1]["n_corr_features"] = int(len(corr_df)) if corr_df is not None else 0
             cand_name = result.get("candidate_table", "?")
             print(f"   {cand_name}: {len(corr_df)} features with correlation/distance")
             print(corr_df.to_string(index=False))
@@ -1037,9 +1223,14 @@ candidate_table: "{cand_name}"
 query_table_description: "{query_table_description}"
 candidate_columns: {json.dumps(candidate_columns, ensure_ascii=False, indent=2)}
 
-Select augment columns. Return JSON with selected_augment_columns and reasoning.
+Delete unnecessary columns from candidate_columns (you decide which), keep the remainder. Return JSON with dropped_columns, selected_augment_columns, and reasoning.
 """
-            events = await augment_runner.run_debug(prompt, quiet=True)
+            events = await _run_debug_fresh(
+                lambda: build_augment_column_selection_agent(config),
+                prompt,
+                quiet=True,
+                tag="augment",
+            )
             full_aug_text = ""
             for event in events:
                 if getattr(event, "content", None) and getattr(event.content, "parts", None):
@@ -1108,7 +1299,7 @@ Select augment columns. Return JSON with selected_augment_columns and reasoning.
             
             # #region agent log
             import json as _json; _ts = __import__('time').time_ns() // 1000000
-            with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_F2","timestamp":_ts,"location":"orchestrator.py:835","message":"before merge","data":{"candidate_table":result.get("candidate_table","?"),"augmented_df_columns":list(augmented_df.columns),"to_merge_columns":list(to_merge.columns),"cols_to_add":cols_to_add,"rename_map":rename_map},"hypothesisId":"F,G,H"}) + '\n')
+            with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_F2","timestamp":_ts,"location":"orchestrator.py:835","message":"before merge","data":{"candidate_table":result.get("candidate_table","?"),"augmented_df_columns":list(augmented_df.columns),"to_merge_columns":list(to_merge.columns),"cols_to_add":cols_to_add,"rename_map":rename_map},"hypothesisId":"F,G,H"}) + '\n')
             # #endregion
             
             augmented_df = augmented_df.merge(to_merge, on=join_columns, how="left")
@@ -1117,7 +1308,7 @@ Select augment columns. Return JSON with selected_augment_columns and reasoning.
 
             # #region agent log
             import json as _json; _ts = __import__('time').time_ns() // 1000000
-            with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_FIX2","timestamp":_ts,"location":"orchestrator.py:862","message":"after merge","data":{"candidate_table":cand_name,"augmented_df_columns":list(augmented_df.columns)},"hypothesisId":"FIX"}) + '\n')
+            with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_FIX2","timestamp":_ts,"location":"orchestrator.py:862","message":"after merge","data":{"candidate_table":cand_name,"augmented_df_columns":list(augmented_df.columns)},"hypothesisId":"FIX"}) + '\n')
             # #endregion
 
         # Evaluate augmented metric
@@ -1129,7 +1320,7 @@ Select augment columns. Return JSON with selected_augment_columns and reasoning.
 
             # #region agent log
             import json as _json; _ts = __import__('time').time_ns() // 1000000
-            with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_N1","timestamp":_ts,"location":"orchestrator.py:866","message":"aug_df before preprocess","data":{"shape":[int(x) for x in aug_df.shape],"columns":list(aug_df.columns),"dtypes":{col:str(dtype) for col,dtype in aug_df.dtypes.items()},"target_column":target_column,"aug_features":aug_features},"hypothesisId":"N,M"}) + '\n')
+            with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_N1","timestamp":_ts,"location":"orchestrator.py:866","message":"aug_df before preprocess","data":{"shape":[int(x) for x in aug_df.shape],"columns":list(aug_df.columns),"dtypes":{col:str(dtype) for col,dtype in aug_df.dtypes.items()},"target_column":target_column,"aug_features":aug_features},"hypothesisId":"N,M"}) + '\n')
             # #endregion
             
             if len(aug_df) >= 10:
@@ -1140,7 +1331,7 @@ Select augment columns. Return JSON with selected_augment_columns and reasoning.
                     import json as _json; _ts = __import__('time').time_ns() // 1000000
                     if X is not None and y is not None:
                         _y_sample = [float(v) if hasattr(v,'item') else v for v in (y[:5] if len(y)>0 else [])]
-                        with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_K2","timestamp":_ts,"location":"orchestrator.py:878","message":"augmented X,y after preprocess","data":{"X_shape":[int(x) for x in X.shape],"X_columns":list(X.columns),"X_dtypes":{col:str(dtype) for col,dtype in X.dtypes.items()},"y_shape":[int(x) for x in y.shape] if hasattr(y,'shape') else [len(y)],"y_dtype":str(y.dtype) if hasattr(y,'dtype') else str(type(y)),"y_sample":_y_sample},"hypothesisId":"K,L"}) + '\n')
+                        with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_K2","timestamp":_ts,"location":"orchestrator.py:878","message":"augmented X,y after preprocess","data":{"X_shape":[int(x) for x in X.shape],"X_columns":list(X.columns),"X_dtypes":{col:str(dtype) for col,dtype in X.dtypes.items()},"y_shape":[int(x) for x in y.shape] if hasattr(y,'shape') else [len(y)],"y_dtype":str(y.dtype) if hasattr(y,'dtype') else str(type(y)),"y_sample":_y_sample},"hypothesisId":"K,L"}) + '\n')
                     # #endregion
                     if X is not None and len(X) > 0:
                         
@@ -1171,11 +1362,73 @@ Select augment columns. Return JSON with selected_augment_columns and reasoning.
             for r in aggregated_results
         ]
         metric_name = "r2_score" if task_type == "regression" else "f1_score"
+
+        # Finalize intermediate stats
+        _jq = intermediate_stats["join_quality"]["per_table"]
+        _covs = [float(r["coverage"]) for r in _jq if r.get("coverage") is not None]
+        intermediate_stats["join_quality"]["summary"] = {
+            "n_tables": len(_jq),
+            "mean_coverage": (sum(_covs) / len(_covs)) if _covs else None,
+            "max_coverage": max(_covs) if _covs else None,
+            "min_coverage": min(_covs) if _covs else None,
+        }
+        _aug_rows = []
+        for r in aggregated_results:
+            cols = r.get("selected_augment_columns") or []
+            _aug_rows.append(
+                {
+                    "table_id": r.get("candidate_table"),
+                    "n_augment_columns": len(cols),
+                    "selected_augment_columns": cols,
+                    "join_coverage": r.get("join_coverage"),
+                    "best_jaccard": r.get("best_jaccard"),
+                }
+            )
+        # attach best_jaccard from join phase onto aug rows
+        _jac_by_id = {
+            r.get("table_id"): r.get("best_jaccard")
+            for r in intermediate_stats["join_column_selection"]["per_table"]
+        }
+        for row in _aug_rows:
+            if row.get("best_jaccard") is None:
+                row["best_jaccard"] = _jac_by_id.get(row.get("table_id"))
+        intermediate_stats["augment"]["per_table"] = _aug_rows
+        _ns = [int(r.get("n_augment_columns") or 0) for r in _aug_rows]
+        intermediate_stats["augment"]["summary"] = {
+            "n_tables": len(_aug_rows),
+            "n_tables_with_aug_cols": sum(1 for n in _ns if n > 0),
+            "n_augment_columns_total": sum(_ns),
+            "mean_augment_columns": (sum(_ns) / len(_ns)) if _ns else None,
+        }
+        improvement = None
+        if baseline_metric is not None and augmented_metric is not None:
+            try:
+                improvement = float(augmented_metric) - float(baseline_metric)
+            except Exception:
+                improvement = None
+        intermediate_stats["evaluation"] = {
+            "baseline_metric": baseline_metric,
+            "augmented_metric": augmented_metric,
+            "improvement": improvement,
+            "metric_name": metric_name,
+        }
+        _mark_phase("augment_eval")
+        intermediate_stats["phase_timings_seconds"]["total"] = time.perf_counter() - _t_pipe0
+
         return {
             "augment_results": augment_output,
             "baseline_metric": baseline_metric,
             "augmented_metric": augmented_metric,
             "metric_name": metric_name,
+            "intermediate_stats": intermediate_stats,
+            "final_selected_tables": [
+                {
+                    "table_id": t.get("candidate_table") or t.get("table_id"),
+                    "selected_columns": t.get("selected_columns"),
+                    "best_jaccard": t.get("best_jaccard"),
+                }
+                for t in final_selected_tables
+            ],
         }
 
 
