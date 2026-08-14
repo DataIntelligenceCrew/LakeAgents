@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -39,7 +40,10 @@ def build_log_analysis_agent(provider: Optional[str] = None, config: Optional[ob
     else:
         kwargs = {"model": model_name}
         if provider == "local":
-            kwargs["api_base"] = "http://localhost:8080/v1"
+            kwargs["api_base"] = (
+                os.environ.get("OPENAI_API_BASE")
+                or f"http://localhost:{os.environ.get('VLLM_PORT', '8080')}/v1"
+            )
             kwargs["api_key"] = "not-needed"
         llm = LiteLlm(**kwargs)
 

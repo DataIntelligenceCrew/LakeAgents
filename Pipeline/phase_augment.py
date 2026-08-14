@@ -196,12 +196,12 @@ target_column: "{ctx.target_column}"
 target_column_description: "{target_desc}"
 user_intent: "{ctx.user_intent}"
 candidate_table: "{cand_name}"
-ç: "{query_table_description}"
+query_table_description: "{query_table_description}"
 candidate_pool_strategy: "top-k correlation + bottom-k correlation"
 candidate_columns: {json.dumps(candidate_columns, ensure_ascii=False, indent=2)}
 
-Rank candidate_columns first, then select augment columns. Return JSON with selected_augment_columns, ranked_candidates, and reasoning.
-Also return column_decisions with dtype_rule, dtype_final, and override_reason for each ranked column.
+Delete unnecessary columns from candidate_columns (you decide which), keep the remainder. Return JSON with dropped_columns, selected_augment_columns (kept remainder = pool minus dropped), ranked_candidates, and reasoning.
+Execution keeps (candidate pool - dropped_columns). Also return column_decisions with dtype_rule, dtype_final, and override_reason for each kept column.
 """
         events = await augment_runner.run_debug(prompt, quiet=True)
         full_text = ""
@@ -211,15 +211,40 @@ Also return column_decisions with dtype_rule, dtype_final, and override_reason f
                     t = getattr(part, "text", None)
                     if t:
                         full_text += t
-        parsed = extract_json_by_key_from_full_text(full_text, "selected_augment_columns", prefer_non_empty_list=True)
+        pool_names = []
+        for item in candidate_columns:
+            if isinstance(item, dict) and item.get("feature"):
+                pool_names.append(str(item["feature"]))
+            elif isinstance(item, str):
+                pool_names.append(item)
+        pool_set = set(pool_names)
+        parsed_drop = extract_json_by_key_from_full_text(full_text, "dropped_columns", prefer_non_empty_list=False)
         parsed_rank = extract_json_by_key_from_full_text(full_text, "ranked_candidates", prefer_non_empty_list=True)
         parsed_decisions = extract_json_by_key_from_full_text(full_text, "column_decisions", prefer_non_empty_list=False)
-        result["selected_augment_columns"] = normalize_augment_column_list(parsed.get("selected_augment_columns", []))
-        result["augment_ranked_candidates"] = normalize_augment_column_list(
+        if "dropped_columns" in parsed_drop:
+            dropped = set(normalize_augment_column_list(parsed_drop.get("dropped_columns", []))) & pool_set
+            kept = [c for c in pool_names if c not in dropped]
+            parsed = parsed_drop
+        else:
+            parsed = extract_json_by_key_from_full_text(
+                full_text, "selected_augment_columns", prefer_non_empty_list=True
+            )
+            kept = [
+                c
+                for c in normalize_augment_column_list(parsed.get("selected_augment_columns", []))
+                if c in pool_set
+            ]
+            if not kept:
+                kept = list(pool_names)
+        result["selected_augment_columns"] = kept
+        ranked = normalize_augment_column_list(
             parsed_rank.get("ranked_candidates", parsed.get("ranked_candidates", []))
         )
+        ranked = [c for c in ranked if c in set(kept)] or list(kept)
+        result["augment_ranked_candidates"] = ranked
         result["augment_column_decisions"] = parsed_decisions.get("column_decisions", [])
         result["augment_reasoning"] = parsed.get("reasoning", "") or parsed_rank.get("reasoning", "")
+        result["augment_dropped_columns"] = sorted(list(pool_set - set(kept)))
     ctx.pipeline_timings["13_augment_rank_select_llm"] = time.perf_counter() - t_rank
 
     t_greedy = time.perf_counter()

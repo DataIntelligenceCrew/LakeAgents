@@ -1,5 +1,7 @@
 import json
+import os
 import re
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -254,14 +256,54 @@ async def run_table_selection(ctx: PipelineContext) -> None:
         "dimension_specifications": json.dumps(dimension_specifications, ensure_ascii=False),
         "table_examples_5rows_all_columns": table_examples_by_id,
     }
-    print("\n📋 Running Collaborative Table Selection (datalake)...")
+    backend = (
+        ((config.config.get("table_selection") or {}).get("backend"))
+        or os.environ.get("TABLE_SELECTION_BACKEND", "agent")
+    )
+    backend = str(backend).strip().lower()
+
+    print(f"\n📋 Running Table Selection (backend={backend})...")
     with timed_section(ctx.pipeline_timings, "05_table_selection_collab"):
-        collab_result = await run_table_selection_collab_orchestrator(
-            config=config,
-            candidate_ids=candidate_ids_for_run,
-            user_intent=ctx.user_intent,
-            task_info=task_info,
-        )
+        if backend == "pneuma":
+            pneuma_pkg = Path(
+                "/fs/ess/PDS0349/fangzy96/bear/rebuttal/baseline_pneuma_table_selection"
+            )
+            if str(pneuma_pkg) not in sys.path:
+                sys.path.insert(0, str(pneuma_pkg))
+            from pneuma_selector import run_pneuma_table_selection
+
+            # Prefer session-scoped work dir under LakeAgents-plusplus/data/
+            project_root = Path(__file__).resolve().parents[1]
+            env_work = os.environ.get("PNEUMA_WORK_DIR")
+            if env_work:
+                work = Path(env_work)
+            else:
+                sid = str(getattr(ctx, "session_id", None) or "default").strip() or "default"
+                safe_sid = re.sub(r"[^\w\-]", "_", sid)
+                work = project_root / "data" / f"pneuma_{safe_sid}"
+            collab_result = await run_pneuma_table_selection(
+                candidate_ids=candidate_ids_for_run,
+                user_intent=ctx.user_intent,
+                task_info=task_info,
+                domain_for_fetch=domain_for_fetch,
+                datalake_config=config.config.get("data", {}).get("datalake", {}),
+                work_dir=work,
+                index_entries=existing_index + new_entries,
+                k=int(os.environ.get("PNEUMA_TOP_K", "5")),
+            )
+            phase_log["stats"]["backend"] = "pneuma"
+            if isinstance(collab_result.get("pneuma_debug"), dict):
+                phase_log["stats"]["pneuma_debug_keys"] = sorted(
+                    collab_result["pneuma_debug"].keys()
+                )
+        else:
+            collab_result = await run_table_selection_collab_orchestrator(
+                config=config,
+                candidate_ids=candidate_ids_for_run,
+                user_intent=ctx.user_intent,
+                task_info=task_info,
+            )
+            phase_log["stats"]["backend"] = "agent"
     relevant_list = collab_result.get("final_tables", [])
     id_to_name = {str(e.get("id", "")).strip(): (e.get("name") or "") for e in (existing_index + new_entries) if isinstance(e, dict)}
     for tbl in relevant_list:
@@ -271,6 +313,17 @@ async def run_table_selection(ctx: PipelineContext) -> None:
             tbl["table_id"] = table_id
             tbl["table_name"] = id_to_name.get(table_id, "")
     selected_ids = {str(t.get("table_id", "")).strip() for t in relevant_list if t.get("table_id")}
+    selected_reason_code = (
+        "TABLE_SELECTED_BY_PNEUMA" if backend == "pneuma" else "TABLE_SELECTED_BY_AGENT"
+    )
+    selected_reason = (
+        "selected by Pneuma"
+        if backend == "pneuma"
+        else "selected by table selection orchestrator"
+    )
+    excluded_reason_code = (
+        "TABLE_NOT_SELECTED_BY_PNEUMA" if backend == "pneuma" else "TABLE_NOT_SELECTED_BY_AGENT"
+    )
     for tid in candidate_ids_for_run:
         if tid in selected_ids:
             phase_log["selected_tables"].append(
@@ -278,8 +331,8 @@ async def run_table_selection(ctx: PipelineContext) -> None:
                     "table_id": tid,
                     "table_name": id_to_name.get(tid, ""),
                     "decision": "selected",
-                    "reason_code": "TABLE_SELECTED_BY_AGENT",
-                    "reason": "selected by table selection orchestrator",
+                    "reason_code": selected_reason_code,
+                    "reason": selected_reason,
                 }
             )
         else:
@@ -288,16 +341,18 @@ async def run_table_selection(ctx: PipelineContext) -> None:
                     "table_id": tid,
                     "table_name": id_to_name.get(tid, ""),
                     "decision": "excluded",
-                    "reason_code": "TABLE_NOT_SELECTED_BY_AGENT",
+                    "reason_code": excluded_reason_code,
                     "reason": "candidate provided but not selected",
                 }
             )
-    phase_log["stats"] = {
-        "data_source": data_source,
-        "candidate_count": len(candidate_ids_for_run),
-        "selected_count": len(selected_ids),
-        "excluded_count": len(phase_log["excluded_tables"]),
-    }
+    phase_log["stats"].update(
+        {
+            "data_source": data_source,
+            "candidate_count": len(candidate_ids_for_run),
+            "selected_count": len(selected_ids),
+            "excluded_count": len(phase_log["excluded_tables"]),
+        }
+    )
     if isinstance(decision_log, dict):
         decision_log.setdefault("phases", {})["table_selection"] = phase_log
 

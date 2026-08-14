@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 from Pipeline.context import PipelineContext
-from Pipeline.utils import extract_json, timed_section
+from Pipeline.utils import extract_json_by_key_from_full_text, timed_section
 
 
 async def run_intent_and_dimensions(ctx: PipelineContext) -> None:
@@ -45,7 +45,29 @@ Please analyze the user intent and return the result in JSON format according to
                     t = getattr(part, "text", None)
                     if t:
                         last_text = t
-        analyzed_intent = extract_json(last_text) if "domain_field" in last_text else None
+        # Prefer key-aware extraction: greedy extract_json() often matches CoT
+        # fragments and returns {} / wrong objects, which skips all interactive
+        # confirmations and leaves search_query empty.
+        analyzed_intent = None
+        if "domain_field" in (last_text or ""):
+            analyzed_intent = extract_json_by_key_from_full_text(
+                last_text, "domain_field", prefer_non_empty_list=False
+            )
+            if not isinstance(analyzed_intent, dict) or not isinstance(
+                analyzed_intent.get("domain_field"), dict
+            ):
+                analyzed_intent = None
+        if analyzed_intent is None:
+            print(
+                "[warn] analyze_user_intent JSON parse failed; "
+                "falling back to interactive prompts for all dimensions"
+            )
+            analyzed_intent = {
+                "domain_field": {"is_explicitly_mentioned": False},
+                "geographic": {"is_explicitly_mentioned": False},
+                "temporal": {"is_explicitly_mentioned": False},
+                "population_group": {"is_explicitly_mentioned": False},
+            }
 
     dimension_specifications: Dict[str, Any] = {}
     with timed_section(ctx.pipeline_timings, "02_dimension_interactive_input"):

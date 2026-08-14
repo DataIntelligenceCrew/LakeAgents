@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -7,6 +8,7 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools import FunctionTool
 from google.genai import types
 
+from Agent.dq_context_compact import dq_compact_before_model, dq_truncate_after_tool
 from tools.data_quality import (
     bayesian_ridge_impute_preview,
     column_quality_metrics,
@@ -49,7 +51,10 @@ def build_data_quality_agent(provider: Optional[str] = None, config: Optional[ob
     else:
         kwargs = {"model": model_name}
         if provider == "local":
-            kwargs["api_base"] = "http://localhost:8080/v1"
+            kwargs["api_base"] = (
+                os.environ.get("OPENAI_API_BASE")
+                or f"http://localhost:{os.environ.get('VLLM_PORT', '8080')}/v1"
+            )
             kwargs["api_key"] = "not-needed"
         llm = LiteLlm(**kwargs)
 
@@ -80,4 +85,8 @@ def build_data_quality_agent(provider: Optional[str] = None, config: Optional[ob
         tools=dq_tools,
         output_key="data_quality_decision",
         generate_content_config=generate_content_config,
+        # Option-2: after tool rounds, feed the model a compact fresh prompt
+        # (task summary + tool traces) instead of full multi-turn history.
+        before_model_callback=dq_compact_before_model,
+        after_tool_callback=dq_truncate_after_tool,
     )

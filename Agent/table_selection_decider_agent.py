@@ -1,4 +1,5 @@
 """Decision agent for collaborative table selection."""
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -54,7 +55,10 @@ def build_table_selection_decider_agent(
     else:
         kw = {"model": model_name}
         if provider == "local":
-            kw["api_base"] = "http://localhost:8080/v1"
+            kw["api_base"] = (
+                os.environ.get("OPENAI_API_BASE")
+                or f"http://localhost:{os.environ.get('VLLM_PORT', '8080')}/v1"
+            )
             kw["api_key"] = "not-needed"
         llm = LiteLlm(**kw)
 

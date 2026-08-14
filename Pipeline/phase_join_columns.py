@@ -1,11 +1,14 @@
 import json
+import os
 import re
 import time
+import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence
 
 import pandas as pd
+from google.adk.runners import InMemoryRunner
 
 from Agent.join_column_fallback import (
     build_fallback_attempts,
@@ -13,6 +16,7 @@ from Agent.join_column_fallback import (
     evaluate_fuzzy_join_health,
     evaluate_similarity_gate,
 )
+from Agent.join_column_selection_agent import build_join_column_choose_agent
 from tools.column_descriptions import (
     get_column_descriptions_from_index,
     get_column_descriptions_from_local_metadata,
@@ -22,7 +26,55 @@ from tools.join_column_tool import column_profile
 from tools.sketch import _normalize_for_hash, bottom_k_sketch_column_with_samples, get_candidate_table
 
 from Pipeline.context import PipelineContext
-from Pipeline.utils import extract_json_by_key_from_full_text, first_non_empty_rows
+from Pipeline.utils import close_runner_safely, extract_json_by_key_from_full_text, first_non_empty_rows
+
+
+async def _run_joincol_fresh(config: Any, prompt: str) -> List[Any]:
+    """One-shot JoinColumn agent with a fresh session (no history carryover)."""
+    runner = InMemoryRunner(agent=build_join_column_choose_agent(config=config))
+    try:
+        return await runner.run_debug(
+            prompt,
+            quiet=True,
+            session_id=f"joincol_{uuid.uuid4().hex[:12]}",
+        )
+    finally:
+        await close_runner_safely(runner)
+
+
+def _join_profile_batch_size() -> int:
+    """How many candidate column profiles to send per JoinColumnChooseAgent call."""
+    try:
+        return max(1, int(os.environ.get("JOIN_COLUMN_PROFILE_BATCH_SIZE", "12")))
+    except Exception:
+        return 12
+
+
+def _slim_profile(profile: Dict[str, Any], *, max_samples: int = 3, max_desc: int = 80, max_sample_chars: int = 48) -> Dict[str, Any]:
+    """Shrink column profiles so local 8k/16k vLLM contexts can fit wide tables."""
+    out: Dict[str, Any] = {
+        "column_name": profile.get("column_name"),
+        "dtype_guess": profile.get("dtype_guess"),
+        "non_null_ratio": profile.get("non_null_ratio"),
+        "uniqueness_ratio": profile.get("uniqueness_ratio"),
+        "pattern_tags": profile.get("pattern_tags") or [],
+    }
+    samples = profile.get("sample_values") or profile.get("samples") or []
+    slim_samples: List[str] = []
+    for v in list(samples)[:max_samples]:
+        s = "" if v is None else str(v)
+        slim_samples.append(s if len(s) <= max_sample_chars else (s[:max_sample_chars] + "..."))
+    out["sample_values"] = slim_samples
+    desc = str(profile.get("description") or "")
+    if desc:
+        out["description"] = desc if len(desc) <= max_desc else (desc[:max_desc] + "...")
+    return out
+
+
+def _chunked(items: Sequence[Any], size: int) -> List[List[Any]]:
+    if size <= 0:
+        size = 12
+    return [list(items[i : i + size]) for i in range(0, len(items), size)]
 
 
 def _filter_candidate_df_by_sketch_keys(
@@ -53,7 +105,6 @@ def _filter_candidate_df_by_sketch_keys(
 async def run_join_columns(ctx: PipelineContext) -> None:
     config = ctx.config
     phase_cfg = ((config.config or {}).get("pipeline_thresholds", {}) or {}).get("join", {})
-    joincol_runner = ctx.state["joincol_runner"]
     relevant_list = ctx.state.get("relevant_list", []) or []
     domain_for_fetch = ctx.state.get("domain_for_fetch")
     query_table_description = ctx.state.get("query_table_description", "")
@@ -116,49 +167,75 @@ async def run_join_columns(ctx: PipelineContext) -> None:
         cand_col_descs = get_column_descriptions_from_index(cand_name)
         candidate_profiles = []
         for col in df.columns:
-            p = column_profile(df[col], n_samples=5)
+            p = column_profile(df[col], n_samples=3)
             p["description"] = cand_col_descs.get(col, "")
-            candidate_profiles.append(p)
+            candidate_profiles.append(_slim_profile(p))
+
+        q_desc = str(query_table_description or "")
+        if len(q_desc) > 600:
+            q_desc = q_desc[:600] + "...[truncated]"
+        slim_query_profiles = {
+            jc: _slim_profile(query_profiles[jc]) for jc in join_columns if jc in query_profiles
+        }
+        profile_batches = _chunked(candidate_profiles, _join_profile_batch_size())
 
         top5_by_join_col: Dict[str, List[str]] = {}
         for jc in join_columns:
-            step1_payload = {
-                "task_mode": "profile_top5",
-                "candidate_table": cand_name,
-                "query_join_column": jc,
-                "query_join_column_description": join_col_descs.get(jc, ""),
-                "query_table_description": query_table_description,
-                "query_join_column_profile": query_profiles.get(jc, {}),
-                "candidate_column_profiles": candidate_profiles,
-                "topk": topk_candidates,
-            }
-            step1_prompt = (
-                "Select top5 possible join columns by profile only. "
-                "Return JSON with key top5_candidates.\n"
-                f"input: {json.dumps(step1_payload, ensure_ascii=False)}"
-            )
-            try:
-                events = await joincol_runner.run_debug(step1_prompt, quiet=True)
-                full_text = ""
-                for event in events:
-                    if getattr(event, "content", None) and getattr(event.content, "parts", None):
-                        for part in event.content.parts:
-                            t = getattr(part, "text", None)
-                            if t:
-                                full_text += t
-                step1_json = extract_json_by_key_from_full_text(full_text, "top5_candidates", prefer_non_empty_list=True)
-                raw_top5 = step1_json.get("top5_candidates", []) or []
-                normalized_top5: List[str] = []
-                for item in raw_top5:
-                    if isinstance(item, str):
-                        normalized_top5.append(item)
-                    elif isinstance(item, dict):
-                        name = item.get("name") or item.get("column_name")
-                        if name:
-                            normalized_top5.append(str(name))
-                top5_by_join_col[jc] = normalized_top5[:5]
-            except Exception:
-                top5_by_join_col[jc] = []
+            merged_top: List[str] = []
+            seen: set = set()
+            for bi, batch in enumerate(profile_batches):
+                step1_payload = {
+                    "task_mode": "profile_top5",
+                    "candidate_table": cand_name,
+                    "query_join_column": jc,
+                    "query_join_column_description": str(join_col_descs.get(jc, "") or "")[:200],
+                    "query_table_description": q_desc,
+                    "query_join_column_profile": slim_query_profiles.get(jc, {}),
+                    "candidate_column_profiles": batch,
+                    "batch_index": bi,
+                    "batch_total": len(profile_batches),
+                    "topk": topk_candidates,
+                }
+                step1_prompt = (
+                    "Select top5 possible join columns by profile only from THIS BATCH. "
+                    "Return JSON with key top5_candidates.\n"
+                    f"input: {json.dumps(step1_payload, ensure_ascii=False, separators=(',', ':'))}"
+                )
+                try:
+                    print(
+                        f"[JoinColumns] profile_top5 {cand_name} jc={jc} "
+                        f"batch {bi + 1}/{len(profile_batches)} n={len(batch)} "
+                        f"prompt_chars={len(step1_prompt)} (fresh_runner)"
+                    )
+                    events = await _run_joincol_fresh(config, step1_prompt)
+                    full_text = ""
+                    for event in events:
+                        if getattr(event, "content", None) and getattr(event.content, "parts", None):
+                            for part in event.content.parts:
+                                t = getattr(part, "text", None)
+                                if t:
+                                    full_text += t
+                    step1_json = extract_json_by_key_from_full_text(
+                        full_text, "top5_candidates", prefer_non_empty_list=True
+                    )
+                    raw_top5 = step1_json.get("top5_candidates", []) or []
+                    for item in raw_top5:
+                        name = None
+                        if isinstance(item, str):
+                            name = item
+                        elif isinstance(item, dict):
+                            name = item.get("name") or item.get("column_name")
+                        if not name:
+                            continue
+                        name = str(name)
+                        if name in seen:
+                            continue
+                        seen.add(name)
+                        merged_top.append(name)
+                except Exception as e:
+                    print(f"[JoinColumns] profile_top5 batch failed: {e}")
+                    continue
+            top5_by_join_col[jc] = merged_top[:5]
 
         top5_profile[cand_name] = top5_by_join_col if len(join_columns) > 1 else top5_by_join_col.get(join_columns[0], [])
         candidate_cols_union: List[str] = []
@@ -190,7 +267,7 @@ async def run_join_columns(ctx: PipelineContext) -> None:
                 f"input: {json.dumps(step2_payload, ensure_ascii=False)}"
             )
             try:
-                events = await joincol_runner.run_debug(step2_prompt, quiet=True)
+                events = await _run_joincol_fresh(config, step2_prompt)
                 full_text = ""
                 for event in events:
                     if getattr(event, "content", None) and getattr(event.content, "parts", None):

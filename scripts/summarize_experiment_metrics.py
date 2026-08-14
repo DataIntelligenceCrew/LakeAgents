@@ -187,11 +187,16 @@ def summarize_file(
             }
             continue
 
-        improvements = [
-            float(v)
-            for r in ok_rows
-            if (v := _safe_float(r.get("improvement"))) is not None
-        ]
+        # Missing/None improvement on a successful row counts as 0 (include in mean/CI).
+        n_null_improvement = 0
+        improvements: list[float] = []
+        for r in ok_rows:
+            v = _safe_float(r.get("improvement"))
+            if v is None:
+                n_null_improvement += 1
+                improvements.append(0.0)
+            else:
+                improvements.append(float(v))
         improvement_ci = _bootstrap_mean_ci(
             improvements,
             confidence=improvement_ci_confidence,
@@ -220,6 +225,7 @@ def summarize_file(
             "improvement_ci_low": improvement_ci[0] if improvement_ci else None,
             "improvement_ci_high": improvement_ci[1] if improvement_ci else None,
             "n_used_for_improvement": len(improvements),
+            "n_null_improvement_as_zero": n_null_improvement,
             "average_total_token_input": statistics.mean(inputs) if inputs else None,
             "stdev_total_token_input": _sample_stdev(inputs) if inputs else None,
             "n_used_for_input_tokens": len(inputs),

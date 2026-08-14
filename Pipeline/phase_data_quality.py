@@ -1,10 +1,14 @@
 import json
+import os
 import time
-from typing import Any, Dict, List
+import uuid
+from typing import Any, Dict, List, Sequence
 
 import pandas as pd
+from google.adk.agents.run_config import RunConfig
 from google.adk.runners import InMemoryRunner
 
+from Agent.augment_column_selection_agent import build_augment_column_selection_agent
 from Agent.data_quality_agent import build_data_quality_agent
 from tools.column_descriptions import get_column_datatypes_from_index
 from tools.data_quality import apply_quality_actions, compute_table_quality_summary
@@ -21,6 +25,17 @@ from Pipeline.utils import (
 )
 
 
+def _dq_max_llm_calls(dq_cfg: Dict[str, Any]) -> int:
+    """Cap ADK LLM calls per DQ/coarse runner (ADK default is 500)."""
+    raw = os.environ.get("DQ_MAX_LLM_CALLS")
+    if raw is None or str(raw).strip() == "":
+        raw = dq_cfg.get("max_llm_calls", 40)
+    try:
+        return max(1, int(raw))
+    except Exception:
+        return 40
+
+
 def _infer_feature_type_for_coarse(series: pd.Series, metadata_datatype: str = "") -> str:
     md = (metadata_datatype or "").strip().lower()
     if md in ("number", "checkbox"):
@@ -30,6 +45,17 @@ def _infer_feature_type_for_coarse(series: pd.Series, metadata_datatype: str = "
     non_null = series.dropna()
     if non_null.empty:
         return "text"
+    # Count-like object columns (e.g. "0","1","2") are numerical for regression/classification.
+    sample = non_null.astype(str).head(30)
+    numeric_like = 0
+    for v in sample.tolist():
+        try:
+            float(str(v).replace(",", "").strip())
+            numeric_like += 1
+        except Exception:
+            pass
+    if len(sample) > 0 and (numeric_like / len(sample)) >= 0.8:
+        return "numerical"
     unique_non_null = non_null.astype(str).nunique()
     unique_ratio = unique_non_null / max(len(non_null), 1)
     if unique_non_null <= 20 or unique_ratio <= 0.05:
@@ -37,19 +63,46 @@ def _infer_feature_type_for_coarse(series: pd.Series, metadata_datatype: str = "
     return "text"
 
 
+def _coarse_is_protected_numerical(col_meta: Dict[str, Any]) -> bool:
+    """Numerical / number-typed columns must not be dropped at coarse stage."""
+    hint = str(col_meta.get("feature_type_hint") or "").strip().lower()
+    md = str(col_meta.get("metadata_datatype") or "").strip().lower()
+    return hint == "numerical" or md in ("number", "checkbox")
+
+
+
+
+
+def _chunked(items: Sequence[Any], size: int) -> List[List[Any]]:
+    if size <= 0:
+        size = 15
+    return [list(items[i : i + size]) for i in range(0, len(items), size)]
+
+
+def _coarse_batch_size() -> int:
+    try:
+        return max(1, int(os.environ.get("COARSE_FEATURE_BATCH_SIZE", "15")))
+    except Exception:
+        return 15
+
+
 async def run_data_quality(ctx: PipelineContext) -> None:
     config = ctx.config
     dq_cfg = ((config.config or {}).get("pipeline_thresholds", {}) or {}).get("data_quality", {})
     coarse_preselect_topk = int(dq_cfg.get("coarse_preselect_topk", 20))
     coarse_input_max_cols = int(dq_cfg.get("coarse_input_max_cols", 80))
-    augment_runner = ctx.state["augment_runner"]
+    dq_max_llm_calls = _dq_max_llm_calls(dq_cfg if isinstance(dq_cfg, dict) else {})
+    dq_run_config = RunConfig(max_llm_calls=dq_max_llm_calls)
     final_selected_tables = ctx.state.get("final_selected_tables", []) or []
     domain_for_fetch = ctx.state.get("domain_for_fetch")
     join_columns = ctx.state.get("join_columns", [])
     join_sketch_original_values = ctx.state.get("join_sketch_original_values")
     query_table_description = ctx.state.get("query_table_description", "")
 
-    print("\n🧹 Running Data Quality Agent...")
+    print(
+        f"\n🧹 Running Data Quality Agent (compact tool-round context, "
+        f"max_llm_calls={dq_max_llm_calls}/table)..."
+    )
     decision_log = ctx.state.get("decision_log", {})
     phase_log: Dict[str, Any] = {
         "selected": [],
@@ -111,7 +164,12 @@ async def run_data_quality(ctx: PipelineContext) -> None:
         try:
             # Use one fresh runner per candidate table to avoid cross-table context carryover.
             data_quality_runner = InMemoryRunner(agent=build_data_quality_agent(config=config))
-            events = await data_quality_runner.run_debug(dq_prompt, quiet=True)
+            events = await data_quality_runner.run_debug(
+                dq_prompt,
+                quiet=True,
+                session_id=f"dq_{uuid.uuid4().hex[:12]}",
+                run_config=dq_run_config,
+            )
             full_text = ""
             for event in events:
                 if getattr(event, "content", None) and getattr(event.content, "parts", None):
@@ -125,6 +183,12 @@ async def run_data_quality(ctx: PipelineContext) -> None:
                 column_actions = [a for a in raw_actions if isinstance(a, dict) and a.get("column")]
             dq_reasoning = str(parsed.get("reasoning", "") or "")
         except Exception as e:
+            err_name = type(e).__name__
+            if "LlmCallsLimit" in err_name or "LlmCallsLimit" in str(e):
+                print(
+                    f"[DataQuality] {cand_name}: hit max_llm_calls={dq_max_llm_calls}; "
+                    "continuing with empty column_actions / hard rules only"
+                )
             dq_reasoning = f"dq agent failed: {e}"
         finally:
             await close_runner_safely(data_quality_runner)
@@ -218,51 +282,143 @@ async def run_data_quality(ctx: PipelineContext) -> None:
             s = cand_df_coarse[col]
             non_null = int(s.notna().sum())
             unique_non_null = int(s.dropna().astype(str).nunique()) if non_null > 0 else 0
+            desc = str(candidate_descs.get(col, "") or "")
+            if len(desc) > 80:
+                desc = desc[:80] + "..."
+            examples = [str(v)[:40] for v in first_non_empty_values(s, n=3)]
             candidate_columns.append(
                 {
                     "feature": col,
-                    "description": candidate_descs.get(col, ""),
+                    "description": desc,
                     "metadata_datatype": candidate_datatypes.get(col, "unknown"),
                     "feature_type_hint": _infer_feature_type_for_coarse(s, candidate_datatypes.get(col, "unknown")),
                     "non_null_ratio": round(float(non_null / max(len(s), 1)), 4),
                     "unique_ratio": round(float(unique_non_null / max(non_null, 1)) if non_null > 0 else 0.0, 4),
-                    "example_values": first_non_empty_values(s, n=5),
+                    "example_values": examples,
                 }
             )
-        coarse_prompt = f"""
-task_mode: "coarse_screen"
-task_type: "{ctx.task_type}"
-target_column: "{ctx.target_column}"
-user_intent: "{ctx.user_intent}"
-candidate_table: "{cand_name}"
-query_table_description: "{query_table_description}"
-max_candidates: {coarse_preselect_topk}
-candidate_columns: {json.dumps(candidate_columns, ensure_ascii=False, indent=2)}
-
-Select a coarse candidate set BEFORE correlation. Return JSON with coarse_selected_columns and reasoning.
-"""
+        q_desc = str(query_table_description or "")
+        if len(q_desc) > 600:
+            q_desc = q_desc[:600] + "...[truncated]"
         coarse_selected: List[str] = []
-        coarse_reasoning = ""
-        try:
-            events = await augment_runner.run_debug(coarse_prompt, quiet=True)
-            full_text = ""
-            for event in events:
-                if getattr(event, "content", None) and getattr(event.content, "parts", None):
-                    for part in event.content.parts:
-                        t = getattr(part, "text", None)
-                        if t:
-                            full_text += t
-            parsed = extract_json_by_key_from_full_text(full_text, "coarse_selected_columns", prefer_non_empty_list=True)
-            coarse_selected = normalize_augment_column_list(parsed.get("coarse_selected_columns", []))
-            coarse_reasoning = str(parsed.get("reasoning", "") or "")
-        except Exception as e:
-            coarse_reasoning = f"coarse screen agent failed: {e}"
+        coarse_reason_parts: List[str] = []
+        seen_sel: set = set()
+        for bi, batch in enumerate(_chunked(candidate_columns, _coarse_batch_size())):
+            coarse_prompt = (
+                f'task_mode: "coarse_screen"\n'
+                f'task_type: "{ctx.task_type}"\n'
+                f'target_column: "{ctx.target_column}"\n'
+                f'user_intent: "{ctx.user_intent}"\n'
+                f'candidate_table: "{cand_name}"\n'
+                f'query_table_description: "{q_desc}"\n'
+                f"max_candidates: {coarse_preselect_topk}\n"
+                f"batch_index: {bi}\n"
+                f"batch_total: {len(_chunked(candidate_columns, _coarse_batch_size()))}\n"
+                f"candidate_columns: {json.dumps(batch, ensure_ascii=False, separators=(',', ':'))}\n\n"
+                "Prune THIS BATCH by deleting unnecessary columns (you decide which). "
+                "Return JSON with dropped_columns, coarse_selected_columns (kept remainder = batch minus dropped), and reasoning.\n"
+                "Execution keeps (batch - dropped_columns); do not omit kept columns from the remainder.\n"
+                "HARD RULE for coarse_screen: NEVER drop a column whose feature_type_hint is 'numerical' "
+                "or metadata_datatype is 'number'/'checkbox'. Demographic count breakdowns "
+                "(age/gender/race totals) that are numerical MUST be kept; do not call them categorical.\n"
+            )
+            try:
+                print(
+                    f"[CoarseScreen] {cand_name} batch {bi + 1} "
+                    f"n={len(batch)} prompt_chars={len(coarse_prompt)} (fresh_runner)"
+                )
+                coarse_runner = InMemoryRunner(agent=build_augment_column_selection_agent(config))
+                try:
+                    events = await coarse_runner.run_debug(
+                        coarse_prompt,
+                        quiet=True,
+                        session_id=f"coarse_{uuid.uuid4().hex[:12]}",
+                        run_config=dq_run_config,
+                    )
+                finally:
+                    await close_runner_safely(coarse_runner)
+                full_text = ""
+                for event in events:
+                    if getattr(event, "content", None) and getattr(event.content, "parts", None):
+                        for part in event.content.parts:
+                            t = getattr(part, "text", None)
+                            if t:
+                                full_text += t
+                batch_names = [str(x.get("feature")) for x in batch if x.get("feature")]
+                batch_name_set = set(batch_names)
+                batch_meta = {
+                    str(x.get("feature")): x
+                    for x in batch
+                    if isinstance(x, dict) and x.get("feature")
+                }
+                protected_num = {
+                    name
+                    for name, meta in batch_meta.items()
+                    if _coarse_is_protected_numerical(meta)
+                }
+                # Deletion-first: keep = batch - dropped (empty dropped => keep all in batch).
+                parsed_drop = extract_json_by_key_from_full_text(
+                    full_text, "dropped_columns", prefer_non_empty_list=False
+                )
+                if "dropped_columns" in parsed_drop:
+                    dropped = set(normalize_augment_column_list(parsed_drop.get("dropped_columns", [])))
+                    dropped &= batch_name_set
+                    # Guardrail: never drop numerical/number columns at coarse stage.
+                    blocked = dropped & protected_num
+                    if blocked:
+                        print(
+                            f"[CoarseScreen] {cand_name} batch {bi + 1}: "
+                            f"restore {len(blocked)} numerical drops (LLM override blocked)"
+                        )
+                        dropped -= blocked
+                    batch_sel = [c for c in batch_names if c not in dropped]
+                    parsed = parsed_drop
+                else:
+                    # Fallback if model omitted dropped_columns.
+                    parsed = extract_json_by_key_from_full_text(
+                        full_text, "coarse_selected_columns", prefer_non_empty_list=True
+                    )
+                    batch_sel = [
+                        c
+                        for c in normalize_augment_column_list(parsed.get("coarse_selected_columns", []))
+                        if c in batch_name_set
+                    ]
+                    # Ensure protected numerical columns are present even if whitelist omitted them.
+                    for name in batch_names:
+                        if name in protected_num and name not in batch_sel:
+                            batch_sel.append(name)
+                    if not batch_sel:
+                        batch_sel = list(batch_names)
+                for c in batch_sel:
+                    if c not in seen_sel:
+                        seen_sel.add(c)
+                        coarse_selected.append(c)
+                reason = str(parsed.get("reasoning", "") or "")
+                if reason:
+                    coarse_reason_parts.append(reason)
+            except Exception as e:
+                coarse_reason_parts.append(f"batch {bi} failed: {e}")
+        coarse_reasoning = " | ".join(coarse_reason_parts)
         if not coarse_selected:
+            # Only when every batch failed/returned nothing: soft quality fallback + soft topk.
             fallback_sorted = sorted(candidate_columns, key=lambda x: (x.get("non_null_ratio", 0.0), x.get("unique_ratio", 0.0)), reverse=True)
             coarse_selected = [x["feature"] for x in fallback_sorted[:coarse_preselect_topk]]
         coarse_selected = [
             c for c in coarse_selected if c in cand_df_coarse.columns and c not in selected_cols
-        ][:coarse_preselect_topk]
+        ]
+        # Soft topk: only truncate when far above the soft bound (deletion-first default keeps remainder).
+        # Prefer keeping numerical columns if truncation is required.
+        soft_cap = max(int(coarse_preselect_topk) * 3, int(coarse_preselect_topk))
+        if len(coarse_selected) > soft_cap:
+            meta_by_name = {str(x.get("feature")): x for x in candidate_columns if x.get("feature")}
+            num_first = [c for c in coarse_selected if _coarse_is_protected_numerical(meta_by_name.get(c, {}))]
+            other = [c for c in coarse_selected if c not in set(num_first)]
+            ordered = num_first + other
+            print(
+                f"[CoarseScreen] {cand_name} kept={len(coarse_selected)} > soft_cap={soft_cap}; "
+                f"truncating with numerical-first (n_num={len(num_first)})"
+            )
+            coarse_selected = ordered[:soft_cap]
         tbl["coarse_selected_columns"] = coarse_selected
         tbl["coarse_screen_reasoning"] = coarse_reasoning
         keep_cols = list(dict.fromkeys(selected_cols + coarse_selected))
@@ -272,6 +428,7 @@ Select a coarse candidate set BEFORE correlation. Return JSON with coarse_select
             "coarse_selected_columns": coarse_selected,
             "reasoning": coarse_reasoning,
             "input_columns": len(candidate_columns),
+            "mode": "deletion_first_keep_remainder",
         }
         excluded_coarse = [x["feature"] for x in candidate_columns if x.get("feature") not in coarse_selected]
         for col in coarse_selected:

@@ -56,16 +56,16 @@ def classify_column_type(
         return "numerical"
     if is_text_meta:
         return "text"
-    return "ignore"
 
-    # No metadata or unknown: fallback to heuristic for backward compatibility
+    # No metadata or unknown: fallback to heuristic (was previously unreachable
+    # dead code after `return "ignore"`, which dropped high-cardinality SCORE
+    # columns when opendata_table_index.json lacked columns_datatype).
     if pd.api.types.is_numeric_dtype(series):
         return "numerical"
     if series.dtype == "object":
         converted = pd.to_numeric(series, errors="coerce")
         if converted.notna().sum() / max(len(series), 1) >= 0.5:
             return "numerical"
-        return "text"
     return "ignore"
 
 
@@ -155,7 +155,7 @@ def convert_numeric_columns(
     # #region agent log
     try:
         import json as _json; _ts = __import__('time').time_ns() // 1000000
-        with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D0","timestamp":_ts,"location":"aggregation.py:82","message":"dtypes before convert_numeric_columns","data":{"dtypes":{col:str(dtype) for col,dtype in df.dtypes.items()}},"hypothesisId":"D"}) + '\n')
+        with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D0","timestamp":_ts,"location":"aggregation.py:82","message":"dtypes before convert_numeric_columns","data":{"dtypes":{col:str(dtype) for col,dtype in df.dtypes.items()}},"hypothesisId":"D"}) + '\n')
     except OSError:
         pass
     # #endregion
@@ -176,7 +176,7 @@ def convert_numeric_columns(
     # #region agent log
     try:
         import json as _json; _ts = __import__('time').time_ns() // 1000000
-        with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D0b","timestamp":_ts,"location":"aggregation.py:99","message":"dtypes after convert_numeric_columns","data":{"dtypes":{col:str(dtype) for col,dtype in df_converted.dtypes.items()}},"hypothesisId":"D"}) + '\n')
+        with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D0b","timestamp":_ts,"location":"aggregation.py:99","message":"dtypes after convert_numeric_columns","data":{"dtypes":{col:str(dtype) for col,dtype in df_converted.dtypes.items()}},"hypothesisId":"D"}) + '\n')
     except OSError:
         pass
     # #endregion
@@ -362,7 +362,7 @@ def aggregate_candidate_by_join_key(
         
         # #region agent log
         import json as _json; _ts = __import__('time').time_ns() // 1000000
-        with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D2","timestamp":_ts,"location":"aggregation.py:264","message":"num_agg dtypes after groupby","data":{"table_id":table_id,"join_columns":join_columns,"dtypes":{col:str(dtype) for col,dtype in num_agg.dtypes.items()}},"hypothesisId":"D,E"}) + '\n')
+        with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D2","timestamp":_ts,"location":"aggregation.py:264","message":"num_agg dtypes after groupby","data":{"table_id":table_id,"join_columns":join_columns,"dtypes":{col:str(dtype) for col,dtype in num_agg.dtypes.items()}},"hypothesisId":"D,E"}) + '\n')
         # #endregion
         
         results_to_merge.append(num_agg)
@@ -375,7 +375,7 @@ def aggregate_candidate_by_join_key(
         
         # #region agent log
         import json as _json; _ts = __import__('time').time_ns() // 1000000
-        with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D3","timestamp":_ts,"location":"aggregation.py:275","message":"cat_agg dtypes after categorical aggregation","data":{"table_id":table_id,"cat_col":cat_col,"join_columns":join_columns,"dtypes":{col:str(dtype) for col,dtype in cat_agg.dtypes.items()}},"hypothesisId":"D,E"}) + '\n')
+        with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D3","timestamp":_ts,"location":"aggregation.py:275","message":"cat_agg dtypes after categorical aggregation","data":{"table_id":table_id,"cat_col":cat_col,"join_columns":join_columns,"dtypes":{col:str(dtype) for col,dtype in cat_agg.dtypes.items()}},"hypothesisId":"D,E"}) + '\n')
         # #endregion
         
         results_to_merge.append(cat_agg)
@@ -421,7 +421,7 @@ def aggregate_candidate_by_join_key(
     
     # #region agent log
     import json as _json; _ts = __import__('time').time_ns() // 1000000
-    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D1","timestamp":_ts,"location":"aggregation.py:307","message":"result dtypes after first merge","data":{"table_id":table_id,"join_columns":join_columns,"dtypes":{col:str(dtype) for col,dtype in result.dtypes.items()}},"hypothesisId":"D,E"}) + '\n')
+    with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D1","timestamp":_ts,"location":"aggregation.py:307","message":"result dtypes after first merge","data":{"table_id":table_id,"join_columns":join_columns,"dtypes":{col:str(dtype) for col,dtype in result.dtypes.items()}},"hypothesisId":"D,E"}) + '\n')
     # #endregion
     
     for df_to_merge in results_to_merge[1:]:
@@ -429,7 +429,7 @@ def aggregate_candidate_by_join_key(
     
     # #region agent log
     import json as _json; _ts = __import__('time').time_ns() // 1000000
-    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D4","timestamp":_ts,"location":"aggregation.py:328","message":"result dtypes after all merges","data":{"table_id":table_id,"join_columns":join_columns,"dtypes":{col:str(dtype) for col,dtype in result.dtypes.items()}},"hypothesisId":"D,E"}) + '\n')
+    with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D4","timestamp":_ts,"location":"aggregation.py:328","message":"result dtypes after all merges","data":{"table_id":table_id,"join_columns":join_columns,"dtypes":{col:str(dtype) for col,dtype in result.dtypes.items()}},"hypothesisId":"D,E"}) + '\n')
     # #endregion
 
     # 5. LLM summarization (bottom-5 by correlation -> select 2 -> summarize)
@@ -510,7 +510,7 @@ def aggregate_candidate_by_join_key(
     
     # #region agent log
     import json as _json; _ts = __import__('time').time_ns() // 1000000
-    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D5","timestamp":_ts,"location":"aggregation.py:340","message":"final result dtypes before return","data":{"table_id":table_id,"join_columns":join_columns,"dtypes":{col:str(dtype) for col,dtype in result.dtypes.items()}},"hypothesisId":"D,E"}) + '\n')
+    with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_D5","timestamp":_ts,"location":"aggregation.py:340","message":"final result dtypes before return","data":{"table_id":table_id,"join_columns":join_columns,"dtypes":{col:str(dtype) for col,dtype in result.dtypes.items()}},"hypothesisId":"D,E"}) + '\n')
     # #endregion
 
     return result
@@ -593,7 +593,7 @@ def aggregate_selected_tables(
         try:
             # #region agent log
             import json as _json; _ts = __import__('time').time_ns() // 1000000
-            with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_E1","timestamp":_ts,"location":"aggregation.py:375","message":"cand_df dtypes before aggregation","data":{"candidate_table":cand_name,"selected_cols":selected_cols,"dtypes":{col:str(dtype) for col,dtype in cand_df[selected_cols].dtypes.items() if col in cand_df.columns}},"hypothesisId":"D,E"}) + '\n')
+            with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_E1","timestamp":_ts,"location":"aggregation.py:375","message":"cand_df dtypes before aggregation","data":{"candidate_table":cand_name,"selected_cols":selected_cols,"dtypes":{col:str(dtype) for col,dtype in cand_df[selected_cols].dtypes.items() if col in cand_df.columns}},"hypothesisId":"D,E"}) + '\n')
             # #endregion
             
             agg_df = aggregate_candidate_by_join_key(
@@ -611,7 +611,7 @@ def aggregate_selected_tables(
             
             # #region agent log
             import json as _json; _ts = __import__('time').time_ns() // 1000000
-            with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_E2","timestamp":_ts,"location":"aggregation.py:383","message":"agg_df dtypes after aggregation, before rename","data":{"candidate_table":cand_name,"selected_cols":selected_cols,"query_join_columns":query_join_columns,"dtypes":{col:str(dtype) for col,dtype in agg_df.dtypes.items()}},"hypothesisId":"D,E"}) + '\n')
+            with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_E2","timestamp":_ts,"location":"aggregation.py:383","message":"agg_df dtypes after aggregation, before rename","data":{"candidate_table":cand_name,"selected_cols":selected_cols,"query_join_columns":query_join_columns,"dtypes":{col:str(dtype) for col,dtype in agg_df.dtypes.items()}},"hypothesisId":"D,E"}) + '\n')
             # #endregion
             
             if query_join_columns and len(selected_cols) == len(query_join_columns):
@@ -620,7 +620,7 @@ def aggregate_selected_tables(
                 
                 # #region agent log
                 import json as _json; _ts = __import__('time').time_ns() // 1000000
-                with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_E3","timestamp":_ts,"location":"aggregation.py:393","message":"agg_df dtypes after rename","data":{"candidate_table":cand_name,"rename_map":rename_map,"dtypes":{col:str(dtype) for col,dtype in agg_df.dtypes.items()}},"hypothesisId":"E"}) + '\n')
+                with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_E3","timestamp":_ts,"location":"aggregation.py:393","message":"agg_df dtypes after rename","data":{"candidate_table":cand_name,"rename_map":rename_map,"dtypes":{col:str(dtype) for col,dtype in agg_df.dtypes.items()}},"hypothesisId":"E"}) + '\n')
                 # #endregion
             results.append({
                 "candidate_table": cand_name,
@@ -675,7 +675,7 @@ def aggregate_target_by_join_key(
     
     # #region agent log
     import json as _json; _ts = __import__('time').time_ns() // 1000000
-    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_M2","timestamp":_ts,"location":"aggregation.py:428","message":"before classify target column","data":{"target_column":target_column,"base_dir":base_dir,"join_table_folder":join_table_folder,"column_datatypes":column_datatypes,"target_in_datatypes":target_column in (column_datatypes or {})},"hypothesisId":"M"}) + '\n')
+    with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_M2","timestamp":_ts,"location":"aggregation.py:428","message":"before classify target column","data":{"target_column":target_column,"base_dir":base_dir,"join_table_folder":join_table_folder,"column_datatypes":column_datatypes,"target_in_datatypes":target_column in (column_datatypes or {})},"hypothesisId":"M"}) + '\n')
     # #endregion
 
     target_type = classify_column_type(
@@ -684,7 +684,7 @@ def aggregate_target_by_join_key(
     
     # #region agent log
     import json as _json; _ts = __import__('time').time_ns() // 1000000
-    with open('/localdisk3/ytang49/opendata/.cursor/debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_M3","timestamp":_ts,"location":"aggregation.py:437","message":"after classify target column","data":{"target_column":target_column,"target_type":target_type},"hypothesisId":"M"}) + '\n')
+    with open('/fs/ess/PDS0349/fangzy96/bear/.cache/cursor_debug.log', 'a') as _f: _f.write(_json.dumps({"id":f"log_{_ts}_M3","timestamp":_ts,"location":"aggregation.py:437","message":"after classify target column","data":{"target_column":target_column,"target_type":target_type},"hypothesisId":"M"}) + '\n')
     # #endregion
 
     if target_type == "numerical":

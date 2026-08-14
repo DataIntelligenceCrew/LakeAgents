@@ -1,5 +1,6 @@
 # augment_column_selection_agent.py 
 
+import os
 from typing import Optional
 from pathlib import Path
 from google.adk.agents import Agent
@@ -33,7 +34,10 @@ def build_augment_column_selection_agent(config=None) -> Agent:
     else:
         kw = {"model": model_name}
         if provider == "local":
-            kw["api_base"] = "http://localhost:8080/v1"
+            kw["api_base"] = (
+                os.environ.get("OPENAI_API_BASE")
+                or f"http://localhost:{os.environ.get('VLLM_PORT', '8080')}/v1"
+            )
             kw["api_key"] = "not-needed"
         llm = LiteLlm(**kw)
     

@@ -1,7 +1,7 @@
 {
   "resource": {
     "name": "COVID-19 Chicago",
-    "id": "naz8-j4nc",
+    "id": "local-covid-chicago-query",
     "resource_name": null,
     "parent_fxf": [],
     "description": "NOTE: This dataset is retired and maintained for historical reference only.\n\nIt includes confirmed COVID-19 cases, deaths, and first hospitalizations among Chicago residents, recorded by specimen collection date, date of death, or first hospitalization date.\n\nRecent hospitalization data may be incomplete due to reporting delays, and all counts are provisional and subject to revision.\n\nDifferences from other sources may result from varying definitions, reporting practices, and date assignment methods.\n\nData Source: Illinois National Electronic Disease Surveillance System and Cook County Medical Examiner's Office.",
@@ -128,7 +128,7 @@
       },
       {
         "key": "Metadata_Changes-and-Other-Historical-Information-Useful-to-Understanding-This-Dataset",
-        "value": "https://www.google.com/search?as_q=\"Related+dataset+ID+s\"+\"naz8-j4nc\"+inurl:stories&as_sitesearch=data.cityofchicago.org"
+        "value": "https://www.google.com/search?as_q=\"Related+dataset+ID+s\"+\"local-covid-chicago-query\"+inurl:stories&as_sitesearch=data.cityofchicago.org"
       }
     ]
   },
@@ -136,8 +136,8 @@
     "domain": "data.cityofchicago.org",
     "license": "See Terms of Use"
   },
-  "permalink": "https://data.cityofchicago.org/d/naz8-j4nc",
-  "link": "https://data.cityofchicago.org/Health-Human-Services/COVID-19-Daily-Cases-Deaths-and-Hospitalizations-H/naz8-j4nc",
+  "permalink": "local://query_table/COVID-Chicago/local-covid-chicago-query",
+  "link": "local://query_table/COVID-Chicago/local-covid-chicago-query",
   "owner": {
     "id": "vewm-vupz",
     "user_type": "interactive",

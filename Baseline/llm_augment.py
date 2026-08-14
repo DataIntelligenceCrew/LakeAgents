@@ -3,6 +3,7 @@ LLM-based augment: suggest columns, then generate values per join_key.
 Uses Google ADK Agent (no search tool). Outputs rows_llm.csv and metadata_llm.json.
 Supports config provider: gemini, openai, local.
 """
+import os
 import json
 import re
 from pathlib import Path
@@ -93,7 +94,10 @@ def _build_llm_for_agent(config: AgentPipelineConfig, agent_name: str = "utility
         return LiteLlm(model=model_name)
     kw = {"model": model_name}
     if provider == "local":
-        kw["api_base"] = "http://localhost:8080/v1"
+        kw["api_base"] = (
+                os.environ.get("OPENAI_API_BASE")
+                or f"http://localhost:{os.environ.get('VLLM_PORT', '8080')}/v1"
+            )
         kw["api_key"] = "not-needed"
     return LiteLlm(**kw)
 

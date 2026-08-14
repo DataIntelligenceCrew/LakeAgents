@@ -165,6 +165,9 @@ pipeline_thresholds:
   data_quality:
     coarse_preselect_topk: 20
     coarse_input_max_cols: 80
+    # Per-candidate ADK RunConfig.max_llm_calls (env DQ_MAX_LLM_CALLS overrides).
+    # ADK default is 500; 4o-mini can burn through that on hard tables.
+    max_llm_calls: 40
   augment:
     top_corr_k: 5
     bottom_corr_k: 5
